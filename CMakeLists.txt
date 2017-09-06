@@ -8,13 +8,19 @@ set(CMAKE_CXX_STANDARD 17)
 set(SOURCE_FILES src/main.cpp)
 add_executable(VulkanEngine ${SOURCE_FILES})
 
+find_package(PkgConfig REQUIRED)
+pkg_search_module(GLFW REQUIRED glfw3)
+include_directories(${GLFW_INCLUDE_DIRS})
+target_link_libraries(VulkanEngine ${GLFW_STATIC_LIBRARIES})
+
+
 #Finding and linking GLFW3
 
-find_package(GLFW3 3.2 REQUIRED)
-if (GLFW3_FOUND)
-    include_directories(${GLFW3_INCLUDE_DIRS})
-    target_link_libraries (VulkanEngine ${GLFW3_LIBRARIES})
-endif (GLFW3_FOUND)
+#find_package(GLFW3 3.2 REQUIRED)
+#if (GLFW3_FOUND)
+#    include_directories(${GLFW3_INCLUDE_DIRS})
+#    target_link_libraries (VulkanEngine ${GLFW3_LIBRARIES})
+#endif (GLFW3_FOUND)
 
 #Finding and linking Vulkan
 
