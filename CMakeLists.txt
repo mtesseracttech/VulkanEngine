@@ -14,12 +14,12 @@ find_package(PkgConfig REQUIRED)
 
 #Finding and linking GLFW3
 
-pkg_search_module(GLFW 3.2 REQUIRED glfw3)
-if(GLFW_FOUND)
+pkg_search_module(GLFW3 3.2 REQUIRED glfw3)
+if(GLFW3_FOUND)
     MESSAGE(STATUS "Found GLFW, Including and Linking now")
-    include_directories(${GLFW_INCLUDE_DIRS})
-    target_link_libraries(VulkanEngine ${GLFW_STATIC_LIBRARIES})
-endif(GLFW_FOUND)
+    include_directories(${GLFW3_INCLUDE_DIRS})
+    target_link_libraries(VulkanEngine ${GLFW3_STATIC_LIBRARIES})
+endif(GLFW3 _FOUND)
 
 
 #Finding and linking Vulkan
