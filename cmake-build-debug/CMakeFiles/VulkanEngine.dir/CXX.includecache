@@ -1,0 +1,18 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/mtesseract/dev/cpp/VulkanEngine/src/main.cpp
+iostream
+-
+vulkan/vulkan.h
+-
+GLFW/glfw3.h
+-
+glm/glm.hpp
+-
+

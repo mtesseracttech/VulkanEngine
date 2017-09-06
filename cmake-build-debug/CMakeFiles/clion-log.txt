@@ -1,0 +1,5 @@
+"/Users/mtesseract/Library/Application Support/JetBrains/Toolbox/apps/CLion/ch-0/172.3544.40/CLion.app/Contents/bin/cmake/bin/cmake" -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/mtesseract/dev/cpp/VulkanEngine
+-- Could NOT find Vulkan (missing:  Vulkan_LIBRARY) 
+-- Configuring done
+-- Generating done
+-- Build files have been written to: /Users/mtesseract/dev/cpp/VulkanEngine/cmake-build-debug
