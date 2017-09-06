@@ -1,4 +1,3 @@
-
 # Find Vulkan
 #
 # VULKAN_INCLUDE_DIR
@@ -35,6 +34,9 @@ elseif (APPLE)
     find_library(VULKAN_STATIC_LIBRARY MoltenVK)
     find_path(VULKAN_INCLUDE_DIR NAMES vulkan/vulkan.h HINTS
             "${VULKAN_LIBRARY}/Headers")
+
+    #NOT PRETTY BUT A TEMP SOLUTION
+    set(VULKAN_INCLUDE_DIR "/usr/local/include/MoltenVK")
 else()
     find_path(VULKAN_INCLUDE_DIR NAMES vulkan/vulkan.h HINTS
             "$ENV{VULKAN_SDK}/include")
