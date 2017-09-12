@@ -12,9 +12,14 @@
 #include <stdexcept>
 #include <functional>
 #include <vector>
+#include <cstring>
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
+
+const std::vector<const char*> validationLayers = {
+        "VK_LAYER_LUNARG_standard_validation"
+};
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -49,38 +54,66 @@ private:
         m_window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
     }
 
+    //Checks if all the extensions that GLFW asks for are actually supplied by vulkan
     bool CheckExtensions(const std::vector<VkExtensionProperties> p_vkExtensions,
                          const char ** p_glfwReqExtensions, unsigned int p_glfwReqExtLength)
     {
-        std::vector<std::string> missingExtensions;
         for (int i = 0; i < p_glfwReqExtLength; ++i)
         {
             bool found = false;
-            for (const auto &extension : p_vkExtensions)
+            for (const auto &vkExtension : p_vkExtensions)
             {
-                if(strcmp(p_glfwReqExtensions[i], extension.extensionName) == 0)
+                if(strcmp(p_glfwReqExtensions[i], vkExtension.extensionName) == 0)
                 {
                     found = true;
                     break;
                 }
             }
-            if(!found) missingExtensions.push_back(std::string(p_glfwReqExtensions[i]));
+            if(!found){
+                return false;
+            }
         }
-
-        if(missingExtensions.size() > 0)
-        {
-            std::string errorString("failed to create instance! Missing the following extensions:");
-            for(auto &missingExtension : missingExtensions) errorString += (missingExtension + "\n");
-            throw std::runtime_error(errorString);
-        }
-        else
-        {
-            std::cout << "Found all required extensions!" << std::endl;
-        }
+        return true;
     }
 
+    //Checks if the requested validation layers are present
+    bool CheckValidationLayerSupport()
+    {
+        uint32_t layerCount;
+        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+
+        std::vector<VkLayerProperties> availableLayers(layerCount);
+        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+
+        for (const char* layerName : validationLayers)
+        {
+            bool layerFound = false;
+
+            for (const auto& layerProperties : availableLayers)
+            {
+                if (strcmp(layerName, layerProperties.layerName) == 0)
+                {
+                    layerFound = true;
+                    break;
+                }
+            }
+
+            if (!layerFound)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    //Creates the Vulkan Instance and does some checks to make sure the environment is suitable
     void CreateInstance()
     {
+        if (enableValidationLayers && !CheckValidationLayerSupport())
+        {
+            throw std::runtime_error("validation layers requested, but not available!");
+        }
+
         //Vulkan Application Info
         VkApplicationInfo appInfo = {};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
