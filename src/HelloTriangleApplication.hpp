@@ -17,9 +17,21 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
+
+#ifdef _WIN32
 const std::vector<const char*> validationLayers = {
         "VK_LAYER_LUNARG_standard_validation"
 };
+#elif __unix__
+const std::vector<const char*> validationLayers = {
+        "VK_LAYER_LUNARG_standard_validation"
+};
+#elif __APPLE__
+const std::vector<const char*> validationLayers = {
+        "MoltenVK"
+};
+#endif
+
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
@@ -69,7 +81,8 @@ private:
                     break;
                 }
             }
-            if(!found){
+            if(!found)
+            {
                 return false;
             }
         }
@@ -127,6 +140,16 @@ private:
         VkInstanceCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
+
+        if (enableValidationLayers)
+        {
+            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+            createInfo.ppEnabledLayerNames = validationLayers.data();
+        }
+        else
+        {
+            createInfo.enabledLayerCount = 0;
+        }
 
         //Initializing container and counter for GLFW extensions
         unsigned int glfwExtensionCount = 0;
