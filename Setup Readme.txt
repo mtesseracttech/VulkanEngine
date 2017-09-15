@@ -72,7 +72,7 @@ Download FindVulkan.cmake from GFLW's Github (it includes a path for MoltenVK(fo
 
 Homebrew:
 brew update //Updates homebrew
-brew install glfw //Installs GLFW
+brew install glfw --HEAD //Installs GLFW based on the most recent commit (needed as longas GLFW isn't updated till 3.2.2)
 brew install glm //Installs GLM
 
 MoltenVK:

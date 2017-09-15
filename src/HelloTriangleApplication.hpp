@@ -13,215 +13,135 @@
 #include <functional>
 #include <vector>
 #include <cstring>
+#include <set>
+#include <algorithm>
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
 
-#ifdef _WIN32
 const std::vector<const char*> validationLayers = {
         "VK_LAYER_LUNARG_standard_validation"
 };
-#elif __unix__
-const std::vector<const char*> validationLayers = {
-        "VK_LAYER_LUNARG_standard_validation"
+
+const std::vector<const char*> deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
-#elif __APPLE__
-const std::vector<const char*> validationLayers = {
-        "MoltenVK"
-};
-#endif
+
 
 
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
+const bool displayDebugInfo = false;
 #else
 const bool enableValidationLayers = true;
+const bool displayDebugInfo = true;
 #endif
+
+VkResult CreateDebugReportCallbackEXT(VkInstance instance,
+                                      const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
+                                      const VkAllocationCallbacks* pAllocator,
+                                      VkDebugReportCallbackEXT* pCallback);
+
+void DestroyDebugReportCallbackEXT(VkInstance instance,
+                                   VkDebugReportCallbackEXT callback,
+                                   const VkAllocationCallbacks* pAllocator);
+
+struct QueueFamilyIndices
+{
+    int graphicsFamily = -1;
+    int presentFamily = -1;
+
+    bool isComplete() {
+        return (graphicsFamily >= 0 && presentFamily >= 0);
+    }
+};
+
+struct SwapChainSupportDetails
+{
+    VkSurfaceCapabilitiesKHR capabilities;
+    std::vector<VkSurfaceFormatKHR> formats;
+    std::vector<VkPresentModeKHR> presentModes;
+};
+
+
 
 class HelloTriangleApplication
 {
 public:
-    void Run()
-    {
-        InitWindow();
-        InitVulkan();
-        MainLoop();
-        Cleanup();
-    }
+    void Run();
 
 private:
-    GLFWwindow *m_window;
+    //GLFW
+    GLFWwindow * m_window;
+
+    //Other
     VkInstance m_instance;
+    VkDebugReportCallbackEXT m_callback;
+    VkSurfaceKHR m_surface;
 
-    void InitWindow()
-    {
-        //Initializes GLFW Library
-        glfwInit();
-        //Makes GLFW not create an OpenGL context
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        //Makes the GLFW window non-resizable
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-        //Creates GLFW window
-        m_window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
-    }
+    //Devices
+    VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
+    VkDevice m_device;
 
-    //Checks if all the extensions that GLFW asks for are actually supplied by vulkan
-    bool CheckExtensions(const std::vector<VkExtensionProperties> p_vkExtensions,
-                         const char ** p_glfwReqExtensions, unsigned int p_glfwReqExtLength)
-    {
-        for (int i = 0; i < p_glfwReqExtLength; ++i)
-        {
-            bool found = false;
-            for (const auto &vkExtension : p_vkExtensions)
-            {
-                if(strcmp(p_glfwReqExtensions[i], vkExtension.extensionName) == 0)
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if(!found)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+    //Queues
+    VkQueue m_graphicsQueue;
+    VkQueue m_presentQueue;
 
-    //Checks if the requested validation layers are present
-    bool CheckValidationLayerSupport()
-    {
-        uint32_t layerCount;
-        vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
+    //Swap Chain Related
+    VkSwapchainKHR m_swapChain;
+    std::vector<VkImage> m_swapChainImages;
+    VkFormat m_swapChainImageFormat;
+    VkExtent2D m_swapChainExtent;
+    std::vector<VkImageView> m_swapChainImageViews;
 
-        std::vector<VkLayerProperties> availableLayers(layerCount);
-        vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+    //Run methods
+    void InitWindow();
+    void InitVulkan();
+    void MainLoop();
+    void Cleanup();
 
-        for (const char* layerName : validationLayers)
-        {
-            bool layerFound = false;
+    //Vulkan init methods
+    void CreateInstance();
+    void SetupDebugCallback();
+    void CreateSurface();
+    void PickPhysicalDevice();
+    void CreateLogicalDevice();
+    void CreateSwapChain();
+    void CreateImageViews();
+    void CreateGraphicsPipeline();
 
-            for (const auto& layerProperties : availableLayers)
-            {
-                if (strcmp(layerName, layerProperties.layerName) == 0)
-                {
-                    layerFound = true;
-                    break;
-                }
-            }
+    //Extension Checking
+    bool CheckExtensions(const std::vector<VkExtensionProperties> p_vkExtensions, const char ** p_glfwReqExtensions, unsigned int p_glfwReqExtLength);
+    std::vector<const char*> GetRequiredExtensions();
 
-            if (!layerFound)
-            {
-                return false;
-            }
-        }
-        return true;
-    }
+    //Validation Layer Checking
+    bool CheckValidationLayerSupport();
 
-    //Creates the Vulkan Instance and does some checks to make sure the environment is suitable
-    void CreateInstance()
-    {
-        if (enableValidationLayers && !CheckValidationLayerSupport())
-        {
-            throw std::runtime_error("validation layers requested, but not available!");
-        }
+    //Device Checking
+    bool IsDeviceSuitable(VkPhysicalDevice p_device);
+    bool CheckDeviceExtensionSupport(VkPhysicalDevice p_device);
 
-        //Vulkan Application Info
-        VkApplicationInfo appInfo = {};
-        appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-        appInfo.pApplicationName = "Hello Triangle";
-        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.pEngineName = "No Engine";
-        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.apiVersion = VK_API_VERSION_1_0;
+    //Queue related methods
+    QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice p_device);
+    SwapChainSupportDetails QuerySwapChainSupport(VkPhysicalDevice p_device);
 
-        //Instance Creation Info
-        VkInstanceCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-        createInfo.pApplicationInfo = &appInfo;
+    //Swap Chain related methods
+    VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& p_availableFormats);
+    VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> p_availablePresentModes);
+    VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& p_capabilities);
 
-        if (enableValidationLayers)
-        {
-            createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-            createInfo.ppEnabledLayerNames = validationLayers.data();
-        }
-        else
-        {
-            createInfo.enabledLayerCount = 0;
-        }
 
-        //Initializing container and counter for GLFW extensions
-        unsigned int glfwExtensionCount = 0;
-        const char **glfwExtensions;
-
-        //Getting the info from GLFW
-        glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-        //Feeding them into the creation info
-        createInfo.enabledExtensionCount = glfwExtensionCount;
-        createInfo.ppEnabledExtensionNames = glfwExtensions;
-        createInfo.enabledLayerCount = 0;
-
-        //Creating the vkInstance
-        if (vkCreateInstance(&createInfo, nullptr, &m_instance) != VK_SUCCESS)
-        {
-            throw std::runtime_error("Failed to create instance!");
-        }
-        else
-        {
-            std::cout << "The Vulkan Instance was created correctly" << std::endl;
-        }
-
-        //Checks GLFW to make sure Vulkan is supported
-        std::cout << "Is Vulkan supported? " << (glfwVulkanSupported() == GLFW_TRUE ? "Yes" : "No") << std::endl;
-
-        //Getting the extensions that are available from Vulkan
-        unsigned int vkExtensionCount = 0;
-        vkEnumerateInstanceExtensionProperties(nullptr, &vkExtensionCount, nullptr);
-        std::vector<VkExtensionProperties> extensions(vkExtensionCount);
-        vkEnumerateInstanceExtensionProperties(nullptr, &vkExtensionCount, extensions.data());
-
-        //Printing the extensions that vulkan is exposing
-        std::cout << "Available Vulkan Extensions: " << vkExtensionCount << std::endl;
-        for (const auto &extension : extensions)
-        {
-            std::cout << "\t" << extension.extensionName << std::endl;
-        }
-
-        //Printing the extensions that GLFW requires
-        std::cout << "GLFW required extensions:" << std::endl;
-        for (int i = 0; i < glfwExtensionCount; i++)
-        {
-            std::cout << "\t" << glfwExtensions[i] << std::endl;
-        }
-
-        CheckExtensions(extensions, glfwExtensions, glfwExtensionCount);
-    }
-
-    void InitVulkan()
-    {
-        CreateInstance();
-    }
-
-    void MainLoop()
-    {
-        while (!glfwWindowShouldClose(m_window))
-        {
-            glfwPollEvents();
-        }
-    }
-
-    void Cleanup()
-    {
-        //Destroys the vk instance
-        vkDestroyInstance(m_instance, nullptr);
-        //Destroys the window and frees up the memory
-        glfwDestroyWindow(m_window);
-        //Terminates the GLFW Library
-        glfwTerminate();
-
-    }
+    //Debug Callbacks
+    static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+            VkDebugReportFlagsEXT flags,
+            VkDebugReportObjectTypeEXT objType,
+            uint64_t obj,
+            size_t location,
+            int32_t code,
+            const char* layerPrefix,
+            const char* msg,
+            void* userData);
 };
 
 #endif //VULKANENGINE_HELLOTRIANGLEAPPLICATION_HPP
