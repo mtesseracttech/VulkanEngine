@@ -1,6 +1,5 @@
 #include <iostream>
 #include "VulkanTriangle.hpp"
-#include <vulkan/vulkan.hpp>
 
 int main()
 {

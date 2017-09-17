@@ -21,6 +21,8 @@ public:
             throw std::runtime_error("failed to open file!");
         }
 
+        std::cout << "Found file: " << filename << ", Reading it now!" << std::endl;
+
         size_t fileSize = (size_t) file.tellg();
         std::vector<char> buffer(fileSize);
         file.seekg(0);

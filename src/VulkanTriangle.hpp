@@ -19,18 +19,24 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-
+#if defined(_WIN32)
 const std::vector<const char*> validationLayers = {
         "VK_LAYER_LUNARG_standard_validation"
 };
+#elif defined(__linux__)
+const std::vector<const char*> validationLayers = {
+        "VK_LAYER_LUNARG_standard_validation"
+};
+#else //No validation layers available
+const std::vector<const char*> validationLayers;
+#endif
+
 
 const std::vector<const char*> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
-
-
-#ifdef NDEBUG
+#if defined(NDEBUG) || defined(__APPLE__) //Because MoltenVK does not support validation layers yet
 const bool enableValidationLayers = false;
 const bool displayDebugInfo = false;
 #else
