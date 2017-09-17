@@ -3,7 +3,7 @@ project(VulkanEngine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES src/main.cpp src/HelloTriangleApplication.hpp src/HelloTriangleApplication.cpp)
+set(SOURCE_FILES src/main.cpp src/VulkanTriangle.hpp src/VulkanTriangle.cpp src/Utility.hpp)
 add_executable(VulkanEngine ${SOURCE_FILES})
 
 #Setting up PkgConfig

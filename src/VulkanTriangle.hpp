@@ -2,8 +2,8 @@
 // Created by MTesseracT on 07/09/2017.
 //
 
-#ifndef VULKANENGINE_HELLOTRIANGLEAPPLICATION_HPP
-#define VULKANENGINE_HELLOTRIANGLEAPPLICATION_HPP
+#ifndef VULKANENGINE_VULKANTRIANGLE_HPP
+#define VULKANENGINE_VULKANTRIANGLE_HPP
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
@@ -66,7 +66,7 @@ struct SwapChainSupportDetails
 
 
 
-class HelloTriangleApplication
+class VulkanTriangle
 {
 public:
     void Run();
@@ -95,6 +95,24 @@ private:
     VkExtent2D m_swapChainExtent;
     std::vector<VkImageView> m_swapChainImageViews;
 
+    //Render Pass Related
+    VkRenderPass m_renderPass;
+
+    //Pipeline
+    VkPipelineLayout m_pipelineLayout;
+    VkPipeline m_graphicsPipeline;
+
+    //Framebuffers
+    std::vector<VkFramebuffer> m_swapChainFramebuffers;
+
+    //Command pool
+    VkCommandPool m_commandPool;
+    std::vector<VkCommandBuffer> m_commandBuffers;
+
+    //Semaphores
+    VkSemaphore m_imageAvailableSemaphore;
+    VkSemaphore m_renderFinishedSemaphore;
+
     //Run methods
     void InitWindow();
     void InitVulkan();
@@ -109,7 +127,12 @@ private:
     void CreateLogicalDevice();
     void CreateSwapChain();
     void CreateImageViews();
+    void CreateRenderPass();
     void CreateGraphicsPipeline();
+    void CreateFramebuffers();
+    void CreateCommandPool();
+    void CreateCommandBuffers();
+    void CreateSemaphores();
 
     //Extension Checking
     bool CheckExtensions(const std::vector<VkExtensionProperties> p_vkExtensions, const char ** p_glfwReqExtensions, unsigned int p_glfwReqExtLength);
@@ -130,7 +153,17 @@ private:
     VkSurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& p_availableFormats);
     VkPresentModeKHR ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> p_availablePresentModes);
     VkExtent2D ChooseSwapExtent(const VkSurfaceCapabilitiesKHR& p_capabilities);
+    void CleanupSwapChain();
+    void RecreateSwapChain();
 
+    //Shader related
+    VkShaderModule CreateShaderModule(const std::vector<char> &code);
+
+    //Main Loop Functions
+    void DrawFrame();
+
+    //GLFW Related
+    static void OnWindowResized(GLFWwindow* window, int width, int height);
 
     //Debug Callbacks
     static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
@@ -144,4 +177,4 @@ private:
             void* userData);
 };
 
-#endif //VULKANENGINE_HELLOTRIANGLEAPPLICATION_HPP
+#endif //VULKANENGINE_VULKANTRIANGLE_HPP

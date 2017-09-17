@@ -1,9 +1,10 @@
 #include <iostream>
-#include "HelloTriangleApplication.hpp"
+#include "VulkanTriangle.hpp"
+#include <vulkan/vulkan.hpp>
 
 int main()
 {
-    HelloTriangleApplication app;
+    VulkanTriangle app;
 
     try
     {
