@@ -7,6 +7,7 @@
 
 #include <vulkan/vulkan.h>
 #include <GLFW/glfw3.h>
+#include <glm/glm.hpp>
 
 #include <iostream>
 #include <stdexcept>
@@ -15,6 +16,7 @@
 #include <cstring>
 #include <set>
 #include <algorithm>
+#include <array>
 
 const int WIDTH = 800;
 const int HEIGHT = 600;
@@ -52,6 +54,44 @@ VkResult CreateDebugReportCallbackEXT(VkInstance instance,
 void DestroyDebugReportCallbackEXT(VkInstance instance,
                                    VkDebugReportCallbackEXT callback,
                                    const VkAllocationCallbacks* pAllocator);
+
+
+struct Vertex
+{
+    glm::vec2 pos;
+    glm::vec3 color;
+
+    static VkVertexInputBindingDescription GetBindingDescription()
+    {
+        VkVertexInputBindingDescription bindingDescription = {};
+        bindingDescription.binding = 0;
+        bindingDescription.stride = sizeof(Vertex);
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        return bindingDescription;
+    }
+
+    static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
+    {
+        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].location = 0;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].offset = static_cast<uint32_t>(offsetof(Vertex, pos));
+
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].location = 1;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = static_cast<uint32_t >(offsetof(Vertex, color));
+
+        return attributeDescriptions;
+    }
+};
+
+const std::vector<Vertex> vertices = {
+        {{0.0f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 1.0f, 1.0f}},
+        {{-0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+};
 
 struct QueueFamilyIndices
 {
@@ -104,9 +144,13 @@ private:
     //Render Pass Related
     VkRenderPass m_renderPass;
 
-    //Pipeline
+    //Pipeline related
     VkPipelineLayout m_pipelineLayout;
     VkPipeline m_graphicsPipeline;
+
+    //Buffer related
+    VkBuffer m_vertexBuffer;
+    VkDeviceMemory m_vertexBufferMemory;
 
     //Framebuffers
     std::vector<VkFramebuffer> m_swapChainFramebuffers;
@@ -170,6 +214,10 @@ private:
 
     //GLFW Related
     static void OnWindowResized(GLFWwindow* window, int width, int height);
+
+    //Graphics Pipeline Related
+    void CreateVertexBuffer();
+    uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     //Debug Callbacks
     static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
