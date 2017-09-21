@@ -3,7 +3,7 @@ project(VulkanEngine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES src/main.cpp src/VulkanTriangle.hpp src/VulkanTriangle.cpp src/Utility.hpp)
+set(SOURCE_FILES src/main.cpp src/VulkanTriangle.hpp src/VulkanTriangle.cpp src/Utility.hpp src/Vulkan/VulkanEngine.cpp src/Vulkan/VulkanEngine.hpp src/Vulkan/GLFW/GlfwWindow.cpp src/Vulkan/GLFW/GlfwWindow.hpp src/Vulkan/VkObjects/VulkanInstance.cpp src/Vulkan/VkObjects/VulkanInstance.hpp src/Utility/Logger.hpp src/Utility/Timer.hpp src/Utility/Logger.cpp src/Vulkan/VkObjects/VulkanDebug.cpp src/Vulkan/VkObjects/VulkanDebug.hpp)
 add_executable(VulkanEngine ${SOURCE_FILES})
 
 #Setting up PkgConfig
