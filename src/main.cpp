@@ -1,7 +1,6 @@
 #include <iostream>
 #include "VulkanTriangle.hpp"
 #include "Utility/Logger.hpp"
-#include <glfw/glfw3.h>
 
 int main()
 {

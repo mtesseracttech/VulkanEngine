@@ -6,7 +6,7 @@
 #define VULKANENGINE_VULKANTRIANGLE_HPP
 
 #include <vulkan/vulkan.h>
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 #include <iostream>
@@ -27,7 +27,6 @@ const std::vector<const char*> validationLayers = {
 };
 #elif defined(__linux__)
 const std::vector<const char*> validationLayers = {
-        "VK_LAYER_LUNARG_standard_validation"
 };
 #else //No validation layers available
 const std::vector<const char*> validationLayers;
@@ -215,7 +214,8 @@ private:
     //GlfwObjects Related
     static void OnWindowResized(GLFWwindow* window, int width, int height);
 
-    //Graphics Pipeline Related
+    //Buffer Related
+    void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
     void CreateVertexBuffer();
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
