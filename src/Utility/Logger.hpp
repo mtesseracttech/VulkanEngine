@@ -42,7 +42,7 @@ public:
                 logger->PrintLog("INFO", p_message);
                 break;
             case LogError:
-                logger->PrintError("ERROR", p_message);
+                logger->PrintLog("ERROR", p_message);
                 break;
         }
     }

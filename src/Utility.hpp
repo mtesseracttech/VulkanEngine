@@ -9,6 +9,7 @@
 #include <string>
 #include <fstream>
 #include <exception>
+#include <iostream>
 
 class Utility
 {

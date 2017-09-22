@@ -6,7 +6,7 @@
 #define VULKANENGINE_VULKANTRIANGLE_HPP
 
 #include <vulkan/vulkan.h>
-#include <GLFW/glfw3.h>
+#include <glfw/glfw3.h>
 #include <glm/glm.hpp>
 
 #include <iostream>
@@ -118,7 +118,7 @@ public:
     void Run();
 
 private:
-    //GLFW
+    //GlfwObjects
     GLFWwindow * m_window;
 
     //Other
@@ -212,7 +212,7 @@ private:
     //Main Loop Functions
     void DrawFrame();
 
-    //GLFW Related
+    //GlfwObjects Related
     static void OnWindowResized(GLFWwindow* window, int width, int height);
 
     //Graphics Pipeline Related

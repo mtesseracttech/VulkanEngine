@@ -1,11 +1,14 @@
 #include <iostream>
 #include "VulkanTriangle.hpp"
-#include "Vulkan/VulkanEngine.hpp"
 #include "Utility/Logger.hpp"
+#include <glfw/glfw3.h>
 
 int main()
 {
+
+    /*
     VulkanEngine engine;
+
 
     try
     {
@@ -16,8 +19,8 @@ int main()
         Logger::Log(e.what(), LogType::LogError);
         return EXIT_FAILURE;
     }
+    */
 
-    /*
     VulkanTriangle app;
 
     try
@@ -30,5 +33,5 @@ int main()
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
-     */
+
 }

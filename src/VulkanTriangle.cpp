@@ -969,9 +969,9 @@ void VulkanTriangle::Cleanup()
     vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
     //Destroys the vk instance
     vkDestroyInstance(m_instance, nullptr);
-    //Destroys the GLFW window
+    //Destroys the GlfwObjects window
     glfwDestroyWindow(m_window);
-    //Stops the GLFW Library
+    //Stops the GlfwObjects Library
     glfwTerminate();
 }
 
