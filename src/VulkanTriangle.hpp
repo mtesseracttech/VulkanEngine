@@ -217,6 +217,7 @@ private:
     //Buffer Related
     void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
     void CreateVertexBuffer();
+    void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
     //Debug Callbacks
@@ -229,6 +230,8 @@ private:
             const char* layerPrefix,
             const char* msg,
             void* userData);
+
+
 };
 
 #endif //VULKANENGINE_VULKANTRIANGLE_HPP
