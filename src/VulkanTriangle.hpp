@@ -5,10 +5,18 @@
 #ifndef VULKANENGINE_VULKANTRIANGLE_HPP
 #define VULKANENGINE_VULKANTRIANGLE_HPP
 
+//Vulkan
 #include <vulkan/vulkan.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 
+//GLFW
+#include <GLFW/glfw3.h>
+
+//GLM Related
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+//STL/C libs
 #include <iostream>
 #include <stdexcept>
 #include <functional>
@@ -17,10 +25,19 @@
 #include <set>
 #include <algorithm>
 #include <array>
+#include <chrono>
 
+
+//Consts/temp magic numbers
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
+const std::vector<const char*> deviceExtensions = {
+        VK_KHR_SWAPCHAIN_EXTENSION_NAME
+};
+
+
+//Platform dependent consts
 #if defined(_WIN32)
 const std::vector<const char*> validationLayers = {
         "VK_LAYER_LUNARG_standard_validation"
@@ -33,17 +50,18 @@ const std::vector<const char*> validationLayers;
 #endif
 
 
-const std::vector<const char*> deviceExtensions = {
-        VK_KHR_SWAPCHAIN_EXTENSION_NAME
-};
+//Debug/release dependent consts
 
-#if defined(NDEBUG) || defined(__APPLE__) //Because MoltenVK does not support validation layers yet
+#if defined(NDEBUG)
 const bool enableValidationLayers = false;
 const bool displayDebugInfo = false;
 #else
 const bool enableValidationLayers = true;
 const bool displayDebugInfo = true;
 #endif
+
+
+//Globally accessible methods
 
 VkResult CreateDebugReportCallbackEXT(VkInstance instance,
                                       const VkDebugReportCallbackCreateInfoEXT* pCreateInfo,
@@ -54,6 +72,8 @@ void DestroyDebugReportCallbackEXT(VkInstance instance,
                                    VkDebugReportCallbackEXT callback,
                                    const VkAllocationCallbacks* pAllocator);
 
+
+//Data structs
 
 struct Vertex
 {
@@ -86,16 +106,11 @@ struct Vertex
     }
 };
 
-const std::vector<Vertex> vertices = {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
-        {{0.0f, -1.0f}, {0.3f, 0.0f, 0.52f}}
-};
-
-const std::vector<uint16_t> indices = {
-        0, 1, 2, 2, 3, 0, 0,1,4
+struct UniformBufferObject
+{
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
 };
 
 struct QueueFamilyIndices
@@ -115,6 +130,19 @@ struct SwapChainSupportDetails
     std::vector<VkPresentModeKHR> presentModes;
 };
 
+
+//Temp structs consts
+
+const std::vector<Vertex> vertices = {
+        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
+};
+
+const std::vector<uint16_t> indices = {
+        0, 1, 2, 2, 3, 0
+};
 
 
 class VulkanTriangle
@@ -150,22 +178,28 @@ private:
     VkRenderPass m_renderPass;
 
     //Pipeline related
+    VkDescriptorSetLayout m_descriptorSetLayout;
     VkPipelineLayout m_pipelineLayout;
     VkPipeline m_graphicsPipeline;
 
     //Buffer related
     VkBuffer m_vertexBuffer;
     VkDeviceMemory m_vertexBufferMemory;
+
     VkBuffer m_indexBuffer;
     VkDeviceMemory m_indexBufferMemory;
 
+    VkBuffer m_uniformBuffer;
+    VkDeviceMemory m_uniformBufferMemory;
 
     //Framebuffers
     std::vector<VkFramebuffer> m_swapChainFramebuffers;
 
-    //Command pool
+    //Command/Descriptor pool
     VkCommandPool m_commandPool;
     std::vector<VkCommandBuffer> m_commandBuffers;
+    VkDescriptorPool m_descriptorPool;
+    VkDescriptorSet m_descriptorSet;
 
     //Semaphores
     VkSemaphore m_imageAvailableSemaphore;
@@ -218,14 +252,24 @@ private:
     VkShaderModule CreateShaderModule(const std::vector<char> &code);
 
     //Main Loop Functions
+    void UpdateUniformBuffer();
     void DrawFrame();
 
-    //GlfwObjects Related
+    //Glfw Related
     static void OnWindowResized(GLFWwindow* window, int width, int height);
+
+    //Pipeline related
+    void CreateDescriptorSetLayout();
+
+
+    //Command Pool related
+    void CreateDescriptorPool();
 
     //Buffer Related
     void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
     void CreateVertexBuffer();
+    void CreateIndexBuffer();
+    void CreateUniformBuffer();
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
@@ -240,8 +284,7 @@ private:
             const char* msg,
             void* userData);
 
-
-    void CreateIndexBuffer();
+    void CreateDescriptorSet();
 };
 
 #endif //VULKANENGINE_VULKANTRIANGLE_HPP

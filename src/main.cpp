@@ -4,22 +4,6 @@
 
 int main()
 {
-
-    /*
-    VulkanEngine engine;
-
-
-    try
-    {
-        engine.Run();
-    }
-    catch(const std::runtime_error& e)
-    {
-        Logger::Log(e.what(), LogType::LogError);
-        return EXIT_FAILURE;
-    }
-    */
-
     VulkanTriangle app;
 
     try

@@ -3,10 +3,8 @@ project(VulkanEngine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES src/main.cpp src/VulkanTriangle.hpp src/VulkanTriangle.cpp src/Utility.hpp)
+set(SOURCE_FILES src/main.cpp src/VulkanTriangle.hpp src/VulkanTriangle.cpp src/Utility/Logger.cpp src/Utility/Logger.hpp src/Utility/ShaderUtils.hpp src/Utility/Timer.hpp)
 
-unset(SOURCE_FILES)
-file(GLOB_RECURSE SOURCE_FILES src/*.cpp)
 add_executable(VulkanEngine ${SOURCE_FILES})
 
 #Setting up PkgConfig

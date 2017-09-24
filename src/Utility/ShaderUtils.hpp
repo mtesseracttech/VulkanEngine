@@ -11,10 +11,10 @@
 #include <exception>
 #include <iostream>
 
-class Utility
+class ShaderUtils
 {
 public:
-    static std::vector<char> ReadFile(const std::string& filename)
+    static std::vector<char> ReadShader(const std::string& filename)
     {
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
