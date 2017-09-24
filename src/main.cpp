@@ -1,6 +1,7 @@
 #include <iostream>
 #include "VulkanTriangle.hpp"
-#include "Utility/Logger.hpp"
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
 
 int main()
 {

@@ -16,6 +16,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+//STB
+#include <stb_image.h>
+
 //STL/C libs
 #include <iostream>
 #include <stdexcept>
@@ -27,8 +30,12 @@
 #include <array>
 #include <chrono>
 
+//Custom Classes
+#include "Utility/ShaderUtils.hpp"
+
 
 //Consts/temp magic numbers
+
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
@@ -38,6 +45,7 @@ const std::vector<const char*> deviceExtensions = {
 
 
 //Platform dependent consts
+
 #if defined(_WIN32)
 const std::vector<const char*> validationLayers = {
         "VK_LAYER_LUNARG_standard_validation"
@@ -192,6 +200,10 @@ private:
     VkBuffer m_uniformBuffer;
     VkDeviceMemory m_uniformBufferMemory;
 
+    //Texture Creation
+    VkImage m_textureImage;
+    VkDeviceMemory m_textureImageMemory;
+
     //Framebuffers
     std::vector<VkFramebuffer> m_swapChainFramebuffers;
 
@@ -260,7 +272,7 @@ private:
 
     //Pipeline related
     void CreateDescriptorSetLayout();
-
+    void CreateDescriptorSet();
 
     //Command Pool related
     void CreateDescriptorPool();
@@ -284,7 +296,15 @@ private:
             const char* msg,
             void* userData);
 
-    void CreateDescriptorSet();
+    void CreateTextureImage();
+    void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+
+    VkCommandBuffer BeginSingleTimeCommands();
+    void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
+
+    void TransitionImageLayout(VkImage p_image, VkFormat p_format, VkImageLayout p_oldLayout, VkImageLayout p_newLayout);
+
+    void CopyBufferToImage(VkBuffer p_buffer, VkImage p_image, uint32_t p_width, uint32_t p_height);
 };
 
 #endif //VULKANENGINE_VULKANTRIANGLE_HPP
