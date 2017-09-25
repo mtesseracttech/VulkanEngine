@@ -153,7 +153,7 @@ const std::vector<uint16_t> indices = {
 };
 
 
-class VulkanTriangle
+class VulkanDrawer
 {
 public:
     void Run();
@@ -200,9 +200,11 @@ private:
     VkBuffer m_uniformBuffer;
     VkDeviceMemory m_uniformBufferMemory;
 
-    //Texture Creation
+    //Texture Related
     VkImage m_textureImage;
     VkDeviceMemory m_textureImageMemory;
+    VkImageView m_textureImageView;
+    VkSampler m_textureSampler;
 
     //Framebuffers
     std::vector<VkFramebuffer> m_swapChainFramebuffers;
@@ -276,6 +278,8 @@ private:
 
     //Command Pool related
     void CreateDescriptorPool();
+    VkCommandBuffer BeginSingleTimeCommands();
+    void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
 
     //Buffer Related
     void CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer &buffer, VkDeviceMemory &bufferMemory);
@@ -284,6 +288,18 @@ private:
     void CreateUniformBuffer();
     void CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
     uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+
+    //Texture Related
+    void CreateTextureImage();
+    void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+    void TransitionImageLayout(VkImage p_image, VkFormat p_format, VkImageLayout p_oldLayout, VkImageLayout p_newLayout);
+    void CopyBufferToImage(VkBuffer p_buffer, VkImage p_image, uint32_t p_width, uint32_t p_height);
+    void CreateTextureImageView();
+    void CreateTextureSampler();
+
+
+    //Other/Helper
+    VkImageView CreateImageView(VkImage image, VkFormat format);
 
     //Debug Callbacks
     static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
@@ -295,16 +311,6 @@ private:
             const char* layerPrefix,
             const char* msg,
             void* userData);
-
-    void CreateTextureImage();
-    void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-
-    VkCommandBuffer BeginSingleTimeCommands();
-    void EndSingleTimeCommands(VkCommandBuffer commandBuffer);
-
-    void TransitionImageLayout(VkImage p_image, VkFormat p_format, VkImageLayout p_oldLayout, VkImageLayout p_newLayout);
-
-    void CopyBufferToImage(VkBuffer p_buffer, VkImage p_image, uint32_t p_width, uint32_t p_height);
 };
 
 #endif //VULKANENGINE_VULKANTRIANGLE_HPP

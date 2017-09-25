@@ -1,11 +1,11 @@
 #include <iostream>
-#include "VulkanTriangle.hpp"
+#include "VulkanDrawer.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 int main()
 {
-    VulkanTriangle app;
+    VulkanDrawer app;
 
     try
     {

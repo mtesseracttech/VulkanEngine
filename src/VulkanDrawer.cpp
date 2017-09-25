@@ -2,7 +2,7 @@
 // Created by MTesseracT on 14-9-2017.
 //
 
-#include "VulkanTriangle.hpp"
+#include "VulkanDrawer.hpp"
 
 VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT *pCreateInfo,
                                       const VkAllocationCallbacks *pAllocator, VkDebugReportCallbackEXT *pCallback)
@@ -22,7 +22,8 @@ VkResult CreateDebugReportCallbackEXT(VkInstance instance, const VkDebugReportCa
 void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT callback,
                                    const VkAllocationCallbacks *pAllocator)
 {
-    auto func = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance, "vkDestroyDebugReportCallbackEXT");
+    auto func = (PFN_vkDestroyDebugReportCallbackEXT) vkGetInstanceProcAddr(instance,
+                                                                            "vkDestroyDebugReportCallbackEXT");
     if (func != nullptr)
     {
         func(instance, callback, pAllocator);
@@ -30,7 +31,7 @@ void DestroyDebugReportCallbackEXT(VkInstance instance, VkDebugReportCallbackEXT
 }
 
 
-void VulkanTriangle::Run()
+void VulkanDrawer::Run()
 {
     InitWindow();
     InitVulkan();
@@ -39,7 +40,7 @@ void VulkanTriangle::Run()
 }
 
 
-void VulkanTriangle::InitWindow()
+void VulkanDrawer::InitWindow()
 {
     glfwInit();
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -47,12 +48,12 @@ void VulkanTriangle::InitWindow()
 
     m_window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
     glfwSetWindowUserPointer(m_window, this);
-    glfwSetWindowSizeCallback(m_window, VulkanTriangle::OnWindowResized);
+    glfwSetWindowSizeCallback(m_window, VulkanDrawer::OnWindowResized);
 }
 
 
-bool VulkanTriangle::CheckExtensions(const std::vector<VkExtensionProperties> p_vkExtensions,
-                                     const char **p_glfwReqExtensions, unsigned int p_glfwReqExtLength)
+bool VulkanDrawer::CheckExtensions(const std::vector<VkExtensionProperties> p_vkExtensions,
+                                   const char **p_glfwReqExtensions, unsigned int p_glfwReqExtLength)
 {
     for (int i = 0; i < p_glfwReqExtLength; ++i)
     {
@@ -74,7 +75,7 @@ bool VulkanTriangle::CheckExtensions(const std::vector<VkExtensionProperties> p_
 }
 
 
-bool VulkanTriangle::CheckValidationLayerSupport()
+bool VulkanDrawer::CheckValidationLayerSupport()
 {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -104,7 +105,7 @@ bool VulkanTriangle::CheckValidationLayerSupport()
 }
 
 
-void VulkanTriangle::CreateInstance()
+void VulkanDrawer::CreateInstance()
 {
     if (enableValidationLayers && !CheckValidationLayerSupport())
     {
@@ -144,7 +145,7 @@ void VulkanTriangle::CreateInstance()
 }
 
 
-std::vector<const char *> VulkanTriangle::GetRequiredExtensions()
+std::vector<const char *> VulkanDrawer::GetRequiredExtensions()
 {
     std::vector<const char *> extensions;
 
@@ -175,7 +176,7 @@ std::vector<const char *> VulkanTriangle::GetRequiredExtensions()
 }
 
 
-void VulkanTriangle::PickPhysicalDevice()
+void VulkanDrawer::PickPhysicalDevice()
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(m_instance, &deviceCount, nullptr);
@@ -204,7 +205,7 @@ void VulkanTriangle::PickPhysicalDevice()
 }
 
 
-bool VulkanTriangle::IsDeviceSuitable(VkPhysicalDevice p_device)
+bool VulkanDrawer::IsDeviceSuitable(VkPhysicalDevice p_device)
 {
     QueueFamilyIndices indices = FindQueueFamilies(p_device);
     bool extensionsSupported = CheckDeviceExtensionSupport(p_device);
@@ -216,11 +217,14 @@ bool VulkanTriangle::IsDeviceSuitable(VkPhysicalDevice p_device)
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
-    return indices.isComplete() && extensionsSupported && swapChainAdequate;
+    VkPhysicalDeviceFeatures supportedFeatures;
+    vkGetPhysicalDeviceFeatures(p_device, &supportedFeatures);
+
+    return indices.isComplete() && extensionsSupported && swapChainAdequate && supportedFeatures.samplerAnisotropy;
 }
 
 
-bool VulkanTriangle::CheckDeviceExtensionSupport(VkPhysicalDevice p_device)
+bool VulkanDrawer::CheckDeviceExtensionSupport(VkPhysicalDevice p_device)
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(p_device, nullptr, &extensionCount, nullptr);
@@ -240,7 +244,7 @@ bool VulkanTriangle::CheckDeviceExtensionSupport(VkPhysicalDevice p_device)
 }
 
 
-void VulkanTriangle::CreateLogicalDevice()
+void VulkanDrawer::CreateLogicalDevice()
 {
     QueueFamilyIndices indices = FindQueueFamilies(m_physicalDevice);
 
@@ -258,7 +262,9 @@ void VulkanTriangle::CreateLogicalDevice()
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
+    //Here features are requested from the GPU
     VkPhysicalDeviceFeatures deviceFeatures = {};
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
 
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -291,7 +297,7 @@ void VulkanTriangle::CreateLogicalDevice()
 }
 
 
-QueueFamilyIndices VulkanTriangle::FindQueueFamilies(VkPhysicalDevice p_device)
+QueueFamilyIndices VulkanDrawer::FindQueueFamilies(VkPhysicalDevice p_device)
 {
     QueueFamilyIndices indices;
 
@@ -329,7 +335,7 @@ QueueFamilyIndices VulkanTriangle::FindQueueFamilies(VkPhysicalDevice p_device)
 }
 
 
-void VulkanTriangle::CreateSurface()
+void VulkanDrawer::CreateSurface()
 {
     if (glfwCreateWindowSurface(m_instance, m_window, nullptr, &m_surface) != VK_SUCCESS)
     {
@@ -338,7 +344,7 @@ void VulkanTriangle::CreateSurface()
 }
 
 
-void VulkanTriangle::InitVulkan()
+void VulkanDrawer::InitVulkan()
 {
     CreateInstance();
     SetupDebugCallback();
@@ -353,6 +359,8 @@ void VulkanTriangle::InitVulkan()
     CreateFramebuffers();
     CreateCommandPool();
     CreateTextureImage();
+    CreateTextureImageView();
+    CreateTextureSampler();
     CreateVertexBuffer();
     CreateIndexBuffer();
     CreateUniformBuffer();
@@ -363,7 +371,7 @@ void VulkanTriangle::InitVulkan()
 }
 
 
-void VulkanTriangle::SetupDebugCallback()
+void VulkanDrawer::SetupDebugCallback()
 {
     if (!enableValidationLayers) return;
 
@@ -379,7 +387,7 @@ void VulkanTriangle::SetupDebugCallback()
 }
 
 
-void VulkanTriangle::MainLoop()
+void VulkanDrawer::MainLoop()
 {
     while (!glfwWindowShouldClose(m_window))
     {
@@ -393,14 +401,14 @@ void VulkanTriangle::MainLoop()
 }
 
 
-VkBool32 VulkanTriangle::DebugCallback(VkDebugReportFlagsEXT flags,
-                                       VkDebugReportObjectTypeEXT objType,
-                                       uint64_t obj,
-                                       size_t location,
-                                       int32_t code,
-                                       const char *layerPrefix,
-                                       const char *msg,
-                                       void *userData)
+VkBool32 VulkanDrawer::DebugCallback(VkDebugReportFlagsEXT flags,
+                                     VkDebugReportObjectTypeEXT objType,
+                                     uint64_t obj,
+                                     size_t location,
+                                     int32_t code,
+                                     const char *layerPrefix,
+                                     const char *msg,
+                                     void *userData)
 {
 
     std::cerr << "validation layer: " << msg << std::endl;
@@ -409,7 +417,7 @@ VkBool32 VulkanTriangle::DebugCallback(VkDebugReportFlagsEXT flags,
 }
 
 
-SwapChainSupportDetails VulkanTriangle::QuerySwapChainSupport(VkPhysicalDevice p_device)
+SwapChainSupportDetails VulkanDrawer::QuerySwapChainSupport(VkPhysicalDevice p_device)
 {
     SwapChainSupportDetails details;
 
@@ -438,7 +446,7 @@ SwapChainSupportDetails VulkanTriangle::QuerySwapChainSupport(VkPhysicalDevice p
 
 
 VkSurfaceFormatKHR
-VulkanTriangle::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &p_availableFormats)
+VulkanDrawer::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &p_availableFormats)
 {
     //Primary Choice
     if (p_availableFormats.size() == 1 && p_availableFormats[0].format == VK_FORMAT_UNDEFINED)
@@ -465,7 +473,7 @@ VulkanTriangle::ChooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &p
 //Mailbox = Triple buffer (low latency and no screen tear, so the best)
 //Immediate = No buffering, chance on screen tear high
 VkPresentModeKHR
-VulkanTriangle::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> p_availablePresentModes)
+VulkanDrawer::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> p_availablePresentModes)
 {
     VkPresentModeKHR bestMode = VK_PRESENT_MODE_FIFO_KHR;
 
@@ -484,7 +492,7 @@ VulkanTriangle::ChooseSwapPresentMode(const std::vector<VkPresentModeKHR> p_avai
 }
 
 
-VkExtent2D VulkanTriangle::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &p_capabilities)
+VkExtent2D VulkanDrawer::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &p_capabilities)
 {
     if (p_capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
     {
@@ -510,7 +518,7 @@ VkExtent2D VulkanTriangle::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR &p_ca
 }
 
 
-void VulkanTriangle::CreateSwapChain()
+void VulkanDrawer::CreateSwapChain()
 {
     SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(m_physicalDevice);
 
@@ -571,36 +579,18 @@ void VulkanTriangle::CreateSwapChain()
 }
 
 
-void VulkanTriangle::CreateImageViews()
+void VulkanDrawer::CreateImageViews()
 {
     m_swapChainImageViews.resize(m_swapChainImages.size());
 
-    for (size_t i = 0; i < m_swapChainImages.size(); i++)
+    for (uint32_t i = 0; i < m_swapChainImages.size(); i++)
     {
-        VkImageViewCreateInfo createInfo = {};
-        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = m_swapChainImages[i];
-        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = m_swapChainImageFormat;
-        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        createInfo.subresourceRange.baseMipLevel = 0;
-        createInfo.subresourceRange.levelCount = 1;
-        createInfo.subresourceRange.baseArrayLayer = 0;
-        createInfo.subresourceRange.layerCount = 1;
-
-        if (vkCreateImageView(m_device, &createInfo, nullptr, &m_swapChainImageViews[i]) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create image views!");
-        }
+        m_swapChainImageViews[i] = CreateImageView(m_swapChainImages[i], m_swapChainImageFormat);
     }
 }
 
 
-void VulkanTriangle::CreateGraphicsPipeline()
+void VulkanDrawer::CreateGraphicsPipeline()
 {
     auto vertShaderCode = ShaderUtils::ReadShader("../shaders/vert.spv");
     auto fragShaderCode = ShaderUtils::ReadShader("../shaders/frag.spv");
@@ -739,7 +729,7 @@ void VulkanTriangle::CreateGraphicsPipeline()
 }
 
 
-VkShaderModule VulkanTriangle::CreateShaderModule(const std::vector<char> &code)
+VkShaderModule VulkanDrawer::CreateShaderModule(const std::vector<char> &code)
 {
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -755,7 +745,7 @@ VkShaderModule VulkanTriangle::CreateShaderModule(const std::vector<char> &code)
     return shaderModule;
 }
 
-void VulkanTriangle::CreateRenderPass()
+void VulkanDrawer::CreateRenderPass()
 {
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format = m_swapChainImageFormat;
@@ -789,7 +779,7 @@ void VulkanTriangle::CreateRenderPass()
     }
 }
 
-void VulkanTriangle::CreateFramebuffers()
+void VulkanDrawer::CreateFramebuffers()
 {
     m_swapChainFramebuffers.resize(m_swapChainImageViews.size());
 
@@ -815,7 +805,7 @@ void VulkanTriangle::CreateFramebuffers()
     }
 }
 
-void VulkanTriangle::CreateCommandPool()
+void VulkanDrawer::CreateCommandPool()
 {
     QueueFamilyIndices queueFamilyIndices = FindQueueFamilies(m_physicalDevice);
 
@@ -830,7 +820,7 @@ void VulkanTriangle::CreateCommandPool()
     }
 }
 
-void VulkanTriangle::CreateCommandBuffers()
+void VulkanDrawer::CreateCommandBuffers()
 {
     m_commandBuffers.resize(m_swapChainFramebuffers.size());
 
@@ -875,7 +865,8 @@ void VulkanTriangle::CreateCommandBuffers()
 
         vkCmdBindVertexBuffers(m_commandBuffers[i], 0, 1, vertexBuffers, offsets);
         vkCmdBindIndexBuffer(m_commandBuffers[i], m_indexBuffer, 0, VK_INDEX_TYPE_UINT16);
-        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
+        vkCmdBindDescriptorSets(m_commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1,
+                                &m_descriptorSet, 0, nullptr);
 
         vkCmdDrawIndexed(m_commandBuffers[i], static_cast<uint32_t>(indices.size()), 1, 0, 0, 0);
 
@@ -888,7 +879,7 @@ void VulkanTriangle::CreateCommandBuffers()
     }
 }
 
-void VulkanTriangle::CreateSemaphores()
+void VulkanDrawer::CreateSemaphores()
 {
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -900,7 +891,7 @@ void VulkanTriangle::CreateSemaphores()
     }
 }
 
-void VulkanTriangle::DrawFrame()
+void VulkanDrawer::DrawFrame()
 {
     uint32_t imageIndex;
     VkResult result = vkAcquireNextImageKHR(m_device, m_swapChain, std::numeric_limits<uint64_t>::max(),
@@ -963,12 +954,16 @@ void VulkanTriangle::DrawFrame()
     vkQueueWaitIdle(m_presentQueue);
 }
 
-void VulkanTriangle::Cleanup()
+void VulkanDrawer::Cleanup()
 {
     //Removes the swapchain, is contained to be able to be called on window resize,
     //to create a new optimized swapchain
     CleanupSwapChain();
 
+    //Destroys the texture sampler
+    vkDestroySampler(m_device, m_textureSampler, nullptr);
+    //Destroys the Texture Image View
+    vkDestroyImageView(m_device, m_textureImageView, nullptr);
     //Destroys the image
     vkDestroyImage(m_device, m_textureImage, nullptr);
     vkFreeMemory(m_device, m_textureImageMemory, nullptr);
@@ -1003,7 +998,7 @@ void VulkanTriangle::Cleanup()
     glfwTerminate();
 }
 
-void VulkanTriangle::CleanupSwapChain()
+void VulkanDrawer::CleanupSwapChain()
 {
     //Destroys the frame buffers
     for (size_t i = 0; i < m_swapChainFramebuffers.size(); i++)
@@ -1024,7 +1019,7 @@ void VulkanTriangle::CleanupSwapChain()
     vkDestroySwapchainKHR(m_device, m_swapChain, nullptr);
 }
 
-void VulkanTriangle::RecreateSwapChain()
+void VulkanDrawer::RecreateSwapChain()
 {
     vkDeviceWaitIdle(m_device);
 
@@ -1038,15 +1033,15 @@ void VulkanTriangle::RecreateSwapChain()
     CreateCommandBuffers();
 }
 
-void VulkanTriangle::OnWindowResized(GLFWwindow *window, int width, int height)
+void VulkanDrawer::OnWindowResized(GLFWwindow *window, int width, int height)
 {
     if (width == 0 || height == 0) return;
 
-    VulkanTriangle *app = reinterpret_cast<VulkanTriangle *>(glfwGetWindowUserPointer(window));
+    VulkanDrawer *app = reinterpret_cast<VulkanDrawer *>(glfwGetWindowUserPointer(window));
     app->RecreateSwapChain();
 }
 
-void VulkanTriangle::CreateVertexBuffer()
+void VulkanDrawer::CreateVertexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(vertices[0]) * vertices.size();
 
@@ -1070,7 +1065,7 @@ void VulkanTriangle::CreateVertexBuffer()
     vkFreeMemory(m_device, stagingBufferMemory, nullptr);
 }
 
-void VulkanTriangle::CreateIndexBuffer()
+void VulkanDrawer::CreateIndexBuffer()
 {
     VkDeviceSize bufferSize = sizeof(indices[0]) * indices.size();
 
@@ -1094,7 +1089,7 @@ void VulkanTriangle::CreateIndexBuffer()
     vkFreeMemory(m_device, stagingBufferMemory, nullptr);
 }
 
-void VulkanTriangle::CreateUniformBuffer()
+void VulkanDrawer::CreateUniformBuffer()
 {
     VkDeviceSize bufferSize = sizeof(UniformBufferObject);
     CreateBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
@@ -1103,8 +1098,8 @@ void VulkanTriangle::CreateUniformBuffer()
 
 }
 
-void VulkanTriangle::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
-                                  VkBuffer &buffer, VkDeviceMemory &bufferMemory)
+void VulkanDrawer::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties,
+                                VkBuffer &buffer, VkDeviceMemory &bufferMemory)
 {
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -1133,7 +1128,7 @@ void VulkanTriangle::CreateBuffer(VkDeviceSize size, VkBufferUsageFlags usage, V
     vkBindBufferMemory(m_device, buffer, bufferMemory, 0);
 }
 
-void VulkanTriangle::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
+void VulkanDrawer::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
     VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -1146,7 +1141,7 @@ void VulkanTriangle::CopyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDevice
     EndSingleTimeCommands(commandBuffer);
 }
 
-uint32_t VulkanTriangle::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
+uint32_t VulkanDrawer::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties)
 {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(m_physicalDevice, &memProperties);
@@ -1163,7 +1158,7 @@ uint32_t VulkanTriangle::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFla
     throw std::runtime_error("Failed to find Suitable Memory Type!");
 }
 
-void VulkanTriangle::CreateDescriptorSetLayout()
+void VulkanDrawer::CreateDescriptorSetLayout()
 {
     VkDescriptorSetLayoutBinding uboLayoutBinding = {};
     uboLayoutBinding.binding = 0;
@@ -1183,16 +1178,28 @@ void VulkanTriangle::CreateDescriptorSetLayout()
     }
 }
 
-void VulkanTriangle::UpdateUniformBuffer()
+void VulkanDrawer::UpdateUniformBuffer()
 {
     static auto startTime = std::chrono::high_resolution_clock::now();
 
+    static float currentRotation = 0.0f;
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
 
+    float rotation = 0;
+
+    if(glfwGetKey(m_window, GLFW_KEY_A))
+    {
+        currentRotation += 0.001f;
+    }
+    else if(glfwGetKey(m_window, GLFW_KEY_D))
+    {
+        currentRotation -= 0.001f;
+    }
+
     UniformBufferObject ubo = {};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-    ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(glm::mat4(1.0f), currentRotation * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.view = glm::lookAt(glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / (float) m_swapChainExtent.height, 0.1f,
                                 10.0f);
     ubo.proj[1][1] *= -1;
@@ -1203,7 +1210,7 @@ void VulkanTriangle::UpdateUniformBuffer()
     vkUnmapMemory(m_device, m_uniformBufferMemory);
 }
 
-void VulkanTriangle::CreateDescriptorPool()
+void VulkanDrawer::CreateDescriptorPool()
 {
     VkDescriptorPoolSize poolSize = {};
     poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -1221,7 +1228,7 @@ void VulkanTriangle::CreateDescriptorPool()
     }
 }
 
-void VulkanTriangle::CreateDescriptorSet()
+void VulkanDrawer::CreateDescriptorSet()
 {
     VkDescriptorSetLayout layouts[] = {m_descriptorSetLayout};
     VkDescriptorSetAllocateInfo allocInfo = {};
@@ -1253,10 +1260,11 @@ void VulkanTriangle::CreateDescriptorSet()
     vkUpdateDescriptorSets(m_device, 1, &descriptorWrite, 0, nullptr);
 }
 
-void VulkanTriangle::CreateTextureImage()
+void VulkanDrawer::CreateTextureImage()
 {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("../resources/textures/checkers.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc *pixels = stbi_load("../resources/textures/checkers.png", &texWidth, &texHeight, &texChannels,
+                                STBI_rgb_alpha);
     VkDeviceSize imageSize = static_cast<VkDeviceSize>(texWidth * texHeight * 4);
 
     if (!pixels)
@@ -1267,28 +1275,37 @@ void VulkanTriangle::CreateTextureImage()
     VkBuffer stagingBuffer;
     VkDeviceMemory stagingBufferMemory;
 
-    CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingBufferMemory);
+    CreateBuffer(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                 VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer,
+                 stagingBufferMemory);
 
-    void* data;
+    void *data;
     vkMapMemory(m_device, stagingBufferMemory, 0, imageSize, 0, &data);
     memcpy(data, pixels, static_cast<size_t>(imageSize));
     vkUnmapMemory(m_device, stagingBufferMemory);
 
     stbi_image_free(pixels);
 
-    CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_textureImage, m_textureImageMemory);
+    CreateImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+                m_textureImage, m_textureImageMemory);
 
-    TransitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    TransitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_UNDEFINED,
+                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     CopyBufferToImage(stagingBuffer, m_textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight));
-    TransitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    TransitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-    TransitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    TransitionImageLayout(m_textureImage, VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vkDestroyBuffer(m_device, stagingBuffer, nullptr);
     vkFreeMemory(m_device, stagingBufferMemory, nullptr);
 }
 
-void VulkanTriangle::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
+void VulkanDrawer::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling,
+                               VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage &image,
+                               VkDeviceMemory &imageMemory)
 {
     VkImageCreateInfo imageInfo = {};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -1298,35 +1315,35 @@ void VulkanTriangle::CreateImage(uint32_t width, uint32_t height, VkFormat forma
     imageInfo.extent.depth = 1;
     imageInfo.mipLevels = 1;
     imageInfo.arrayLayers = 1;
-    imageInfo.format = VK_FORMAT_R8G8B8A8_UNORM;
-    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.format = format;
+    imageInfo.tiling = tiling;
     imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.usage = usage;
     imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-    imageInfo.flags = 0; // Optional
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-    if (vkCreateImage(m_device, &imageInfo, nullptr, &m_textureImage) != VK_SUCCESS)
+    if (vkCreateImage(m_device, &imageInfo, nullptr, &image) != VK_SUCCESS)
     {
-        throw std::runtime_error("Failed to Create Image!");
+        throw std::runtime_error("failed to create image!");
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(m_device, m_textureImage, &memRequirements);
+    vkGetImageMemoryRequirements(m_device, image, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-    if (vkAllocateMemory(m_device, &allocInfo, nullptr, &m_textureImageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(m_device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS)
+    {
         throw std::runtime_error("failed to allocate image memory!");
     }
 
-    vkBindImageMemory(m_device, m_textureImage, m_textureImageMemory, 0);
+    vkBindImageMemory(m_device, image, imageMemory, 0);
 }
 
-VkCommandBuffer VulkanTriangle::BeginSingleTimeCommands()
+VkCommandBuffer VulkanDrawer::BeginSingleTimeCommands()
 {
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -1346,7 +1363,7 @@ VkCommandBuffer VulkanTriangle::BeginSingleTimeCommands()
     return commandBuffer;
 }
 
-void VulkanTriangle::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
+void VulkanDrawer::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
 {
     vkEndCommandBuffer(commandBuffer);
 
@@ -1361,8 +1378,8 @@ void VulkanTriangle::EndSingleTimeCommands(VkCommandBuffer commandBuffer)
     vkFreeCommandBuffers(m_device, m_commandPool, 1, &commandBuffer);
 }
 
-void VulkanTriangle::TransitionImageLayout(VkImage p_image, VkFormat p_format, VkImageLayout p_oldLayout,
-                                           VkImageLayout newLayout)
+void VulkanDrawer::TransitionImageLayout(VkImage p_image, VkFormat p_format, VkImageLayout p_oldLayout,
+                                         VkImageLayout newLayout)
 {
     VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -1378,20 +1395,21 @@ void VulkanTriangle::TransitionImageLayout(VkImage p_image, VkFormat p_format, V
     barrier.subresourceRange.levelCount = 1;
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.layerCount = 1;
-    barrier.srcAccessMask = 0; // TODO
-    barrier.dstAccessMask = 0; // TODO
 
     VkPipelineStageFlags sourceStage;
     VkPipelineStageFlags destinationStage;
 
-    if (p_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
+    if (p_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
+    {
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 
         sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
         destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
-    else if (p_oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+    else if (p_oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL &&
+             newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
+    {
         barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
         barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
@@ -1415,7 +1433,7 @@ void VulkanTriangle::TransitionImageLayout(VkImage p_image, VkFormat p_format, V
     EndSingleTimeCommands(commandBuffer);
 }
 
-void VulkanTriangle::CopyBufferToImage(VkBuffer p_buffer, VkImage p_image, uint32_t p_width, uint32_t p_height)
+void VulkanDrawer::CopyBufferToImage(VkBuffer p_buffer, VkImage p_image, uint32_t p_width, uint32_t p_height)
 {
     VkCommandBuffer commandBuffer = BeginSingleTimeCommands();
 
@@ -1446,4 +1464,56 @@ void VulkanTriangle::CopyBufferToImage(VkBuffer p_buffer, VkImage p_image, uint3
     );
 
     EndSingleTimeCommands(commandBuffer);
+}
+
+void VulkanDrawer::CreateTextureImageView()
+{
+    m_textureImageView = CreateImageView(m_textureImage, VK_FORMAT_R8G8B8A8_UNORM);
+}
+
+
+VkImageView VulkanDrawer::CreateImageView(VkImage image, VkFormat format) {
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image = image;
+    viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format = format;
+    viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel = 0;
+    viewInfo.subresourceRange.levelCount = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount = 1;
+
+    VkImageView imageView;
+    if (vkCreateImageView(m_device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture image view!");
+    }
+
+    return imageView;
+}
+
+void VulkanDrawer::CreateTextureSampler()
+{
+    VkSamplerCreateInfo samplerInfo = {};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable = VK_TRUE;
+    samplerInfo.maxAnisotropy = 16;
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;
+    samplerInfo.compareEnable = VK_FALSE;
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias = 0.0f;
+    samplerInfo.minLod = 0.0f;
+    samplerInfo.maxLod = 0.0f;
+
+
+    if (vkCreateSampler(m_device, &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create texture sampler!");
+    }
 }

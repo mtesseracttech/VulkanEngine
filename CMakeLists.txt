@@ -3,7 +3,7 @@ project(VulkanEngine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES src/main.cpp src/VulkanTriangle.hpp src/VulkanTriangle.cpp src/Utility/Logger.cpp src/Utility/Logger.hpp src/Utility/ShaderUtils.hpp src/Utility/Timer.hpp)
+set(SOURCE_FILES src/main.cpp src/VulkanDrawer.hpp src/VulkanDrawer.cpp src/Utility/Logger.cpp src/Utility/Logger.hpp src/Utility/ShaderUtils.hpp src/Utility/Timer.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 
