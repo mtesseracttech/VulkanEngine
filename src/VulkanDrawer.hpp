@@ -13,6 +13,7 @@
 
 //GLM Related
 #define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -85,8 +86,9 @@ void DestroyDebugReportCallbackEXT(VkInstance instance,
 
 struct Vertex
 {
-    glm::vec2 pos;
+    glm::vec3 pos;
     glm::vec3 color;
+    glm::vec2 texCoord;
 
     static VkVertexInputBindingDescription GetBindingDescription()
     {
@@ -97,18 +99,23 @@ struct Vertex
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 2> GetAttributeDescriptions()
+    static std::array<VkVertexInputAttributeDescription, 3> GetAttributeDescriptions()
     {
-        std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
+        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[0].offset = static_cast<uint32_t>(offsetof(Vertex, pos));
 
         attributeDescriptions[1].binding = 0;
         attributeDescriptions[1].location = 1;
         attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset = static_cast<uint32_t >(offsetof(Vertex, color));
+        attributeDescriptions[1].offset = static_cast<uint32_t>(offsetof(Vertex, color));
+
+        attributeDescriptions[2].binding = 0;
+        attributeDescriptions[2].location = 2;
+        attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
+        attributeDescriptions[2].offset = static_cast<uint32_t>(offsetof(Vertex, texCoord));
 
         return attributeDescriptions;
     }
@@ -142,14 +149,21 @@ struct SwapChainSupportDetails
 //Temp structs consts
 
 const std::vector<Vertex> vertices = {
-        {{-0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
-        {{0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f}, {1.0f, 1.0f, 1.0f}},
+        {{-0.5f, -0.5f,  0.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f,  0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f,  0.0f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f,  0.0f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}},
+
+        {{-0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}, {0.0f, 0.0f}},
+        {{ 0.5f, -0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},
+        {{ 0.5f,  0.5f, -0.5f}, {0.0f, 0.0f, 1.0f}, {1.0f, 1.0f}},
+        {{-0.5f,  0.5f, -0.5f}, {1.0f, 1.0f, 1.0f}, {0.0f, 1.0f}}
 };
 
 const std::vector<uint16_t> indices = {
-        0, 1, 2, 2, 3, 0
+        0, 1, 2, 2, 3, 0,
+
+        4, 5, 6, 6, 7, 4
 };
 
 
@@ -205,6 +219,11 @@ private:
     VkDeviceMemory m_textureImageMemory;
     VkImageView m_textureImageView;
     VkSampler m_textureSampler;
+
+    //Depth buffer
+    VkImage m_depthImage;
+    VkDeviceMemory m_depthImageMemory;
+    VkImageView m_depthImageView;
 
     //Framebuffers
     std::vector<VkFramebuffer> m_swapChainFramebuffers;
@@ -297,9 +316,12 @@ private:
     void CreateTextureImageView();
     void CreateTextureSampler();
 
+    //Depth buffer related
+    void CreateDepthResources();
+    VkFormat FindSupportedFormat(const std::vector<VkFormat> &p_candidates, VkImageTiling p_tiling, VkFormatFeatureFlags p_features);
 
     //Other/Helper
-    VkImageView CreateImageView(VkImage image, VkFormat format);
+    VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags);
 
     //Debug Callbacks
     static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
@@ -311,6 +333,11 @@ private:
             const char* layerPrefix,
             const char* msg,
             void* userData);
+
+    VkFormat FindDepthFormat();
+
+    bool HasStencilComponent(VkFormat format);
+
 };
 
 #endif //VULKANENGINE_VULKANTRIANGLE_HPP
