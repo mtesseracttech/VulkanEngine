@@ -3,7 +3,7 @@ project(VulkanEngine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES src/main.cpp src/VulkanDrawer.hpp src/VulkanDrawer.cpp src/Utility/Logger.cpp src/Utility/Logger.hpp src/Utility/ShaderUtils.hpp src/Utility/Timer.hpp)
+set(SOURCE_FILES src/main.cpp src/VulkanDrawer.hpp src/VulkanDrawer.cpp src/Utility/Logger.cpp src/Utility/Logger.hpp src/Utility/ShaderUtils.hpp src/Utility/Timer.hpp src/Utility/Mesh.cpp src/Utility/Mesh.hpp src/Utility/Texture.cpp src/Utility/Texture.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 
@@ -30,3 +30,12 @@ if (VULKAN_FOUND)
     include_directories(${VULKAN_INCLUDE_DIR})
     target_link_libraries (VulkanEngine ${VULKAN_LIBRARY})
 endif (VULKAN_FOUND)
+
+#Finding and linking ASSIMP
+
+find_package(ASSIMP REQUIRED)
+if(ASSIMP_FOUND)
+    message(STATUS "Found ASSIMP, Including and Linking now")
+    include_directories(${ASSIMP_INCLUDE_DIR})
+    target_link_libraries (VulkanEngine ${ASSIMP_LIBRARY})
+endif (ASSIMP_FOUND)

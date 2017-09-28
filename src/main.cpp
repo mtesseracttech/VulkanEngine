@@ -1,11 +1,20 @@
 #include <iostream>
 #include "VulkanDrawer.hpp"
+#include "Utility/Mesh.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
 int main()
 {
     VulkanDrawer app;
+
+    Mesh * meshTest;
+    if(meshTest->LoadFromFile("../resources/models/robot.obj"))
+    {
+        std::cout << "Yay" << std::endl;
+    }
+
 
     try
     {

@@ -85,7 +85,7 @@ bool VulkanDrawer::CheckValidationLayerSupport()
 
     for (const auto &layerProperties2 : availableLayers)
     {
-            std::cout << layerProperties2.layerName << std::endl;
+        std::cout << layerProperties2.layerName << std::endl;
     }
 
     for (const char *layerName : validationLayers)
@@ -361,9 +361,9 @@ void VulkanDrawer::InitVulkan()
     CreateRenderPass();
     CreateDescriptorSetLayout();
     CreateGraphicsPipeline();
-    CreateFramebuffers();
     CreateCommandPool();
     CreateDepthResources();
+    CreateFramebuffers();
     CreateTextureImage();
     CreateTextureImageView();
     CreateTextureSampler();
@@ -591,15 +591,16 @@ void VulkanDrawer::CreateImageViews()
 
     for (uint32_t i = 0; i < m_swapChainImages.size(); i++)
     {
-        m_swapChainImageViews[i] = CreateImageView(m_swapChainImages[i], m_swapChainImageFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+        m_swapChainImageViews[i] = CreateImageView(m_swapChainImages[i], m_swapChainImageFormat,
+                                                   VK_IMAGE_ASPECT_COLOR_BIT);
     }
 }
 
 
 void VulkanDrawer::CreateGraphicsPipeline()
 {
-    auto vertShaderCode = ShaderUtils::ReadShader("../shaders/vert.spv");
-    auto fragShaderCode = ShaderUtils::ReadShader("../shaders/frag.spv");
+    auto vertShaderCode = ShaderUtils::ReadShader("../resources/shaders/vert.spv");
+    auto fragShaderCode = ShaderUtils::ReadShader("../resources/shaders/frag.spv");
 
     VkShaderModule vertShaderModule;
     VkShaderModule fragShaderModule;
@@ -694,6 +695,18 @@ void VulkanDrawer::CreateGraphicsPipeline()
     colorBlending.blendConstants[2] = 0.0f; // Optional
     colorBlending.blendConstants[3] = 0.0f; // Optional
 
+    VkPipelineDepthStencilStateCreateInfo depthStencil = {};
+    depthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencil.depthTestEnable = VK_TRUE;
+    depthStencil.depthWriteEnable = VK_TRUE;
+    depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+    depthStencil.depthBoundsTestEnable = VK_FALSE;
+    depthStencil.minDepthBounds = 0.0f; // Optional
+    depthStencil.maxDepthBounds = 1.0f; // Optional
+    depthStencil.stencilTestEnable = VK_FALSE;
+    depthStencil.front = {}; //Sets a range in which fragments are visible
+    depthStencil.back = {}; //Sets the back of aforementioned range
+
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     pipelineLayoutInfo.setLayoutCount = 1; //Uniform Layouts
@@ -715,7 +728,7 @@ void VulkanDrawer::CreateGraphicsPipeline()
     pipelineInfo.pViewportState = &viewportState;
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
-    pipelineInfo.pDepthStencilState = nullptr; // Optional
+    pipelineInfo.pDepthStencilState = &depthStencil;
     pipelineInfo.pColorBlendState = &colorBlending;
     pipelineInfo.pDynamicState = nullptr; // Optional
     pipelineInfo.layout = m_pipelineLayout;
@@ -767,17 +780,44 @@ void VulkanDrawer::CreateRenderPass()
     colorAttachmentRef.attachment = 0;
     colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+    VkAttachmentDescription depthAttachment = {};
+    depthAttachment.format = FindDepthFormat();
+    depthAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+    depthAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+    depthAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    depthAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+    depthAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    depthAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkAttachmentReference depthAttachmentRef = {};
+    depthAttachmentRef.attachment = 1;
+    depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+    VkSubpassDependency dependency = {};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkSubpassDescription subpass = {};
     subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &colorAttachmentRef;
+    subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+    std::array<VkAttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
 
     VkRenderPassCreateInfo renderPassInfo = {};
     renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = 1;
-    renderPassInfo.pAttachments = &colorAttachment;
+    renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+    renderPassInfo.pAttachments = attachments.data();
     renderPassInfo.subpassCount = 1;
     renderPassInfo.pSubpasses = &subpass;
+    renderPassInfo.dependencyCount = 1;
+    renderPassInfo.pDependencies = &dependency;
 
     if (vkCreateRenderPass(m_device, &renderPassInfo, nullptr, &m_renderPass) != VK_SUCCESS)
     {
@@ -791,15 +831,16 @@ void VulkanDrawer::CreateFramebuffers()
 
     for (size_t i = 0; i < m_swapChainImageViews.size(); i++)
     {
-        VkImageView attachments[] = {
-                m_swapChainImageViews[i]
+        std::array<VkImageView, 2> attachments = {
+                m_swapChainImageViews[i],
+                m_depthImageView
         };
 
         VkFramebufferCreateInfo framebufferInfo = {};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = m_renderPass;
-        framebufferInfo.attachmentCount = 1;
-        framebufferInfo.pAttachments = attachments;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        framebufferInfo.pAttachments = attachments.data();
         framebufferInfo.width = m_swapChainExtent.width;
         framebufferInfo.height = m_swapChainExtent.height;
         framebufferInfo.layers = 1;
@@ -856,9 +897,16 @@ void VulkanDrawer::CreateCommandBuffers()
         renderPassInfo.renderArea.offset = {0, 0};
         renderPassInfo.renderArea.extent = m_swapChainExtent;
 
-        VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
-        renderPassInfo.clearValueCount = 1;
-        renderPassInfo.pClearValues = &clearColor;
+        std::array<VkClearValue, 2> clearValues = {};
+        clearValues[0].color = {0.0f, 0.0f, 0.0f, 1.0f};
+        clearValues[1].depthStencil = {1.0f, 0};
+
+        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+        renderPassInfo.pClearValues = clearValues.data();
+
+        //VkClearValue clearColor = {0.0f, 0.0f, 0.0f, 1.0f};
+        //renderPassInfo.clearValueCount = 1;
+        //renderPassInfo.pClearValues = &clearColor;
 
         vkCmdBeginRenderPass(m_commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
@@ -883,6 +931,8 @@ void VulkanDrawer::CreateCommandBuffers()
             throw std::runtime_error("failed to record command buffer!");
         }
     }
+
+
 }
 
 void VulkanDrawer::CreateSemaphores()
@@ -1006,6 +1056,10 @@ void VulkanDrawer::Cleanup()
 
 void VulkanDrawer::CleanupSwapChain()
 {
+    //Destroys everything depth buffer related
+    vkDestroyImageView(m_device, m_depthImageView, nullptr);
+    vkDestroyImage(m_device, m_depthImage, nullptr);
+    vkFreeMemory(m_device, m_depthImageMemory, nullptr);
     //Destroys the frame buffers
     for (size_t i = 0; i < m_swapChainFramebuffers.size(); i++)
     { vkDestroyFramebuffer(m_device, m_swapChainFramebuffers[i], nullptr); }
@@ -1029,12 +1083,11 @@ void VulkanDrawer::RecreateSwapChain()
 {
     vkDeviceWaitIdle(m_device);
 
-    CleanupSwapChain();
-
     CreateSwapChain();
     CreateImageViews();
     CreateRenderPass();
     CreateGraphicsPipeline();
+    CreateDepthResources();
     CreateFramebuffers();
     CreateCommandBuffers();
 }
@@ -1204,11 +1257,11 @@ void VulkanDrawer::UpdateUniformBuffer()
 
     float rotation = 0;
 
-    if(glfwGetKey(m_window, GLFW_KEY_A))
+    if (glfwGetKey(m_window, GLFW_KEY_A))
     {
         currentRotation += 0.001f;
     }
-    else if(glfwGetKey(m_window, GLFW_KEY_D))
+    else if (glfwGetKey(m_window, GLFW_KEY_D))
     {
         currentRotation -= 0.001f;
     }
@@ -1288,7 +1341,8 @@ void VulkanDrawer::CreateDescriptorSet()
     descriptorWrites[1].descriptorCount = 1;
     descriptorWrites[1].pImageInfo = &imageInfo;
 
-    vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
+    vkUpdateDescriptorSets(m_device, static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0,
+                           nullptr);
 
     /*VkWriteDescriptorSet descriptorWrite = {};
     descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1460,6 +1514,15 @@ void VulkanDrawer::TransitionImageLayout(VkImage p_image, VkFormat p_format, VkI
         sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
         destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     }
+    else if (p_oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+    {
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask =
+                VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+    }
     else
     {
         throw std::invalid_argument("unsupported layout transition!");
@@ -1505,7 +1568,8 @@ void VulkanDrawer::CreateTextureImageView()
 }
 
 
-VkImageView VulkanDrawer::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags) {
+VkImageView VulkanDrawer::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags)
+{
     VkImageViewCreateInfo viewInfo = {};
     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image = image;
@@ -1518,7 +1582,8 @@ VkImageView VulkanDrawer::CreateImageView(VkImage image, VkFormat format, VkImag
     viewInfo.subresourceRange.layerCount = 1;
 
     VkImageView imageView;
-    if (vkCreateImageView(m_device, &viewInfo, nullptr, &imageView) != VK_SUCCESS) {
+    if (vkCreateImageView(m_device, &viewInfo, nullptr, &imageView) != VK_SUCCESS)
+    {
         throw std::runtime_error("failed to create texture image view!");
     }
 
@@ -1546,7 +1611,8 @@ void VulkanDrawer::CreateTextureSampler()
     samplerInfo.maxLod = 0.0f;
 
 
-    if (vkCreateSampler(m_device, &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS) {
+    if (vkCreateSampler(m_device, &samplerInfo, nullptr, &m_textureSampler) != VK_SUCCESS)
+    {
         throw std::runtime_error("failed to create texture sampler!");
     }
 }
@@ -1554,13 +1620,17 @@ void VulkanDrawer::CreateTextureSampler()
 void VulkanDrawer::CreateDepthResources()
 {
     VkFormat depthFormat = FindDepthFormat();
-    CreateImage(m_swapChainExtent.width, m_swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage, m_depthImageMemory);
+    CreateImage(m_swapChainExtent.width, m_swapChainExtent.height, depthFormat, VK_IMAGE_TILING_OPTIMAL,
+                VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_depthImage,
+                m_depthImageMemory);
     m_depthImageView = CreateImageView(m_depthImage, depthFormat, VK_IMAGE_ASPECT_DEPTH_BIT);
-    TransitionImageLayout(m_depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    TransitionImageLayout(m_depthImage, depthFormat, VK_IMAGE_LAYOUT_UNDEFINED,
+                          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 }
 
 
-VkFormat VulkanDrawer::FindSupportedFormat(const std::vector<VkFormat> &p_candidates, VkImageTiling p_tiling, VkFormatFeatureFlags p_features)
+VkFormat VulkanDrawer::FindSupportedFormat(const std::vector<VkFormat> &p_candidates, VkImageTiling p_tiling,
+                                           VkFormatFeatureFlags p_features)
 {
     for (VkFormat format : p_candidates)
     {
