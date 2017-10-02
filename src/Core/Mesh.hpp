@@ -15,31 +15,25 @@
 #include <vector>
 #include <fstream>
 
-#include "Texture.hpp"
-#include "Logger.hpp"
+#include "../Utility/Logger.hpp"
 
 struct MeshVertex
 {
     glm::vec3 pos;
     glm::vec3 normal;
-    glm::vec2 texCoord;
+    glm::vec2 uv;
 };
 
 class Mesh
 {
 public:
-    bool LoadFromFile(const std::string &p_filePath);
-
+    explicit Mesh(const aiMesh *p_mesh);
     const std::vector<MeshVertex>& GetVertices();
     const std::vector<unsigned int>& GetIndices();
 
 private:
     std::vector<MeshVertex> m_vertices;
-    std::vector<unsigned int> m_indices;
-
-    bool InitializeFromAssimpScene(const aiScene *p_scene, const std::string &p_filePath);
-
-    void InitializeMesh(unsigned int p_index, const aiMesh *p_mesh);
+    std::vector<uint32_t> m_indices;
 };
 
 
