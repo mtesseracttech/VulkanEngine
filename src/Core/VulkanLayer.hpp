@@ -43,10 +43,14 @@
 const int WIDTH = 800;
 const int HEIGHT = 600;
 
-
+#if defined(WIN32)
 const std::vector<const char *> validationLayers = {
         "VK_LAYER_LUNARG_standard_validation"
 };
+#else
+const std::vector<const char *> validationLayers = {
+};
+#endif
 
 const std::vector<const char *> deviceExtensions = {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -199,6 +203,8 @@ private:
     //Semaphores
     VkSemaphore                     m_imageAvailableSemaphore;
     VkSemaphore                     m_renderFinishedSemaphore;
+
+
 
     //Run Methods
     void InitializeGlfwWindow();

@@ -21,24 +21,4 @@ int main()
         return EXIT_FAILURE;
     }
     return EXIT_SUCCESS;
-
-    /*
-    Model * model = new Model;
-    if(!model->LoadFromFile(Constants::MODEL_PATH + "robot.blend"))
-    {
-        Logger::Log("Model didn't load properly", LogError);
-    }
-    else
-    {
-        std::cout << "Meshes " << model->GetMeshes().size() << std::endl;
-
-        for(const auto& mesh : model->GetMeshes())
-        {
-            std::cout << "Mesh indices " << mesh->GetIndices().size() <<std::endl;
-            std::cout << "Mesh vertices " << mesh->GetVertices().size() << std::endl;
-        }
-
-        std::cout << "Textures " << model->GetTextures().size() << std::endl;
-    }
-     */
 }

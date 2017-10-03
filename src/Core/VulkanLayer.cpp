@@ -1269,13 +1269,25 @@ void VulkanLayer::CreateSemaphores()
 
 void VulkanLayer::UpdateUniformBuffer()
 {
-    static auto startTime = std::chrono::high_resolution_clock::now();
+    //static auto startTime = std::chrono::high_resolution_clock::now();
+    //auto currentTime = std::chrono::high_resolution_clock::now();
+    //float time = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
+    static float currentRotation = 0;
 
-    auto currentTime = std::chrono::high_resolution_clock::now();
-    float time = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
+    float movement = 0;
+    if(glfwGetKey(m_window, GLFW_KEY_A))
+    {
+        movement = -0.01f;
+    }
+    else if(glfwGetKey(m_window, GLFW_KEY_D))
+    {
+        movement = 0.01f;
+    }
+
+    currentRotation += movement;
 
     UniformBufferObject ubo = {};
-    ubo.model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+    ubo.model = glm::rotate(glm::mat4(1.0f), currentRotation * glm::radians(90.0f)/*time * glm::radians(90.0f)*/, glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
     ubo.proj = glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / (float) m_swapChainExtent.height, 0.1f,
                                 10.0f);
