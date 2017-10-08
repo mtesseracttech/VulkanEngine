@@ -25,11 +25,12 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 #Finding and linking Vulkan
 
 find_package (Vulkan)
-if (VULKAN_FOUND)
+if (Vulkan_FOUND)
     message(STATUS "Found Vulkan, Including and Linking now")
-    include_directories(${VULKAN_INCLUDE_DIR})
-    target_link_libraries (VulkanEngine ${VULKAN_LIBRARY})
-endif (VULKAN_FOUND)
+    include_directories(${Vulkan_INCLUDE_DIRS})
+    target_link_libraries (VulkanEngine ${Vulkan_LIBRARIES})
+    message(STATUS "Vulkan Include dirs: ${Vulkan_INCLUDE_DIRS} and libs: ${Vulkan_LIBRARIES}")
+endif (Vulkan_FOUND)
 
 #Finding and linking ASSIMP
 

@@ -2,7 +2,6 @@
 // Created by MTesseracT on 2-10-2017.
 //
 
-
 #include "VulkanLayer.hpp"
 
 
@@ -45,6 +44,7 @@ void VulkanLayer::InitializeGlfwWindow() {
 
 void VulkanLayer::InitializeVulkan()
 {
+    //Basic setup
     CreateInstance();
     SetupDebugCallback();
     CreateSurface();
@@ -58,13 +58,18 @@ void VulkanLayer::InitializeVulkan()
     CreateCommandPool();
     CreateDepthResources();
     CreateFramebuffers();
+    //Per texture
     CreateTextureImage();
     CreateTextureImageView();
     CreateTextureSampler();
+    //Per model
     LoadModel();
+    //Not sure if should be per model:
     CreateVertexBuffer();
     CreateIndexBuffer();
+    //Per shader
     CreateUniformBuffer();
+    //idk
     CreateDescriptorPool();
     CreateDescriptorSet();
     CreateCommandBuffers();
@@ -507,8 +512,8 @@ void VulkanLayer::CreateGraphicsPipeline()
     VkViewport viewport = {};
     viewport.x = 0.0f;
     viewport.y = 0.0f;
-    viewport.width = (float) m_swapChainExtent.width;
-    viewport.height = (float) m_swapChainExtent.height;
+    viewport.width = static_cast<float>(m_swapChainExtent.width);
+    viewport.height = static_cast<float>(m_swapChainExtent.height);
     viewport.minDepth = 0.0f;
     viewport.maxDepth = 1.0f;
 
@@ -610,7 +615,7 @@ void VulkanLayer::CreateFramebuffers()
                 m_depthImageView
         };
 
-        VkFramebufferCreateInfo framebufferInfo = {};
+        VkFramebufferCreateInfo framebufferInfo {};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = m_renderPass;
         framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
@@ -1269,9 +1274,10 @@ void VulkanLayer::CreateSemaphores()
 
 void VulkanLayer::UpdateUniformBuffer()
 {
-    //static auto startTime = std::chrono::high_resolution_clock::now();
-    //auto currentTime = std::chrono::high_resolution_clock::now();
-    //float time = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
+    static auto startTime = std::chrono::high_resolution_clock::now();
+    auto currentTime = std::chrono::high_resolution_clock::now();
+    float time = std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() / 1000.0f;
+
     static float currentRotation = 0;
 
     float movement = 0;
@@ -1292,6 +1298,7 @@ void VulkanLayer::UpdateUniformBuffer()
     ubo.proj = glm::perspective(glm::radians(45.0f), m_swapChainExtent.width / (float) m_swapChainExtent.height, 0.1f,
                                 10.0f);
     ubo.proj[1][1] *= -1;
+    ubo.time = time;
 
     void *data;
     vkMapMemory(m_device, m_uniformBufferMemory, 0, sizeof(ubo), 0, &data);
