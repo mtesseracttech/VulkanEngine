@@ -5,9 +5,12 @@
 #ifndef VULKANENGINE_MODEL_HPP
 #define VULKANENGINE_MODEL_HPP
 
-
-#include "Mesh.hpp"
+#include "Core/Mesh.hpp"
 #include "Texture.hpp"
+
+#include <vector>
+
+class Mesh;
 
 class Model
 {
@@ -18,7 +21,7 @@ public:
 private:
     std::vector<Mesh*> m_meshes;
     std::vector<Texture*> m_textures;
-    bool InitializeFromAssimpScene(const aiScene *pScene, const std::string &basic_string);
+    bool InitializeFromAssimpScene(const aiScene *p_scene, const std::string &p_filePath);
 };
 
 

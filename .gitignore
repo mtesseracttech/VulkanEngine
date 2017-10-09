@@ -93,3 +93,4 @@ CTestTestfile.cmake
 
 cmake-build-release/
 cmake-build-debug/
+resources/models/lucy.ply

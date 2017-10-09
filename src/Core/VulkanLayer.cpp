@@ -929,7 +929,7 @@ void VulkanLayer::LoadModel()
 {
     auto * model = new Model;
 
-    if(!model->LoadFromFile(Constants::MODEL_PATH + "chalet.obj"))
+    if(!model->LoadFromFile(Constants::MODEL_PATH + "sphere_80_triangles_flat.obj"))
     {
         throw std::runtime_error("Could not load model!");
     }
@@ -946,6 +946,7 @@ void VulkanLayer::LoadModel()
             vkVertex.pos = vertex.pos;
             vkVertex.texCoord = vertex.uv;
             vkVertex.color = {1.0f, 1.0f, 1.0f};
+            vkVertex.normal = vertex.normal;
 
             m_vertices.push_back(vkVertex);
         }
@@ -1633,3 +1634,35 @@ VkBool32 VulkanLayer::DebugCallback(VkDebugReportFlagsEXT p_flags,
 
     return VK_FALSE;
 }
+
+void VulkanLayer::Run()
+{
+    InitializeGlfwWindow();
+    InitializeVulkan();
+    Loop();
+    Cleanup();
+}
+
+/*
+Model * VulkanLayer::LoadModel(const std::string &p_modelPath, const std::string &p_texturePath)
+{
+    auto * model = new Model;
+
+    if(!model->LoadFromFile(Constants::MODEL_PATH + "chalet.obj"))
+    {
+        throw std::runtime_error("Could not load model!");
+    }
+    else
+    {
+        Logger::Log("Successfully loaded the model!");
+    }
+
+
+    std::cout << "Loaded Model Info: "<< std::endl;
+    std::cout << "Vertices: " << m_vertices.size() << std::endl;
+    std::cout << "Indices: " << m_indices.size() << std::endl;
+
+    return model;
+}
+
+*/

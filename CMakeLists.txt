@@ -3,9 +3,13 @@ project(VulkanEngine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES src/main.cpp src/Utility/Logger.cpp src/Utility/Logger.hpp src/Utility/ShaderUtils.hpp src/Utility/Timer.hpp src/Core/Mesh.cpp src/Core/Mesh.hpp src/Core/Model.cpp src/Core/Model.hpp src/Core/Texture.cpp src/Core/Texture.hpp src/Utility/Constants.hpp src/Utility/Constants.cpp src/Core/VulkanLayer.cpp src/Core/VulkanLayer.hpp)
+set(SOURCE_FILES src/main.cpp src/Utility/Logger.cpp src/Utility/Logger.hpp src/Utility/ShaderUtils.hpp src/Utility/Timer.hpp src/Core/Mesh.cpp src/Core/Mesh.hpp src/Core/Model.cpp src/Core/Model.hpp src/Core/Texture.cpp src/Core/Texture.hpp src/Utility/Constants.hpp src/Utility/Constants.cpp src/Core/VulkanLayer.cpp src/Core/VulkanLayer.hpp src/Core/Camera.cpp src/Core/Camera.hpp src/Core/GameObject.cpp src/Core/GameObject.hpp src/Core/Transform.cpp src/Core/Transform.hpp src/Core/ShaderProgram.cpp src/Core/ShaderProgram.hpp src/Core/Material.cpp src/Core/Material.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
+
+#Sets a base path for the includes so that they can be used in the same way as in Visual Studio/Codeblocks
+set(BASEPATH "${CMAKE_SOURCE_DIR}/src")
+include_directories("${BASEPATH}")
 
 #Setting up PkgConfig
 

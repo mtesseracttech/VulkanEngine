@@ -16,6 +16,7 @@
 #include <fstream>
 
 #include "../Utility/Logger.hpp"
+#include "VulkanLayer.hpp"
 
 struct MeshVertex
 {
@@ -27,14 +28,13 @@ struct MeshVertex
 class Mesh
 {
 public:
-    explicit Mesh(const aiMesh *p_mesh);
+    Mesh(const aiMesh *p_mesh);
     const std::vector<MeshVertex>& GetVertices();
     const std::vector<unsigned int>& GetIndices();
 
 private:
-    std::vector<MeshVertex> m_vertices;
-    std::vector<uint32_t> m_indices;
+    std::vector<MeshVertex>         m_vertices;
+    std::vector<uint32_t>           m_indices;
 };
-
 
 #endif //VULKANENGINE_MESH_HPP

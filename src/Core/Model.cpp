@@ -2,7 +2,6 @@
 // Created by MTesseracT on 2-10-2017.
 //
 
-#include <vulkan/vulkan.h>
 #include "Model.hpp"
 
 bool Model::LoadFromFile(const std::string &p_filePath)

@@ -13,7 +13,7 @@ int main()
     VulkanLayer vulkan;
     try
     {
-        vulkan.run();
+        vulkan.Run();
     }
     catch (const std::runtime_error& e)
     {

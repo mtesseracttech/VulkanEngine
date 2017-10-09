@@ -36,7 +36,7 @@
 
 //Own Classes
 #include "Model.hpp"
-#include "../Utility/Constants.hpp"
+#include "Utility/Constants.hpp"
 
 
 //Constants
@@ -91,6 +91,7 @@ struct Vertex
     glm::vec3 pos;
     glm::vec3 color;
     glm::vec2 texCoord;
+    glm::vec3 normal;
 
     static VkVertexInputBindingDescription getBindingDescription()
     {
@@ -102,9 +103,9 @@ struct Vertex
         return bindingDescription;
     }
 
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions()
+    static std::array<VkVertexInputAttributeDescription, 4> getAttributeDescriptions()
     {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
+        std::array<VkVertexInputAttributeDescription, 4> attributeDescriptions = {};
 
         attributeDescriptions[0].binding = 0;
         attributeDescriptions[0].location = 0;
@@ -120,6 +121,11 @@ struct Vertex
         attributeDescriptions[2].location = 2;
         attributeDescriptions[2].format = VK_FORMAT_R32G32_SFLOAT;
         attributeDescriptions[2].offset = static_cast<uint32_t>(offsetof(Vertex, texCoord));
+
+        attributeDescriptions[3].binding = 0;
+        attributeDescriptions[3].location = 3;
+        attributeDescriptions[3].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[3].offset = static_cast<uint32_t>(offsetof(Vertex, texCoord));
 
         return attributeDescriptions;
     }
@@ -142,13 +148,10 @@ struct UniformBufferObject
 class VulkanLayer
 {
 public:
-    void run()
-    {
-        InitializeGlfwWindow();
-        InitializeVulkan();
-        Loop();
-        Cleanup();
-    }
+    void Run();
+
+    //Interfaces
+    //Model* LoadModel(const std::string & p_modelPath, const std::string & p_texturePath);
 
 private:
     //GLFW Objects
@@ -316,6 +319,9 @@ private:
             const char* p_layerPrefix,
             const char* p_msg,
             void* p_userData);
+
+    //Interface related
+
 };
 
 #endif //VULKANENGINE_VULKANLAYER_HPP

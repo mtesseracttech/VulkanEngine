@@ -15,10 +15,14 @@ layout(binding = 0) uniform UniformBufferObject
 layout(location = 0) in vec3 inPosition;
 layout(location = 1) in vec3 inColor;
 layout(location = 2) in vec2 inTexCoord;
+layout(location = 3) in vec3 inNormal;
 
 //Data out:
 layout(location = 0) out vec3 outFragColor;
 layout(location = 1) out vec2 outFragTexCoord;
+layout(location = 2) out float outDiffuseIntensity;
+
+const vec3 directionalLightVector = vec3(2, 3, -5);
 
 out gl_PerVertex
 {
@@ -27,18 +31,11 @@ out gl_PerVertex
 
 void main()
 {
-    vec3 modelPos = vec3(ubo.model[3]);
-    vec3 stretchDir = inPosition - modelPos;
-
-    vec3 offsetScale = vec3(
-        sin(M_PI*2 / 3 * 1 + (ubo.time * 10) + inPosition.x),
-        sin(M_PI*2 / 3 * 2 + (ubo.time * 10) + inPosition.y),
-        sin(M_PI*2 / 3 * 3 + (ubo.time * 10) + inPosition.z)
-    );
-
-    vec3 finalPos = inPosition + (stretchDir * (0.1 *sin(ubo.time*10))) * offsetScale;
-
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(finalPos, 1.0);
+	gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
+	//make sure normal is in same space as light direction. You should be able to explain the 0.
+    vec3 worldNormal = vec3 (ubo.model * vec4 (inNormal, 0));
+    //take the dot of the direction from surface to light with the world surface normal
+    outDiffuseIntensity = max (0, dot(-normalize(directionalLightVector), normalize (worldNormal)));
     outFragColor = inColor;
     outFragTexCoord = inTexCoord;
 }
