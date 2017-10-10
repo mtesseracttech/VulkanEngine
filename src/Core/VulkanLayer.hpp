@@ -148,12 +148,12 @@ struct UniformBufferObject
 class VulkanLayer
 {
 public:
-    void Run();
+    virtual void Run();
 
     //Interfaces
     //Model* LoadModel(const std::string & p_modelPath, const std::string & p_texturePath);
 
-private:
+protected:
     //GLFW Objects
     GLFWwindow *                    m_window;
     //Vulkan Instance
@@ -212,9 +212,11 @@ private:
 
     //Run Methods
     void InitializeGlfwWindow();
-    void InitializeVulkan();
+
+    virtual void InitializeVulkan();
     void Loop();
-    void Cleanup();
+
+    virtual void Cleanup();
     //Vulkan Init Methods
     void CreateInstance();
     void SetupDebugCallback();
@@ -319,9 +321,6 @@ private:
             const char* p_layerPrefix,
             const char* p_msg,
             void* p_userData);
-
-    //Interface related
-
 };
 
 #endif //VULKANENGINE_VULKANLAYER_HPP

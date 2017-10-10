@@ -21,6 +21,7 @@ public:
 private:
     std::vector<Mesh*> m_meshes;
     std::vector<Texture*> m_textures;
+
     bool InitializeFromAssimpScene(const aiScene *p_scene, const std::string &p_filePath);
 };
 
