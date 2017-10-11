@@ -929,7 +929,7 @@ void VulkanLayer::LoadModel()
 {
     auto * model = new Model;
 
-    if(!model->LoadFromFile(Constants::MODEL_PATH + "sphere_80_triangles_flat.obj"))
+    if(!model->LoadFromFile(Constants::MODEL_PATH + "lucyvk.obj"))
     {
         throw std::runtime_error("Could not load model!");
     }

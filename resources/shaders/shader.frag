@@ -9,7 +9,7 @@ layout(location = 2) in float inDiffuseIntensity;
 
 layout(location = 0) out vec4 outColor;
 
-const vec3 diffuseColor = vec3(1,1,1);
+const vec3 diffuseColor = vec3(0.8,0.8,0.8);
 const vec3 directionalLightColor = vec3(1,1,1);
 const vec3 globalAmbient = vec3(0.2,0.2,0.2);
 
