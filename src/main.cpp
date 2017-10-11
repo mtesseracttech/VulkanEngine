@@ -7,13 +7,16 @@
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
+#include <Core/VulkanInterface.hpp>
 
 int main()
 {
-    VulkanLayer vulkan;
+
+    VulkanInterface vulkan;
     try
     {
         vulkan.Run();
+        //vulkan.Run();
     }
     catch (const std::runtime_error& e)
     {

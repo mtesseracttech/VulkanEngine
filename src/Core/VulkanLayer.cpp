@@ -64,12 +64,10 @@ void VulkanLayer::InitializeVulkan()
     CreateTextureSampler();
     //Per model
     LoadModel();
-    //Not sure if should be per model:
     CreateVertexBuffer();
     CreateIndexBuffer();
     //Per shader
     CreateUniformBuffer();
-    //idk
     CreateDescriptorPool();
     CreateDescriptorSet();
     CreateCommandBuffers();
@@ -1642,27 +1640,3 @@ void VulkanLayer::Run()
     Loop();
     Cleanup();
 }
-
-/*
-Model * VulkanLayer::LoadModel(const std::string &p_modelPath, const std::string &p_texturePath)
-{
-    auto * model = new Model;
-
-    if(!model->LoadFromFile(Constants::MODEL_PATH + "chalet.obj"))
-    {
-        throw std::runtime_error("Could not load model!");
-    }
-    else
-    {
-        Logger::Log("Successfully loaded the model!");
-    }
-
-
-    std::cout << "Loaded Model Info: "<< std::endl;
-    std::cout << "Vertices: " << m_vertices.size() << std::endl;
-    std::cout << "Indices: " << m_indices.size() << std::endl;
-
-    return model;
-}
-
-*/
