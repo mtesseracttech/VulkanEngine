@@ -16,7 +16,6 @@
 #include <fstream>
 
 #include "../Utility/Logger.hpp"
-#include "VulkanLayer.hpp"
 
 struct MeshVertex
 {

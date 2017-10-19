@@ -39,13 +39,13 @@ bool Model::InitializeFromAssimpScene(const aiScene *p_scene, const std::string 
             m_meshes[i] = new Mesh(assimpMesh);
         }
 
-        m_textures.resize(p_scene->mNumTextures);
+        //m_textures.resize(p_scene->mNumTextures);
 
-        for (int j = 0; j < p_scene->mNumTextures; ++j)
+        /*for (int j = 0; j < p_scene->mNumTextures; ++j)
         {
             const aiTexture * assimpTexture = p_scene->mTextures[j];
             m_textures[j] = new Texture(assimpTexture);
-        }
+        }*/
 
         return true;
     }
@@ -59,9 +59,4 @@ bool Model::InitializeFromAssimpScene(const aiScene *p_scene, const std::string 
 const std::vector<Mesh *> &Model::GetMeshes()
 {
     return m_meshes;
-}
-
-const std::vector<Texture *> &Model::GetTextures()
-{
-    return m_textures;
 }

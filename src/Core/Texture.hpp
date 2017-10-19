@@ -9,18 +9,12 @@
 #include <assimp/texture.h>
 #include <glm/vec2.hpp>
 #include <vulkan/vulkan.hpp>
-
-typedef const aiTexel* Texels;
+#include <Utility/Constants.hpp>
 
 class Texture
 {
 public:
-    Texture(const aiTexture * p_texture);
-    const glm::ivec2 GetSize(){return m_size;}
-    Texels GetTexels(){return m_texels;}
 private:
-    glm::ivec2 m_size;
-    Texels m_texels;
 };
 
 
