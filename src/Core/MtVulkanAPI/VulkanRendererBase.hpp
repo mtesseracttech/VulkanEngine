@@ -6,7 +6,7 @@
 #define VULKANENGINE_VULKANRENDERERBASE_HPP
 
 //Vulkan
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 //GLFW
 #include <GLFW/glfw3.h>
@@ -36,18 +36,35 @@
 
 //Own Classes
 #include "Utility/Constants.hpp"
+#include <Utility/Logger.hpp>
 
 class VulkanRendererBase
 {
+public:
+    //Entry point
+    void Initialize();
+    void InitializeGlfwWindow();
+
+    struct RendererSettings
+    {
+        bool validation = false;
+        bool fullscreen = false;
+        bool vsync = false;
+    } m_settings;
+
+protected:
 private:
     GLFWwindow * m_window;
     int m_windowHeight = 720;
     int m_windowWidth = 1080;
-protected:
-public:
-    void InitializeGlfwWindow();
-    void OnWindowResized(GLFWwindow * p_window,int p_width,int p_height);
-    void OnKeyPressed(GLFWwindow * p_window, int p_key, int p_scancode, int p_action, int p_mods);
+
+    vk::Instance m_instance = nullptr;
+
+    void CreateInstance();
+    bool CheckValidationLayerSupport();
+    std::vector<const char *> GetRequiredExtensions();
+
+    void CreateDebugCallback();
 };
 
 

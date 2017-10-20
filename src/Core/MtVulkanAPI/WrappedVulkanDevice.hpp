@@ -29,7 +29,6 @@ struct WrappedVulkanDevice
         uint32_t transfer;
     } m_queueFamilyIndices;
 
-    operator VkDevice()     { return m_logicalDevice; };
     operator vk::Device()   { return m_logicalDevice; };
 
     WrappedVulkanDevice(vk::PhysicalDevice p_physicalDevice)
