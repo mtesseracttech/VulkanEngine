@@ -53,7 +53,7 @@ struct WrappedVulkanBuffer
 
     vk::Result Flush(vk::DeviceSize p_size = VK_WHOLE_SIZE, vk::DeviceSize p_offset = 0)
     {
-        vk::MappedMemoryRange mappedRange = {};
+        vk::MappedMemoryRange mappedRange;
         mappedRange.memory = m_memory;
         mappedRange.offset = p_offset;
         mappedRange.size = p_size;
@@ -62,7 +62,7 @@ struct WrappedVulkanBuffer
 
     vk::Result Invalidate(vk::DeviceSize p_size = VK_WHOLE_SIZE, vk::DeviceSize p_offset = 0)
     {
-        vk::MappedMemoryRange mappedRange = {};
+        vk::MappedMemoryRange mappedRange;
         mappedRange.memory = m_memory;
         mappedRange.offset = p_offset;
         mappedRange.size = p_size;
