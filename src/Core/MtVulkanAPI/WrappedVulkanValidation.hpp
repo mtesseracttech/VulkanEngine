@@ -31,6 +31,17 @@ namespace mtvk
 #else
         const bool EnableValidationLayers = true;
 #endif
+        VkBool32 messageCallback(
+                VkDebugReportFlagsEXT p_flags,
+                VkDebugReportObjectTypeEXT p_objectType,
+                uint64_t p_sourceObject,
+                size_t p_location,
+                int32_t p_messageCode,
+                const char *p_layerPrefix,
+                const char *p_message,
+                void *p_userData);
+
+
 
         void SetupDebugCallbacks(vk::Instance p_instance, vk::DebugReportFlagsEXT p_flags, vk::DebugReportCallbackEXT p_callBack);
     }

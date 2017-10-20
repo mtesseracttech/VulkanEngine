@@ -1,5 +1,6 @@
 //
 // Created by MTesseracT on 20-10-2017.
+// Mostly replicated from SaschaWillems Vulkan Example Base
 //
 
 #include "WrappedVulkanValidation.hpp"
@@ -25,7 +26,7 @@ namespace mtvk
 
             VkDebugReportCallbackCreateInfoEXT dbgCreateInfo = {};
             dbgCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
-            dbgCreateInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) MessageCallback;
+            dbgCreateInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) messageCallback;
             dbgCreateInfo.flags = p_flags;
 
             VkResult err = CreateDebugReportCallback(
@@ -36,7 +37,7 @@ namespace mtvk
             assert(!err);
         }
 
-        vk::Bool32 MessageCallback(
+        VkBool32 messageCallback(
                 VkDebugReportFlagsEXT p_flags,
                 VkDebugReportObjectTypeEXT p_objectType,
                 uint64_t p_sourceObject,
