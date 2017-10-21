@@ -3,11 +3,11 @@
 //
 
 #include "VulkanRendererBase.hpp"
-#include "WrappedVulkanValidation.hpp"
 
 void VulkanRendererBase::InitializeGlfwWindow()
 {
-    Logger::Log("GLFW is initializing");
+    m_window = new WrappedVulkanWindow(m_windowWidth, m_windowHeight, "Vulkan", false);
+    /*Logger::Log("GLFW is initializing");
     if(glfwInit() == GLFW_TRUE)
     {
         Logger::Log("GLFW Initialized Successfully!");
@@ -21,6 +21,7 @@ void VulkanRendererBase::InitializeGlfwWindow()
     Logger::Log("GLFW set to load without an API, so Vulkan can be used");
     m_window = glfwCreateWindow(m_windowWidth, m_windowHeight, "Vulkan", (m_settings.fullscreen ? glfwGetPrimaryMonitor() : nullptr), nullptr);
     glfwSetWindowUserPointer(m_window, this);
+     */
 }
 
 void VulkanRendererBase::Initialize()
@@ -29,6 +30,9 @@ void VulkanRendererBase::Initialize()
     InitializeGlfwWindow();
     CreateInstance();
     CreateDebugCallback();
+    CreateSurface();
+    SelectPhysicalDevice();
+    CreateLogicalDevice();
 }
 
 void VulkanRendererBase::CreateInstance()
@@ -52,7 +56,7 @@ void VulkanRendererBase::CreateInstance()
     instanceCreateInfo.pApplicationInfo = &applicationInfo;
 
     auto requiredExtensions = GetRequiredExtensions();
-    instanceCreateInfo.enabledExtensionCount = requiredExtensions.size();
+    instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
     instanceCreateInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
     if(m_settings.validation)
@@ -119,9 +123,94 @@ std::vector<const char *> VulkanRendererBase::GetRequiredExtensions()
 
 void VulkanRendererBase::CreateDebugCallback()
 {
-    if(!m_settings.validation) return;
+    if(!m_settings.validation)
+    {
+        Logger::Log("Debug callback is not needed, not setting it up");
+        return;
+    }
+    else
+    {
+        Logger::Log("Setting up debug callback");
+    }
 
     vk::DebugReportFlagsEXT debugReportFlags = vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::eWarning;
+    mtvk::debug::SetupDebugCallback(m_instance, debugReportFlags, nullptr);
+}
 
+void VulkanRendererBase::SelectPhysicalDevice()
+{
+    Logger::Log("Selecting a physical device to use");
+    std::vector<vk::PhysicalDevice> physicalDevices = m_instance.enumeratePhysicalDevices();
 
+    if(physicalDevices.empty())
+    {
+        throw std::runtime_error("Could not find any physical devices to use");
+    }
+
+    Logger::Log("Found the following GPUs:");
+
+    for(const auto& device : physicalDevices)
+    {
+        std::stringstream deviceLine;
+        deviceLine << "- " << device.getProperties().deviceName << " (" << GetDeviceTypeName(
+                device.getProperties().deviceType) << ")";
+        Logger::Log(deviceLine.str());
+    }
+
+    //TODO: Add a device suitability check later on
+
+    m_physicalDevice = physicalDevices[0];
+    m_deviceProperties = m_physicalDevice.getProperties();
+    m_deviceFeatures = m_physicalDevice.getFeatures();
+    m_deviceMemoryProperties = m_physicalDevice.getMemoryProperties();
+
+    GetEnabledFeatures();
+}
+
+std::string VulkanRendererBase::GetDeviceTypeName(vk::PhysicalDeviceType p_type)
+{
+    switch (p_type)
+    {
+        case vk::PhysicalDeviceType::eOther:         return "Other";
+        case vk::PhysicalDeviceType::eIntegratedGpu: return "Integrated";
+        case vk::PhysicalDeviceType::eDiscreteGpu:   return "Discrete";
+        case vk::PhysicalDeviceType::eVirtualGpu:    return "Virtual";
+        case vk::PhysicalDeviceType::eCpu:           return "CPU";
+    }
+}
+
+void VulkanRendererBase::GetEnabledFeatures()
+{
+    //m_enabledFeatures = m_deviceFeatures;
+    //Should be overridden if special functionality should be used
+}
+
+void VulkanRendererBase::CreateLogicalDevice()
+{
+    m_wrappedDevice = new WrappedVulkanDevice(m_physicalDevice);
+    m_wrappedDevice->CreateLogicalDevice(m_enabledFeatures, m_enabledExtensions);
+    m_logicalDevice = m_wrappedDevice->m_logicalDevice;
+
+    m_graphicsQueue = m_logicalDevice.getQueue(m_wrappedDevice->m_queueFamilyIndices.graphics, 0);
+
+    vk::Bool32 validDepthFormat = VulkanHelpers::GetSupportedDepthFormat(m_physicalDevice, &m_depthFormat);
+
+    if(!validDepthFormat) throw std::runtime_error("Could not find a valid depth format");
+}
+
+void VulkanRendererBase::CreateSurface()
+{
+    VkSurfaceKHR surface;
+    if (glfwCreateWindowSurface(static_cast<VkInstance >(m_instance), m_window->m_window, nullptr, &surface) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create window surface!");
+    }
+    else{
+        Logger::Log("Successfully created KHR Surface");
+    }
+    m_window->m_surface = static_cast<vk::SurfaceKHR>(surface);
+}
+
+void VulkanRendererBase::CreateSwapchain()
+{
+    m_window->CreateSwapchain(m_wrappedDevice->m_physicalDevice, m_wrappedDevice->m_queueFamilyIndices);
 }

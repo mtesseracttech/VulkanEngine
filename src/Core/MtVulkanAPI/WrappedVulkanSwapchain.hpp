@@ -1,0 +1,15 @@
+//
+// Created by MTesseracT on 21-10-2017.
+//
+
+#ifndef VULKANENGINE_WRAPPEDVULKANSWAPCHAIN_HPP
+#define VULKANENGINE_WRAPPEDVULKANSWAPCHAIN_HPP
+
+
+class WrappedVulkanSwapchain
+{
+
+};
+
+
+#endif //VULKANENGINE_WRAPPEDVULKANSWAPCHAIN_HPP

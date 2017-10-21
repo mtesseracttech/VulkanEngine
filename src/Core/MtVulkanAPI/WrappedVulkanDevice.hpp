@@ -12,17 +12,17 @@
 
 struct WrappedVulkanDevice
 {
-    vk::PhysicalDevice                      m_physicalDevice    = nullptr;
+    vk::PhysicalDevice                      m_physicalDevice;
     vk::Device                              m_logicalDevice     = nullptr;
-    vk::PhysicalDeviceProperties            m_deviceProperties  = nullptr;
-    vk::PhysicalDeviceFeatures              m_deviceFeatures    = nullptr;
-    vk::PhysicalDeviceFeatures              m_enabledFeatures   = nullptr;
-    vk::PhysicalDeviceMemoryProperties      m_memoryProperties  = nullptr;
+    vk::PhysicalDeviceProperties            m_deviceProperties;
+    vk::PhysicalDeviceFeatures              m_deviceFeatures;
+    vk::PhysicalDeviceFeatures              m_enabledFeatures;
+    vk::PhysicalDeviceMemoryProperties      m_memoryProperties;
     std::vector<vk::QueueFamilyProperties>  m_queueFamilyProperties;
     std::vector<std::string>                m_supportedExtensions;
     vk::CommandPool                         m_commandPool       = nullptr;
 
-    struct
+    struct QueueFamilyIndices
     {
         uint32_t graphics;
         uint32_t compute;
@@ -31,11 +31,11 @@ struct WrappedVulkanDevice
 
     operator vk::Device()   { return m_logicalDevice; };
 
-    WrappedVulkanDevice(vk::PhysicalDevice p_physicalDevice)
+    WrappedVulkanDevice(vk::PhysicalDevice p_physicalDevice) : m_deviceProperties(vk::PhysicalDeviceProperties())
     {
         assert(p_physicalDevice);
 
-        m_physicalDevice = m_physicalDevice;
+        m_physicalDevice = p_physicalDevice;
         m_deviceProperties = m_physicalDevice.getProperties();
         m_deviceFeatures = m_physicalDevice.getFeatures();
         m_memoryProperties = m_physicalDevice.getMemoryProperties();
@@ -44,9 +44,9 @@ struct WrappedVulkanDevice
         assert(!m_queueFamilyProperties.empty());
 
         std::vector<vk::ExtensionProperties> extensions = m_physicalDevice.enumerateDeviceExtensionProperties();
-        for(const auto& extension : extension)
+        for(const auto& extension : extensions)
         {
-            m_supportedExtensions.push_back(extension);
+            m_supportedExtensions.push_back(extension.extensionName);
         }
     }
 
@@ -95,7 +95,7 @@ struct WrappedVulkanDevice
 
     uint32_t GetQueueFamilyIndex(vk::QueueFlagBits p_flagBits)
     {
-        if (p_flagBits & vk::QueueFlagBits::eCompute)
+        if (static_cast<VkQueueFlagBits>(p_flagBits) & static_cast<VkQueueFlagBits>(vk::QueueFlagBits::eCompute))
         {
             for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); i++)
             {
@@ -107,7 +107,7 @@ struct WrappedVulkanDevice
             }
         }
 
-        if (p_flagBits & vk::QueueFlagBits::eTransfer)
+        if (static_cast<VkQueueFlagBits>(p_flagBits) & static_cast<VkQueueFlagBits>(vk::QueueFlagBits::eTransfer))
         {
             for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); i++)
             {
@@ -150,7 +150,7 @@ struct WrappedVulkanDevice
         }
         else
         {
-            m_queueFamilyIndices.graphics = nullptr;
+            m_queueFamilyIndices.graphics = VK_NULL_HANDLE;
         }
 
         if (p_requestedQueueTypes & vk::QueueFlagBits::eCompute)
@@ -234,7 +234,7 @@ struct WrappedVulkanDevice
         if(p_data != nullptr)
         {
             void* mapped;
-            mapped = m_logicalDevice.mapMemory(p_memory, 0, p_size, static_cast<vk::MemoryMapFlagBits>(0));
+            mapped = m_logicalDevice.mapMemory(*p_memory, 0, p_size);
             memcpy(mapped, p_data, p_size);
 
             if ((p_memoryPropertyFlags & vk::MemoryPropertyFlagBits::eHostCoherent) == static_cast<vk::MemoryPropertyFlagBits>(0))
@@ -310,7 +310,7 @@ struct WrappedVulkanDevice
 
     void FlushCommandBuffer(vk::CommandBuffer p_commandBuffer, vk::Queue p_queue, bool p_free = true)
     {
-        if(p_commandBuffer == nullptr)
+        if(static_cast<VkCommandBuffer >(p_commandBuffer) == VK_NULL_HANDLE)
         {
             return;
         }

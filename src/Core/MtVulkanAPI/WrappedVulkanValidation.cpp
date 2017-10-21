@@ -15,8 +15,14 @@ namespace mtvk
 
         VkDebugReportCallbackEXT msgCallback;
 
-        void SetupDebugCallback(VkInstance p_instance, VkDebugReportFlagsEXT p_flags, VkDebugReportCallbackEXT p_callBack)
+        void SetupDebugCallback(vk::Instance p_instance,
+                                vk::DebugReportFlagsEXT p_flags,
+                                vk::DebugReportCallbackEXT p_callback)
         {
+            auto flags    = static_cast<VkDebugReportFlagsEXT>(p_flags);
+            auto instance = static_cast<VkInstance>(p_instance);
+            auto callback = static_cast<VkDebugReportCallbackEXT>(p_callback);
+
             CreateDebugReportCallback = reinterpret_cast<PFN_vkCreateDebugReportCallbackEXT>(vkGetInstanceProcAddr(
                     p_instance, "vkCreateDebugReportCallbackEXT"));
             DestroyDebugReportCallback = reinterpret_cast<PFN_vkDestroyDebugReportCallbackEXT>(vkGetInstanceProcAddr(
@@ -27,13 +33,13 @@ namespace mtvk
             VkDebugReportCallbackCreateInfoEXT dbgCreateInfo = {};
             dbgCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CREATE_INFO_EXT;
             dbgCreateInfo.pfnCallback = (PFN_vkDebugReportCallbackEXT) messageCallback;
-            dbgCreateInfo.flags = p_flags;
+            dbgCreateInfo.flags = flags;
 
             VkResult err = CreateDebugReportCallback(
-                    p_instance,
+                    instance,
                     &dbgCreateInfo,
                     nullptr,
-                    (p_callBack != VK_NULL_HANDLE) ? &p_callBack : &msgCallback);
+                    (callback != VK_NULL_HANDLE) ? &callback : &msgCallback);
             assert(!err);
         }
 

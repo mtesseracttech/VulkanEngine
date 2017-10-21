@@ -43,7 +43,7 @@ namespace mtvk
 
 
 
-        void SetupDebugCallbacks(vk::Instance p_instance, vk::DebugReportFlagsEXT p_flags, vk::DebugReportCallbackEXT p_callBack);
+        void SetupDebugCallback(vk::Instance p_instance, vk::DebugReportFlagsEXT p_flags, vk::DebugReportCallbackEXT p_callBack);
     }
 
 };

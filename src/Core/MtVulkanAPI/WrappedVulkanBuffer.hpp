@@ -16,8 +16,8 @@ struct WrappedVulkanBuffer
     vk::DeviceSize              m_size                  = 0;
     vk::DeviceSize              m_alignment             = 0;
     void*                       m_mapped                = nullptr;
-    vk::BufferUsageFlags        m_usageFlags            = nullptr;
-    vk::MemoryPropertyFlags     m_memoryPropertyFlags   = nullptr;
+    vk::BufferUsageFlags        m_usageFlags;
+    vk::MemoryPropertyFlags     m_memoryPropertyFlags;
 
     void Map(vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0)
     {
