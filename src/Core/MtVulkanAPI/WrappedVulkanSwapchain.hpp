@@ -20,26 +20,20 @@ class WrappedVulkanSwapchain
     std::vector<vk::Image>      m_images;
     std::vector<vk::ImageView>  m_imageViews;
 
-    struct SwapChainSupportDetails
-    {
-        vk::SurfaceCapabilitiesKHR          capabilities;
-        std::vector<vk::SurfaceFormatKHR>   formats;
-        std::vector<vk::PresentModeKHR>     presentModes;
-    };
-
 public:
+
     void Connect(vk::PhysicalDevice p_physicalDevice, vk::Device p_logicalDevice, WrappedVulkanWindow *p_window)
     {
+        Logger::Log("Setting up swapchain!");
         m_physicalDevice = p_physicalDevice;
         m_device = p_logicalDevice;
         m_window = p_window;
-        Logger::Log("Swapchain connected!");
     }
 
     void Create()
     {
         Logger::Log("Creating swapchain");
-        SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport();
+        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(m_physicalDevice, m_window->m_surface);
 
         vk::SurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
         vk::PresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
@@ -112,24 +106,10 @@ public:
         m_images = m_device.getSwapchainImagesKHR(m_swapchain);
         m_imageFormat = surfaceFormat.format;
         m_swapchainExtent = extent;
+
+        std::cout << "W: " << extent.width << " H: " << extent.height << std::endl;
     }
 
-    vk::ImageView &CreateImageView(vk::Image image, vk::ImageAspectFlagBits p_aspectFlags)
-    {
-        vk::ImageViewCreateInfo viewCreateInfo;
-        viewCreateInfo.image = image;
-        viewCreateInfo.viewType = vk::ImageViewType::e2D;
-        viewCreateInfo.format = m_imageFormat;
-        viewCreateInfo.subresourceRange.aspectMask = p_aspectFlags;
-        viewCreateInfo.subresourceRange.baseMipLevel = 0;
-        viewCreateInfo.subresourceRange.levelCount = 1;
-        viewCreateInfo.subresourceRange.baseArrayLayer = 0;
-        viewCreateInfo.subresourceRange.layerCount = 1;
-
-        vk::ImageView imageView = m_device.createImageView(viewCreateInfo);
-
-        return imageView;
-    }
 
     void CreateImageViews()
     {
@@ -142,18 +122,6 @@ public:
     }
 
 private:
-    SwapChainSupportDetails QuerySwapChainSupport()
-    {
-        SwapChainSupportDetails details{
-                m_physicalDevice.getSurfaceCapabilitiesKHR(m_window->m_surface),
-                m_physicalDevice.getSurfaceFormatsKHR(m_window->m_surface),
-                m_physicalDevice.getSurfacePresentModesKHR(m_window->m_surface)
-        };
-        return details;
-    }
-
-
-
     vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats)
     {
         if (availableFormats.size() == 1 && availableFormats[0].format == vk::Format::eUndefined)
@@ -216,6 +184,23 @@ private:
 
             return actualExtent;
         }
+    }
+
+    vk::ImageView &CreateImageView(vk::Image image, vk::ImageAspectFlagBits p_aspectFlags)
+    {
+        vk::ImageViewCreateInfo viewCreateInfo;
+        viewCreateInfo.image = image;
+        viewCreateInfo.viewType = vk::ImageViewType::e2D;
+        viewCreateInfo.format = m_imageFormat;
+        viewCreateInfo.subresourceRange.aspectMask = p_aspectFlags;
+        viewCreateInfo.subresourceRange.baseMipLevel = 0;
+        viewCreateInfo.subresourceRange.levelCount = 1;
+        viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        viewCreateInfo.subresourceRange.layerCount = 1;
+
+        vk::ImageView imageView = m_device.createImageView(viewCreateInfo);
+
+        return imageView;
     }
 };
 

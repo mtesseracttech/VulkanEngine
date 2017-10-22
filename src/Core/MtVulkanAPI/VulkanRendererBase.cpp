@@ -135,25 +135,82 @@ void VulkanRendererBase::SelectPhysicalDevice()
         throw std::runtime_error("Could not find any physical devices to use");
     }
 
-    Logger::Log("Found the following GPUs:");
 
-    for(const auto& device : physicalDevices)
+    if (physicalDevices.empty())
     {
-        std::stringstream deviceLine;
-        deviceLine << "- " << device.getProperties().deviceName << " (" << GetDeviceTypeName(
-                device.getProperties().deviceType) << ")";
-        Logger::Log(deviceLine.str());
+        std::cerr << "No Vulkan devices found!" << std::endl;
+    }
+    else
+    {
+        Logger::Log("Found the following GPUs:");
+        int devNumber = 0;
+        for (const auto& device : physicalDevices)
+        {
+            vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
+            std::stringstream line;
+            line << "Device [" << devNumber << "] : " << deviceProperties.deviceName;
+            Logger::Log(line.str());
+            line.str("");
+            line << "Type: " << GetDeviceTypeName(deviceProperties.deviceType);
+            Logger::Log(line.str());
+            line.str("");
+            line << "API: " << (deviceProperties.apiVersion >> 22) << "." << ((deviceProperties.apiVersion >> 12) & 0x3ff) << "." << (deviceProperties.apiVersion & 0xfff);
+            Logger::Log(line.str());
+            ++devNumber;
+        }
     }
 
-    //TODO: Add a device suitability check later on
-
-    m_physicalDevice = physicalDevices[0];
+    for (const auto& device : physicalDevices)
+    {
+        if (IsDeviceSuitable(device))
+        {
+            m_physicalDevice = device;
+            std::stringstream deviceString;
+            deviceString << "Selected Device: " << m_physicalDevice.getProperties().deviceName;
+            Logger::Log(deviceString.str());
+            break;
+        }
+    }
+    
     m_deviceProperties = m_physicalDevice.getProperties();
     m_deviceFeatures = m_physicalDevice.getFeatures();
     m_deviceMemoryProperties = m_physicalDevice.getMemoryProperties();
 
     GetEnabledFeatures();
 }
+
+bool VulkanRendererBase::IsDeviceSuitable(vk::PhysicalDevice p_device)
+{
+    QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(p_device, m_window->m_surface);
+
+    bool extensionsSupported = CheckDeviceExtensionSupport(p_device);
+
+    bool swapChainAdequate = false;
+    if (extensionsSupported)
+    {
+        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(p_device, m_window->m_surface);
+        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    }
+
+    vk::PhysicalDeviceFeatures supportedFeatures =  p_device.getFeatures();
+
+    return indices.isComplete() && extensionsSupported && supportedFeatures.samplerAnisotropy && swapChainAdequate;
+}
+
+bool VulkanRendererBase::CheckDeviceExtensionSupport(vk::PhysicalDevice p_device)
+{
+    std::vector<vk::ExtensionProperties> availableExtensions = p_device.enumerateDeviceExtensionProperties(nullptr);
+
+    std::set<std::string> requiredExtensions(m_deviceExtensions.begin(), m_deviceExtensions.end());
+
+    for (const auto& extension : availableExtensions)
+    {
+        requiredExtensions.erase(extension.extensionName);
+    }
+
+    return requiredExtensions.empty();
+}
+
 
 std::string VulkanRendererBase::GetDeviceTypeName(vk::PhysicalDeviceType p_type)
 {
@@ -196,5 +253,10 @@ void VulkanRendererBase::CreateSwapchain()
 {
     m_swapchain.Connect(m_wrappedDevice->m_physicalDevice, m_wrappedDevice->m_logicalDevice, m_window);
     m_swapchain.Create();
+}
+
+void VulkanRendererBase::CreateImageViews()
+{
+    m_swapchain.CreateImageViews();
 }
 

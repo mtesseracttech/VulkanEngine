@@ -59,3 +59,13 @@ QueueFamilyIndices VulkanHelpers::FindQueueFamilies(vk::PhysicalDevice p_device,
 
     return indices;
 }
+
+SwapChainSupportDetails VulkanHelpers::QuerySwapChainSupport(vk::PhysicalDevice p_device, vk::SurfaceKHR p_surface)
+{
+    SwapChainSupportDetails details{
+            p_device.getSurfaceCapabilitiesKHR(p_surface),
+            p_device.getSurfaceFormatsKHR(p_surface),
+            p_device.getSurfacePresentModesKHR(p_surface)
+    };
+    return details;
+}

@@ -72,7 +72,8 @@ private:
     vk::PhysicalDeviceMemoryProperties  m_deviceMemoryProperties;
     vk::PhysicalDeviceFeatures          m_enabledFeatures;
     vk::Device                          m_logicalDevice             = nullptr;
-    std::vector<const char*>            m_enabledExtensions         = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+    std::vector<const char*>            m_enabledExtensions;
+    const std::vector<const char*>      m_deviceExtensions          = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     WrappedVulkanDevice*                m_wrappedDevice             = nullptr;
     //Queue
     vk::Queue                           m_graphicsQueue             = nullptr;
@@ -94,6 +95,11 @@ private:
     void CreateLogicalDevice();
     void CreateSurface();
     void CreateSwapchain();
+    void CreateImageViews();
+
+    bool IsDeviceSuitable(vk::PhysicalDevice p_device);
+
+    bool CheckDeviceExtensionSupport(vk::PhysicalDevice p_device);
 };
 
 
