@@ -43,6 +43,7 @@
 #include "WrappedVulkanValidation.hpp"
 #include "VulkanHelpers.hpp"
 #include "WrappedVulkanWindow.hpp"
+#include "WrappedVulkanSwapchain.hpp"
 
 class VulkanRendererBase
 {
@@ -60,7 +61,7 @@ public:
 
 protected:
 private:
-    WrappedVulkanWindow *                         m_window                    = nullptr;
+    WrappedVulkanWindow *               m_window                    = nullptr;
     int                                 m_windowHeight              = 720;
     int                                 m_windowWidth               = 1080;
     vk::Instance                        m_instance                  = nullptr;
@@ -79,6 +80,8 @@ private:
     vk::CommandPool                     m_commandPool;
     vk::PipelineStageFlags              m_submitPipelineStages;
     vk::SubmitInfo                      m_submitInfo;
+    //Swapchain
+    WrappedVulkanSwapchain              m_swapchain;
 
     void CreateInstance();
     bool CheckValidationLayerSupport();

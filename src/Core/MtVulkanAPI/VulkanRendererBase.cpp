@@ -71,6 +71,8 @@ void VulkanRendererBase::CreateInstance()
 
     m_instance = vk::createInstance(instanceCreateInfo, nullptr);
 
+
+
     Logger::Log("Vulkan instance successfully created!");
 }
 
@@ -212,5 +214,5 @@ void VulkanRendererBase::CreateSurface()
 
 void VulkanRendererBase::CreateSwapchain()
 {
-    m_window->CreateSwapchain(m_wrappedDevice->m_physicalDevice, m_wrappedDevice->m_queueFamilyIndices);
+    m_swapchain.Create(m_wrappedDevice->m_physicalDevice, m_window);
 }

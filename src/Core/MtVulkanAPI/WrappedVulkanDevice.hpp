@@ -97,7 +97,7 @@ struct WrappedVulkanDevice
     {
         if (static_cast<VkQueueFlagBits>(p_flagBits) & static_cast<VkQueueFlagBits>(vk::QueueFlagBits::eCompute))
         {
-            for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); i++)
+            for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); ++i)
             {
                 //Might give problems
                 if ((m_queueFamilyProperties[i].queueFlags & p_flagBits) && (static_cast<uint32_t>(m_queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) == 0))
@@ -109,7 +109,7 @@ struct WrappedVulkanDevice
 
         if (static_cast<VkQueueFlagBits>(p_flagBits) & static_cast<VkQueueFlagBits>(vk::QueueFlagBits::eTransfer))
         {
-            for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); i++)
+            for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); ++i)
             {
                 if ((m_queueFamilyProperties[i].queueFlags & p_flagBits) && (static_cast<uint32_t>(m_queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) == 0) && (static_cast<uint32_t>(m_queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eCompute) == 0))
                 {
@@ -118,7 +118,7 @@ struct WrappedVulkanDevice
             }
         }
 
-        for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); i++)
+        for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); ++i)
         {
             if (m_queueFamilyProperties[i].queueFlags & p_flagBits)
             {
