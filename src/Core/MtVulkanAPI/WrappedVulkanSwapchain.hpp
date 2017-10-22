@@ -16,8 +16,9 @@ class WrappedVulkanSwapchain
     vk::SwapchainKHR            m_swapchain = nullptr;
     vk::Format                  m_imageFormat;
     vk::Extent2D                m_swapchainExtent;
+    WrappedVulkanWindow *       m_window;
     std::vector<vk::Image>      m_images;
-    std::vector<vk::ImageView>  m_swapChainImageViews;
+    std::vector<vk::ImageView>  m_imageViews;
 
     struct SwapChainSupportDetails
     {
@@ -27,14 +28,22 @@ class WrappedVulkanSwapchain
     };
 
 public:
-    void Create(WrappedVulkanDevice * p_device, WrappedVulkanWindow * p_window)
+    void Connect(vk::PhysicalDevice p_physicalDevice, vk::Device p_logicalDevice, WrappedVulkanWindow *p_window)
+    {
+        m_physicalDevice = p_physicalDevice;
+        m_device = p_logicalDevice;
+        m_window = p_window;
+        Logger::Log("Swapchain connected!");
+    }
+
+    void Create()
     {
         Logger::Log("Creating swapchain");
-        SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(p_device->m_physicalDevice, p_window->m_surface);
+        SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport();
 
         vk::SurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
         vk::PresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
-        vk::Extent2D extent = ChooseSwapExtent(swapChainSupport.capabilities, *p_window);
+        vk::Extent2D extent = ChooseSwapExtent(swapChainSupport.capabilities);
 
         uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
         if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount)
@@ -43,7 +52,7 @@ public:
         }
 
         vk::SwapchainCreateInfoKHR swapchainCreateInfo;
-        swapchainCreateInfo.surface = p_window->m_surface;
+        swapchainCreateInfo.surface = m_window->m_surface;
         swapchainCreateInfo.minImageCount = imageCount;
         swapchainCreateInfo.imageFormat = surfaceFormat.format;
         swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -51,11 +60,11 @@ public:
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
-        QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(p_device->m_physicalDevice, p_window->m_surface);
+        QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(m_physicalDevice, m_window->m_surface);
 
         uint32_t queueFamilyIndices[] = {(uint32_t) indices.graphicsFamily, (uint32_t) indices.presentFamily};
 
-        if (p_device->m_queueFamilyIndices.graphics != p_device->m_queueFamilyIndices.transfer)
+        if (indices.graphicsFamily != indices.presentFamily)
         {
             swapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
             swapchainCreateInfo.queueFamilyIndexCount = 2;
@@ -90,7 +99,7 @@ public:
         swapchainCreateInfo.presentMode = presentMode;
         swapchainCreateInfo.clipped = VK_TRUE;
 
-        vk::FormatProperties formatProperties = p_device->m_physicalDevice.getFormatProperties(surfaceFormat.format);
+        vk::FormatProperties formatProperties = m_physicalDevice.getFormatProperties(surfaceFormat.format);
 
         if ((formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eTransferSrcKHR) ||
             (formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitSrc))
@@ -98,20 +107,47 @@ public:
             swapchainCreateInfo.imageUsage |= vk::ImageUsageFlagBits::eTransferSrc;
         }
 
-        m_swapchain = p_device->m_logicalDevice.createSwapchainKHR(swapchainCreateInfo);
+        m_swapchain = m_device.createSwapchainKHR(swapchainCreateInfo);
 
-        m_images = p_device->m_logicalDevice.getSwapchainImagesKHR(m_swapchain);
+        m_images = m_device.getSwapchainImagesKHR(m_swapchain);
         m_imageFormat = surfaceFormat.format;
         m_swapchainExtent = extent;
     }
 
+    vk::ImageView &CreateImageView(vk::Image image, vk::ImageAspectFlagBits p_aspectFlags)
+    {
+        vk::ImageViewCreateInfo viewCreateInfo;
+        viewCreateInfo.image = image;
+        viewCreateInfo.viewType = vk::ImageViewType::e2D;
+        viewCreateInfo.format = m_imageFormat;
+        viewCreateInfo.subresourceRange.aspectMask = p_aspectFlags;
+        viewCreateInfo.subresourceRange.baseMipLevel = 0;
+        viewCreateInfo.subresourceRange.levelCount = 1;
+        viewCreateInfo.subresourceRange.baseArrayLayer = 0;
+        viewCreateInfo.subresourceRange.layerCount = 1;
+
+        vk::ImageView imageView = m_device.createImageView(viewCreateInfo);
+
+        return imageView;
+    }
+
+    void CreateImageViews()
+    {
+        m_imageViews.resize(m_images.size());
+
+        for (uint32_t i = 0; i < m_images.size(); ++i)
+        {
+            m_imageViews[i] = CreateImageView(m_images[i], vk::ImageAspectFlagBits::eColor);
+        }
+    }
+
 private:
-    SwapChainSupportDetails QuerySwapChainSupport(vk::PhysicalDevice p_physicalDevice, vk::SurfaceKHR p_surface)
+    SwapChainSupportDetails QuerySwapChainSupport()
     {
         SwapChainSupportDetails details{
-                p_physicalDevice.getSurfaceCapabilitiesKHR(p_surface),
-                p_physicalDevice.getSurfaceFormatsKHR(p_surface),
-                p_physicalDevice.getSurfacePresentModesKHR(p_surface)
+                m_physicalDevice.getSurfaceCapabilitiesKHR(m_window->m_surface),
+                m_physicalDevice.getSurfaceFormatsKHR(m_window->m_surface),
+                m_physicalDevice.getSurfacePresentModesKHR(m_window->m_surface)
         };
         return details;
     }
@@ -157,7 +193,7 @@ private:
         return bestMode;
     }
 
-    vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities, const WrappedVulkanWindow& p_window)
+    vk::Extent2D ChooseSwapExtent(const vk::SurfaceCapabilitiesKHR &capabilities)
     {
         if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
         {
@@ -166,7 +202,7 @@ private:
         else
         {
             int width, height;
-            glfwGetWindowSize(p_window.m_window, &width, &height);
+            glfwGetWindowSize(m_window->m_window, &width, &height);
 
             vk::Extent2D actualExtent = {
                     static_cast<uint32_t>(width),

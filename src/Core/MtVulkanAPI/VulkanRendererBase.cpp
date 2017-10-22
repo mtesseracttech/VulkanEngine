@@ -194,6 +194,7 @@ void VulkanRendererBase::CreateSurface()
 
 void VulkanRendererBase::CreateSwapchain()
 {
-    m_swapchain.Create(m_wrappedDevice, m_window);
+    m_swapchain.Connect(m_wrappedDevice->m_physicalDevice, m_wrappedDevice->m_logicalDevice, m_window);
+    m_swapchain.Create();
 }
 
