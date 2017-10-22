@@ -193,7 +193,6 @@ void VulkanRendererBase::CreateLogicalDevice()
     Logger::Log("Creating logical device");
     m_wrappedDevice = new WrappedVulkanDevice(m_physicalDevice);
     m_wrappedDevice->CreateLogicalDevice(m_enabledFeatures, m_enabledExtensions);
-    std::cout << "Logical device: " << m_wrappedDevice->m_logicalDevice << std::endl;
     m_logicalDevice = m_wrappedDevice->m_logicalDevice;
 
     m_graphicsQueue = m_logicalDevice.getQueue(m_wrappedDevice->m_queueFamilyIndices.graphics, 0);

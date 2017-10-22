@@ -9,12 +9,14 @@
 #include "WrappedVulkanDevice.hpp"
 #include "WrappedVulkanWindow.hpp"
 
-struct WrappedVulkanSwapchain
+class WrappedVulkanSwapchain
 {
-    vk::SwapchainKHR        m_swapchain = nullptr;
-    std::vector<vk::Image>  m_images;
-    vk::Format              m_swapChainImageFormat;
-    vk::Extent2D            m_swapChainExtent;
+    vk::SwapchainKHR            m_swapchain = nullptr;
+    vk::Format                  m_imageFormat;
+    vk::Extent2D                m_swapchainExtent;
+    std::vector<vk::Image>      m_images;
+    std::vector<vk::ImageView>  m_swapChainImageViews;
+
 
     struct SwapChainSupportDetails
     {
@@ -23,6 +25,7 @@ struct WrappedVulkanSwapchain
         std::vector<vk::PresentModeKHR>     presentModes;
     };
 
+public:
     void Create(WrappedVulkanDevice * p_device, WrappedVulkanWindow * p_window)
     {
         Logger::Log("Creating the swapchain");
@@ -64,14 +67,12 @@ struct WrappedVulkanSwapchain
         swapchainCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
         swapchainCreateInfo.presentMode = presentMode;
         swapchainCreateInfo.clipped = static_cast<VkBool32>(true);
-
-        std::cout << p_device->m_logicalDevice << std::endl;
-
+        
         m_swapchain = p_device->m_logicalDevice.createSwapchainKHR(swapchainCreateInfo);
 
         m_images = p_device->m_logicalDevice.getSwapchainImagesKHR(m_swapchain);
-        m_swapChainImageFormat = surfaceFormat.format;
-        m_swapChainExtent = extent;
+        m_imageFormat = surfaceFormat.format;
+        m_swapchainExtent = extent;
     }
 private:
     SwapChainSupportDetails QuerySwapChainSupport(vk::PhysicalDevice p_physicalDevice, vk::SurfaceKHR p_surface)
