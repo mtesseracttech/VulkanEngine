@@ -11,7 +11,7 @@
 
 struct WrappedVulkanSwapchain
 {
-    vk::SwapchainKHR        m_swapchain;
+    vk::SwapchainKHR        m_swapchain = nullptr;
     std::vector<vk::Image>  m_images;
     vk::Format              m_swapChainImageFormat;
     vk::Extent2D            m_swapChainExtent;
@@ -23,9 +23,10 @@ struct WrappedVulkanSwapchain
         std::vector<vk::PresentModeKHR>     presentModes;
     };
 
-    void Create(const WrappedVulkanDevice& p_device, WrappedVulkanWindow *p_window)
+    void Create(WrappedVulkanDevice * p_device, WrappedVulkanWindow * p_window)
     {
-        SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(p_device.m_physicalDevice, p_window->m_surface);
+        Logger::Log("Creating the swapchain");
+        SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(p_device->m_physicalDevice, p_window->m_surface);
 
         vk::SurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
         vk::PresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
@@ -46,9 +47,9 @@ struct WrappedVulkanSwapchain
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
-        uint32_t queueFamilyIndices[] = {(uint32_t) p_device.m_queueFamilyIndices.graphics, (uint32_t) p_device.m_queueFamilyIndices.transfer};
+        uint32_t queueFamilyIndices[] = {(uint32_t) p_device->m_queueFamilyIndices.graphics, (uint32_t) p_device->m_queueFamilyIndices.transfer};
 
-        if (p_device.m_queueFamilyIndices.graphics != p_device.m_queueFamilyIndices.transfer)
+        if (p_device->m_queueFamilyIndices.graphics != p_device->m_queueFamilyIndices.transfer)
         {
             swapchainCreateInfo.imageSharingMode = vk::SharingMode::eConcurrent;
             swapchainCreateInfo.queueFamilyIndexCount = 2;
@@ -64,10 +65,11 @@ struct WrappedVulkanSwapchain
         swapchainCreateInfo.presentMode = presentMode;
         swapchainCreateInfo.clipped = static_cast<VkBool32>(true);
 
-        m_swapchain = p_device.m_logicalDevice.createSwapchainKHR(swapchainCreateInfo);
+        std::cout << p_device->m_logicalDevice << std::endl;
 
-        m_images = p_device.m_logicalDevice.getSwapchainImagesKHR(m_swapchain);
+        m_swapchain = p_device->m_logicalDevice.createSwapchainKHR(swapchainCreateInfo);
 
+        m_images = p_device->m_logicalDevice.getSwapchainImagesKHR(m_swapchain);
         m_swapChainImageFormat = surfaceFormat.format;
         m_swapChainExtent = extent;
     }

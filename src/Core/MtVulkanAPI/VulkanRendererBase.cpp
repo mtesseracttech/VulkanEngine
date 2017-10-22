@@ -33,6 +33,7 @@ void VulkanRendererBase::Initialize()
     CreateSurface();
     SelectPhysicalDevice();
     CreateLogicalDevice();
+    CreateSwapchain();
 }
 
 void VulkanRendererBase::CreateInstance()
@@ -189,8 +190,10 @@ void VulkanRendererBase::GetEnabledFeatures()
 
 void VulkanRendererBase::CreateLogicalDevice()
 {
+    Logger::Log("Creating logical device");
     m_wrappedDevice = new WrappedVulkanDevice(m_physicalDevice);
     m_wrappedDevice->CreateLogicalDevice(m_enabledFeatures, m_enabledExtensions);
+    std::cout << "Logical device: " << m_wrappedDevice->m_logicalDevice << std::endl;
     m_logicalDevice = m_wrappedDevice->m_logicalDevice;
 
     m_graphicsQueue = m_logicalDevice.getQueue(m_wrappedDevice->m_queueFamilyIndices.graphics, 0);
@@ -214,5 +217,5 @@ void VulkanRendererBase::CreateSurface()
 
 void VulkanRendererBase::CreateSwapchain()
 {
-    m_swapchain.Create(m_wrappedDevice->m_physicalDevice, m_window);
+    m_swapchain.Create(m_wrappedDevice, m_window);
 }
