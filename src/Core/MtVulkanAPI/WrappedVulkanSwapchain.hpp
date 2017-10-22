@@ -11,12 +11,13 @@
 
 class WrappedVulkanSwapchain
 {
+    vk::Device                  m_device;
+    vk::PhysicalDevice          m_physicalDevice;
     vk::SwapchainKHR            m_swapchain = nullptr;
     vk::Format                  m_imageFormat;
     vk::Extent2D                m_swapchainExtent;
     std::vector<vk::Image>      m_images;
     std::vector<vk::ImageView>  m_swapChainImageViews;
-
 
     struct SwapChainSupportDetails
     {
@@ -28,7 +29,7 @@ class WrappedVulkanSwapchain
 public:
     void Create(WrappedVulkanDevice * p_device, WrappedVulkanWindow * p_window)
     {
-        Logger::Log("Creating the swapchain");
+        Logger::Log("Creating swapchain");
         SwapChainSupportDetails swapChainSupport = QuerySwapChainSupport(p_device->m_physicalDevice, p_window->m_surface);
 
         vk::SurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
@@ -50,7 +51,9 @@ public:
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
-        uint32_t queueFamilyIndices[] = {(uint32_t) p_device->m_queueFamilyIndices.graphics, (uint32_t) p_device->m_queueFamilyIndices.transfer};
+        QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(p_device->m_physicalDevice, p_window->m_surface);
+
+        uint32_t queueFamilyIndices[] = {(uint32_t) indices.graphicsFamily, (uint32_t) indices.presentFamily};
 
         if (p_device->m_queueFamilyIndices.graphics != p_device->m_queueFamilyIndices.transfer)
         {
@@ -64,16 +67,44 @@ public:
         }
 
         swapchainCreateInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-        swapchainCreateInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+
+        vk::CompositeAlphaFlagBitsKHR compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+
+        std::vector<vk::CompositeAlphaFlagBitsKHR> compositeAlphaFlags = {
+                vk::CompositeAlphaFlagBitsKHR::eOpaque,
+                vk::CompositeAlphaFlagBitsKHR::ePreMultiplied,
+                vk::CompositeAlphaFlagBitsKHR::ePostMultiplied,
+                vk::CompositeAlphaFlagBitsKHR::eInherit
+        };
+
+        for (auto& compositeAlphaFlag : compositeAlphaFlags)
+        {
+            if (swapChainSupport.capabilities.supportedCompositeAlpha & compositeAlphaFlag)
+            {
+                compositeAlpha = compositeAlphaFlag;
+                break;
+            };
+        }
+
+        swapchainCreateInfo.compositeAlpha = compositeAlpha;
         swapchainCreateInfo.presentMode = presentMode;
-        swapchainCreateInfo.clipped = static_cast<VkBool32>(true);
-        
+        swapchainCreateInfo.clipped = VK_TRUE;
+
+        vk::FormatProperties formatProperties = p_device->m_physicalDevice.getFormatProperties(surfaceFormat.format);
+
+        if ((formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eTransferSrcKHR) ||
+            (formatProperties.optimalTilingFeatures & vk::FormatFeatureFlagBits::eBlitSrc))
+        {
+            swapchainCreateInfo.imageUsage |= vk::ImageUsageFlagBits::eTransferSrc;
+        }
+
         m_swapchain = p_device->m_logicalDevice.createSwapchainKHR(swapchainCreateInfo);
 
         m_images = p_device->m_logicalDevice.getSwapchainImagesKHR(m_swapchain);
         m_imageFormat = surfaceFormat.format;
         m_swapchainExtent = extent;
     }
+
 private:
     SwapChainSupportDetails QuerySwapChainSupport(vk::PhysicalDevice p_physicalDevice, vk::SurfaceKHR p_surface)
     {
@@ -84,6 +115,8 @@ private:
         };
         return details;
     }
+
+
 
     vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats)
     {

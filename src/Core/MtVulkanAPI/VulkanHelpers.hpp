@@ -7,10 +7,19 @@
 
 #include <vulkan/vulkan.hpp>
 
+struct QueueFamilyIndices
+{
+	int graphicsFamily = -1;
+	int presentFamily = -1;
+
+	bool isComplete() { return graphicsFamily >= 0 && presentFamily >= 0; }
+};
+
 class VulkanHelpers
 {
 public:
-		static vk::Bool32 GetSupportedDepthFormat(vk::PhysicalDevice p_physicalDevice, vk::Format *p_depthFormat);
+	static vk::Bool32 GetSupportedDepthFormat(vk::PhysicalDevice p_physicalDevice, vk::Format *p_depthFormat);
+    static QueueFamilyIndices FindQueueFamilies(vk::PhysicalDevice p_device, vk::SurfaceKHR p_surface);
 };
 
 

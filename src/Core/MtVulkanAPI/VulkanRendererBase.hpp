@@ -72,16 +72,17 @@ private:
     vk::PhysicalDeviceMemoryProperties  m_deviceMemoryProperties;
     vk::PhysicalDeviceFeatures          m_enabledFeatures;
     vk::Device                          m_logicalDevice             = nullptr;
-    std::vector<const char*>            m_enabledExtensions;
+    std::vector<const char*>            m_enabledExtensions         = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     WrappedVulkanDevice*                m_wrappedDevice             = nullptr;
     //Queue
     vk::Queue                           m_graphicsQueue             = nullptr;
     vk::Format                          m_depthFormat;
+    //Swapchain
+    WrappedVulkanSwapchain              m_swapchain;
     vk::CommandPool                     m_commandPool;
     vk::PipelineStageFlags              m_submitPipelineStages;
     vk::SubmitInfo                      m_submitInfo;
-    //Swapchain
-    WrappedVulkanSwapchain              m_swapchain;
+
 
     void CreateInstance();
     bool CheckValidationLayerSupport();

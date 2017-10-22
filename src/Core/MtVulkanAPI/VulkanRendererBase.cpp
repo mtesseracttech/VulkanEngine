@@ -7,21 +7,6 @@
 void VulkanRendererBase::InitializeGlfwWindow()
 {
     m_window = new WrappedVulkanWindow(m_windowWidth, m_windowHeight, "Vulkan", false);
-    /*Logger::Log("GLFW is initializing");
-    if(glfwInit() == GLFW_TRUE)
-    {
-        Logger::Log("GLFW Initialized Successfully!");
-    }
-    else
-    {
-        throw std::runtime_error("GLFW Failed to initialize, terminating...");
-    }
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    Logger::Log("GLFW set to load without an API, so Vulkan can be used");
-    m_window = glfwCreateWindow(m_windowWidth, m_windowHeight, "Vulkan", (m_settings.fullscreen ? glfwGetPrimaryMonitor() : nullptr), nullptr);
-    glfwSetWindowUserPointer(m_window, this);
-     */
 }
 
 void VulkanRendererBase::Initialize()
@@ -204,17 +189,11 @@ void VulkanRendererBase::CreateLogicalDevice()
 
 void VulkanRendererBase::CreateSurface()
 {
-    VkSurfaceKHR surface;
-    if (glfwCreateWindowSurface(static_cast<VkInstance >(m_instance), m_window->m_window, nullptr, &surface) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create window surface!");
-    }
-    else{
-        Logger::Log("Successfully created KHR Surface");
-    }
-    m_window->m_surface = static_cast<vk::SurfaceKHR>(surface);
+    m_window->CreateSurface(m_instance);
 }
 
 void VulkanRendererBase::CreateSwapchain()
 {
     m_swapchain.Create(m_wrappedDevice, m_window);
 }
+

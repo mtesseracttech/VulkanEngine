@@ -22,7 +22,7 @@ struct WrappedVulkanDevice
     std::vector<std::string>                m_supportedExtensions;
     vk::CommandPool                         m_commandPool       = nullptr;
 
-    struct QueueFamilyIndices
+    struct
     {
         uint32_t graphics;
         uint32_t compute;

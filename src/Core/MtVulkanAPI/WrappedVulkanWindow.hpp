@@ -34,9 +34,22 @@ struct WrappedVulkanWindow
         m_window = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(),
                                     (fullscreen ? glfwGetPrimaryMonitor() : nullptr), nullptr);
         glfwSetWindowUserPointer(m_window, this);
+
     }
 
-private:
+    void CreateSurface(vk::Instance p_instance)
+    {
+        VkSurfaceKHR surface;
+        if (glfwCreateWindowSurface(static_cast<VkInstance >(p_instance), m_window, nullptr, &surface) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create window surface!");
+        }
+        else
+        {
+            Logger::Log("Successfully created KHR Surface");
+        }
+        m_surface = static_cast<vk::SurfaceKHR>(surface);
+    }
 };
 
 

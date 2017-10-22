@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <string>
+#include <sstream>
 #include "Timer.hpp"
 
 enum LogLevel{
@@ -36,13 +37,13 @@ public:
         switch (p_level)
         {
             case LogDebug:
-                logger->PrintLog("DEBUG", p_message);
+                logger->PrintLog("Debug", p_message);
                 break;
             case LogInfo:
-                logger->PrintLog("INFO", p_message);
+                logger->PrintLog("Info", p_message);
                 break;
             case LogError:
-                logger->PrintLog("ERROR", p_message);
+                logger->PrintLog("Error", p_message);
                 break;
         }
     }
@@ -55,16 +56,11 @@ public:
 private:
     LogLevel m_logLevel;
 
-    void PrintError(std::string m_prefix, std::string p_message)
-    {
-        std::string bracketTag = "[" + m_prefix + "] ";
-        std::cerr << bracketTag << p_message << std::endl;
-    }
-
     void PrintLog(std::string m_prefix, std::string p_message)
     {
-        std::string bracketTag = "[" + m_prefix + "] ";
-        std::cout << bracketTag << p_message << std::endl;
+        std::stringstream output;
+        output << "LOG: " << "[" << m_prefix << "]" << p_message;
+        std::cout << output.str() << std::endl;
     }
 
     Logger()
