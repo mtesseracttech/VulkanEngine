@@ -11,6 +11,7 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <assimp/cimport.h>
+#include <glm/glm.hpp>
 #include "WrappedVulkanBuffer.hpp"
 
 enum VulkanVertexComponent
@@ -46,7 +47,7 @@ struct VertexLayout
                     res += 2 * sizeof(float);
                     break;
                 case eDummyFloat:
-                    res += sizeof(float);
+                    res +=      sizeof(float);
                     break;
                 case eDummyVec4:
                     res += 4 * sizeof(float);
@@ -62,11 +63,11 @@ struct VertexLayout
 
 struct VulkanModel
 {
-    vk::Device device = nullptr;
-    WrappedVulkanBuffer vertexBuffer;
-    WrappedVulkanBuffer indexBuffer;
-    uint32_t indexCount;
-    uint32_t vertexCount;
+    vk::Device m_device = nullptr;
+    WrappedVulkanBuffer m_vertexBuffer;
+    WrappedVulkanBuffer m_indexBuffer;
+    uint32_t m_indexCount;
+    uint32_t m_vertexCount;
 
     struct ModelPart
     {
@@ -78,8 +79,24 @@ struct VulkanModel
 
     std::vector<ModelPart> parts;
 
-    static const int defaultFlags = aiProcess_FlipWindingOrder | aiProcess_Triangulate | aiProcess_PreTransformVertices | aiProcess_CalcTangentSpace | aiProcess_GenSmoothNormals;
+    static const int defaultFlags = aiProcess_FlipWindingOrder
+                                    | aiProcess_Triangulate
+                                    | aiProcess_PreTransformVertices
+                                    | aiProcess_CalcTangentSpace
+                                    | aiProcess_GenSmoothNormals;
 
+    struct Dimensions
+    {
+        glm::vec3 min = glm::vec3( std::numeric_limits<float>::max());
+        glm::vec3 max = glm::vec3(-std::numeric_limits<float>::max());
+        glm::vec3 size;
+    } m_dimensions;
+
+    void Destroy()
+    {
+        assert(m_device);
+
+    }
 
 };
 

@@ -34,7 +34,7 @@ public:
         presentInfo.pSwapchains = &m_swapchain;
         presentInfo.pImageIndices = &p_imageIndex;
 
-        if (p_waitSemaphore != nullptr)
+        if (p_waitSemaphore)
         {
             presentInfo.pWaitSemaphores = &p_waitSemaphore;
             presentInfo.waitSemaphoreCount = 1;
@@ -141,6 +141,12 @@ public:
             m_imageViews[i] = CreateImageView(m_images[i], vk::ImageAspectFlagBits::eColor);
         }
     }
+
+    vk::Format GetSwapchainImageFormat()
+    {
+        return m_imageFormat;
+    }
+
 private:
     vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats)
     {

@@ -74,6 +74,7 @@ protected:
     //Queue
     vk::Queue                           m_graphicsQueue             = nullptr;
     vk::Format                          m_depthFormat;
+    vk::RenderPass                      m_renderPass;
 
     struct {
         // Swap chain image presentation
@@ -106,7 +107,7 @@ private:
     void CreateSurface();
     void CreateSwapchain();
     void CreateImageViews();
-    void CreateSemaphores();
+    void CreateRenderPass();
     bool IsDeviceSuitable(vk::PhysicalDevice p_device);
 };
 

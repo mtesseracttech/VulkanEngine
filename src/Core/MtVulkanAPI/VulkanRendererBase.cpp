@@ -35,8 +35,8 @@ void VulkanRendererBase::CreateInstance()
     applicationInfo.pApplicationName = "";
     applicationInfo.pEngineName = "";
     applicationInfo.apiVersion = VK_API_VERSION_1_0;
-    applicationInfo.applicationVersion = VK_MAKE_VERSION(1,0,0);
-    applicationInfo.engineVersion = VK_MAKE_VERSION(1,0,0);
+    applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    applicationInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 
     vk::InstanceCreateInfo instanceCreateInfo;
     instanceCreateInfo.pNext = nullptr;
@@ -46,7 +46,7 @@ void VulkanRendererBase::CreateInstance()
     instanceCreateInfo.enabledExtensionCount = static_cast<uint32_t>(requiredExtensions.size());
     instanceCreateInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
-    if(m_settings.validation)
+    if (m_settings.validation)
     {
         instanceCreateInfo.enabledLayerCount = static_cast<uint32_t>(mtvk::debug::validationLayers.size());
         instanceCreateInfo.ppEnabledLayerNames = mtvk::debug::validationLayers.data();
@@ -110,7 +110,7 @@ std::vector<const char *> VulkanRendererBase::GetRequiredExtensions()
 
 void VulkanRendererBase::CreateDebugCallback()
 {
-    if(!m_settings.validation)
+    if (!m_settings.validation)
     {
         Logger::Log("Debug callback is not needed, not setting it up");
         return;
@@ -120,7 +120,8 @@ void VulkanRendererBase::CreateDebugCallback()
         Logger::Log("Setting up debug callback");
     }
 
-    vk::DebugReportFlagsEXT debugReportFlags = vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::eWarning;
+    vk::DebugReportFlagsEXT debugReportFlags =
+            vk::DebugReportFlagBitsEXT::eDebug | vk::DebugReportFlagBitsEXT::eWarning;
     mtvk::debug::SetupDebugCallback(m_instance, debugReportFlags, nullptr);
 }
 
@@ -129,7 +130,7 @@ void VulkanRendererBase::SelectPhysicalDevice()
     Logger::Log("Selecting a physical device to use");
     std::vector<vk::PhysicalDevice> physicalDevices = m_instance.enumeratePhysicalDevices();
 
-    if(physicalDevices.empty())
+    if (physicalDevices.empty())
     {
         throw std::runtime_error("Could not find any physical devices to use");
     }
@@ -143,7 +144,7 @@ void VulkanRendererBase::SelectPhysicalDevice()
     {
         Logger::Log("Found the following GPUs:");
         int devNumber = 0;
-        for (const auto& device : physicalDevices)
+        for (const auto &device : physicalDevices)
         {
             vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
             std::stringstream line;
@@ -153,13 +154,14 @@ void VulkanRendererBase::SelectPhysicalDevice()
             line << "Type: " << VulkanHelpers::GetDeviceTypeName(deviceProperties.deviceType);
             Logger::Log(line.str());
             line.str("");
-            line << "API: " << (deviceProperties.apiVersion >> 22) << "." << ((deviceProperties.apiVersion >> 12) & 0x3ff) << "." << (deviceProperties.apiVersion & 0xfff);
+            line << "API: " << (deviceProperties.apiVersion >> 22) << "."
+                 << ((deviceProperties.apiVersion >> 12) & 0x3ff) << "." << (deviceProperties.apiVersion & 0xfff);
             Logger::Log(line.str());
             ++devNumber;
         }
     }
 
-    for (const auto& device : physicalDevices)
+    for (const auto &device : physicalDevices)
     {
         if (IsDeviceSuitable(device))
         {
@@ -191,7 +193,7 @@ bool VulkanRendererBase::IsDeviceSuitable(vk::PhysicalDevice p_device)
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
-    vk::PhysicalDeviceFeatures supportedFeatures =  p_device.getFeatures();
+    vk::PhysicalDeviceFeatures supportedFeatures = p_device.getFeatures();
 
     return indices.IsComplete() && extensionsSupported && supportedFeatures.samplerAnisotropy && swapChainAdequate;
 }
@@ -213,7 +215,7 @@ void VulkanRendererBase::CreateLogicalDevice()
 
     vk::Bool32 validDepthFormat = VulkanHelpers::GetSupportedDepthFormat(m_physicalDevice, &m_depthFormat);
 
-    if(!validDepthFormat) throw std::runtime_error("Could not find a valid depth format");
+    if (!validDepthFormat) throw std::runtime_error("Could not find a valid depth format");
 }
 
 void VulkanRendererBase::CreateSurface()
@@ -232,13 +234,62 @@ void VulkanRendererBase::CreateImageViews()
     m_swapchain.CreateImageViews();
 }
 
-void VulkanRendererBase::CreateSemaphores()
+void VulkanRendererBase::CreateRenderPass()
 {
-    vk::SubmitInfo submitInfo;
-    submitInfo.pWaitDstStageMask = &m_submitPipelineStages;
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores      = &m_semaphores.presentComplete;
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = &m_semaphores.renderComplete;
-}
+    vk::Format depthFormat;
+    VulkanHelpers::GetSupportedDepthFormat(m_physicalDevice, &depthFormat);
 
+    vk::AttachmentDescription colorAttachment;
+    colorAttachment.format = m_swapchain.GetSwapchainImageFormat();
+    colorAttachment.samples = vk::SampleCountFlagBits::e1;
+    colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+    colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    colorAttachment.initialLayout = vk::ImageLayout::eUndefined;
+    colorAttachment.finalLayout = vk::ImageLayout::ePresentSrcKHR;
+
+    vk::AttachmentDescription depthAttachment;
+    depthAttachment.format = depthFormat;
+    depthAttachment.samples = vk::SampleCountFlagBits::e1;
+    depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+    depthAttachment.storeOp = vk::AttachmentStoreOp::eDontCare;
+    depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+    depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+    depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
+    depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+    vk::AttachmentReference colorAttachmentReference;
+    colorAttachmentReference.attachment = 0;
+    colorAttachmentReference.layout = vk::ImageLayout::eColorAttachmentOptimal;
+
+    vk::AttachmentReference depthAttachmentReference;
+    depthAttachmentReference.attachment = 1;
+    depthAttachmentReference.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+    vk::SubpassDescription subpassDescription;
+    subpassDescription.pipelineBindPoint = vk::PipelineBindPoint ::eGraphics;
+    subpassDescription.colorAttachmentCount = 1;
+    subpassDescription.pColorAttachments = &colorAttachmentReference;
+    subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
+
+    vk::SubpassDependency subpassDependency;
+    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    subpassDependency.dstSubpass = 0;
+    subpassDependency.srcStageMask = vk::PipelineStageFlagBits ::eColorAttachmentOutput;
+    subpassDependency.srcAccessMask = static_cast<vk::AccessFlagBits>(0);
+    subpassDependency.dstStageMask = vk::PipelineStageFlagBits ::eColorAttachmentOutput;
+    subpassDependency.dstAccessMask = vk::AccessFlagBits ::eColorAttachmentRead | vk::AccessFlagBits ::eColorAttachmentWrite;
+
+    std::array<vk::AttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
+
+    vk::RenderPassCreateInfo renderPassCreateInfo;
+    renderPassCreateInfo.attachmentCount = attachments.size();
+    renderPassCreateInfo.pAttachments = attachments.data();
+    renderPassCreateInfo.subpassCount = 1;
+    renderPassCreateInfo.pSubpasses = &subpassDescription;
+    renderPassCreateInfo.dependencyCount = 1;
+    renderPassCreateInfo.pDependencies = &subpassDependency;
+
+    m_renderPass = m_logicalDevice.createRenderPass(renderPassCreateInfo);
+}
