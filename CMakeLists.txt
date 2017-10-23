@@ -3,7 +3,42 @@ project(VulkanEngine)
 
 set(CMAKE_CXX_STANDARD 17)
 
-set(SOURCE_FILES src/Utility/Logger.cpp src/Utility/Logger.hpp src/Utility/ShaderUtils.hpp src/Utility/Timer.hpp src/Core/Mesh.cpp src/Core/Mesh.hpp src/Core/Model.cpp src/Core/Model.hpp src/Core/Texture.cpp src/Core/Texture.hpp src/Utility/Constants.hpp src/Utility/Constants.cpp src/Core/Camera.cpp src/Core/Camera.hpp src/Core/GameObject.cpp src/Core/GameObject.hpp src/Core/Transform.cpp src/Core/Transform.hpp src/Core/ShaderProgram.cpp src/Core/ShaderProgram.hpp src/Core/MtVulkanAPI/VulkanRendererBase.cpp src/Core/MtVulkanAPI/VulkanRendererBase.hpp src/Materials/Material.cpp src/Materials/Material.hpp src/Core/MtVulkanAPI/WrappedVulkanDevice.hpp src/Core/MtVulkanAPI/WrappedVulkanBuffer.hpp src/Core/GameBase.cpp src/Core/GameBase.hpp src/Core/MtVulkanAPI/WrappedVulkanValidation.cpp src/Core/MtVulkanAPI/WrappedVulkanValidation.hpp src/Core/MtVulkanAPI/VulkanHelpers.cpp src/Core/MtVulkanAPI/VulkanHelpers.hpp src/Core/MtVulkanAPI/WrappedVulkanSwapchain.hpp src/Core/MtVulkanAPI/WrappedVulkanWindow.hpp)
+set(SOURCE_FILES
+        src/Utility/Logger.cpp
+        src/Utility/Logger.hpp
+        src/Utility/ShaderUtils.hpp
+        src/Utility/Timer.hpp
+        src/Core/Mesh.cpp
+        src/Core/Mesh.hpp
+        src/Core/Model.cpp
+        src/Core/Model.hpp
+        src/Core/Texture.cpp
+        src/Core/Texture.hpp
+        src/Utility/Constants.hpp
+        src/Utility/Constants.cpp
+        src/Core/Camera.cpp
+        src/Core/Camera.hpp
+        src/Core/GameObject.cpp
+        src/Core/GameObject.hpp
+        src/Core/Transform.cpp
+        src/Core/Transform.hpp
+        src/Core/ShaderProgram.cpp
+        src/Core/ShaderProgram.hpp
+        src/Core/MtVulkanAPI/VulkanRendererBase.cpp
+        src/Core/MtVulkanAPI/VulkanRendererBase.hpp
+        src/Materials/Material.cpp
+        src/Materials/Material.hpp
+        src/Core/MtVulkanAPI/WrappedVulkanDevice.hpp
+        src/Core/MtVulkanAPI/WrappedVulkanBuffer.hpp
+        src/Core/GameBase.cpp src/Core/GameBase.hpp
+        src/Core/MtVulkanAPI/WrappedVulkanValidation.cpp
+        src/Core/MtVulkanAPI/WrappedVulkanValidation.hpp
+        src/Core/MtVulkanAPI/VulkanHelpers.cpp
+        src/Core/MtVulkanAPI/VulkanHelpers.hpp
+        src/Core/MtVulkanAPI/WrappedVulkanSwapchain.hpp
+        src/Core/MtVulkanAPI/WrappedVulkanWindow.hpp
+        src/Core/MtVulkanAPI/VulkanModel.hpp
+        src/Core/MtVulkanAPI/VulkanTexture.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 

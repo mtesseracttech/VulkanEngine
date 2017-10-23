@@ -21,6 +21,26 @@ class WrappedVulkanSwapchain
     std::vector<vk::ImageView>  m_imageViews;
 
 public:
+    vk::Result AcquireNextImage(vk::Semaphore p_presentCompleteSemaphore, uint32_t* p_imageIndex)
+    {
+        return m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, p_presentCompleteSemaphore, nullptr, p_imageIndex);
+    }
+
+    vk::Result QueuePresent(vk::Queue p_queue, uint32_t p_imageIndex, vk::Semaphore p_waitSemaphore = nullptr)
+    {
+        vk::PresentInfoKHR presentInfo;
+        presentInfo.pNext = nullptr;
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = &m_swapchain;
+        presentInfo.pImageIndices = &p_imageIndex;
+
+        if (p_waitSemaphore != nullptr)
+        {
+            presentInfo.pWaitSemaphores = &p_waitSemaphore;
+            presentInfo.waitSemaphoreCount = 1;
+        }
+        return p_queue.presentKHR(&presentInfo);
+    }
 
     void Connect(vk::PhysicalDevice p_physicalDevice, vk::Device p_logicalDevice, WrappedVulkanWindow *p_window)
     {
@@ -113,6 +133,7 @@ public:
 
     void CreateImageViews()
     {
+        Logger::Log("Creating Image Views");
         m_imageViews.resize(m_images.size());
 
         for (uint32_t i = 0; i < m_images.size(); ++i)
@@ -120,7 +141,6 @@ public:
             m_imageViews[i] = CreateImageView(m_images[i], vk::ImageAspectFlagBits::eColor);
         }
     }
-
 private:
     vk::SurfaceFormatKHR ChooseSwapSurfaceFormat(const std::vector<vk::SurfaceFormatKHR> &availableFormats)
     {
@@ -186,7 +206,7 @@ private:
         }
     }
 
-    vk::ImageView &CreateImageView(vk::Image image, vk::ImageAspectFlagBits p_aspectFlags)
+    vk::ImageView CreateImageView(vk::Image image, vk::ImageAspectFlagBits p_aspectFlags)
     {
         vk::ImageViewCreateInfo viewCreateInfo;
         viewCreateInfo.image = image;

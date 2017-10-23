@@ -19,6 +19,7 @@ void VulkanRendererBase::Initialize()
     SelectPhysicalDevice();
     CreateLogicalDevice();
     CreateSwapchain();
+    CreateImageViews();
 }
 
 void VulkanRendererBase::CreateInstance()
@@ -56,8 +57,6 @@ void VulkanRendererBase::CreateInstance()
     }
 
     m_instance = vk::createInstance(instanceCreateInfo, nullptr);
-
-
 
     Logger::Log("Vulkan instance successfully created!");
 }
@@ -151,7 +150,7 @@ void VulkanRendererBase::SelectPhysicalDevice()
             line << "Device [" << devNumber << "] : " << deviceProperties.deviceName;
             Logger::Log(line.str());
             line.str("");
-            line << "Type: " << GetDeviceTypeName(deviceProperties.deviceType);
+            line << "Type: " << VulkanHelpers::GetDeviceTypeName(deviceProperties.deviceType);
             Logger::Log(line.str());
             line.str("");
             line << "API: " << (deviceProperties.apiVersion >> 22) << "." << ((deviceProperties.apiVersion >> 12) & 0x3ff) << "." << (deviceProperties.apiVersion & 0xfff);
@@ -171,7 +170,7 @@ void VulkanRendererBase::SelectPhysicalDevice()
             break;
         }
     }
-    
+
     m_deviceProperties = m_physicalDevice.getProperties();
     m_deviceFeatures = m_physicalDevice.getFeatures();
     m_deviceMemoryProperties = m_physicalDevice.getMemoryProperties();
@@ -183,7 +182,7 @@ bool VulkanRendererBase::IsDeviceSuitable(vk::PhysicalDevice p_device)
 {
     QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(p_device, m_window->m_surface);
 
-    bool extensionsSupported = CheckDeviceExtensionSupport(p_device);
+    bool extensionsSupported = VulkanHelpers::CheckDeviceExtensionSupport(p_device, m_deviceExtensions);
 
     bool swapChainAdequate = false;
     if (extensionsSupported)
@@ -194,34 +193,7 @@ bool VulkanRendererBase::IsDeviceSuitable(vk::PhysicalDevice p_device)
 
     vk::PhysicalDeviceFeatures supportedFeatures =  p_device.getFeatures();
 
-    return indices.isComplete() && extensionsSupported && supportedFeatures.samplerAnisotropy && swapChainAdequate;
-}
-
-bool VulkanRendererBase::CheckDeviceExtensionSupport(vk::PhysicalDevice p_device)
-{
-    std::vector<vk::ExtensionProperties> availableExtensions = p_device.enumerateDeviceExtensionProperties(nullptr);
-
-    std::set<std::string> requiredExtensions(m_deviceExtensions.begin(), m_deviceExtensions.end());
-
-    for (const auto& extension : availableExtensions)
-    {
-        requiredExtensions.erase(extension.extensionName);
-    }
-
-    return requiredExtensions.empty();
-}
-
-
-std::string VulkanRendererBase::GetDeviceTypeName(vk::PhysicalDeviceType p_type)
-{
-    switch (p_type)
-    {
-        case vk::PhysicalDeviceType::eOther:         return "Other";
-        case vk::PhysicalDeviceType::eIntegratedGpu: return "Integrated";
-        case vk::PhysicalDeviceType::eDiscreteGpu:   return "Discrete";
-        case vk::PhysicalDeviceType::eVirtualGpu:    return "Virtual";
-        case vk::PhysicalDeviceType::eCpu:           return "CPU";
-    }
+    return indices.IsComplete() && extensionsSupported && supportedFeatures.samplerAnisotropy && swapChainAdequate;
 }
 
 void VulkanRendererBase::GetEnabledFeatures()
@@ -234,7 +206,7 @@ void VulkanRendererBase::CreateLogicalDevice()
 {
     Logger::Log("Creating logical device");
     m_wrappedDevice = new WrappedVulkanDevice(m_physicalDevice);
-    m_wrappedDevice->CreateLogicalDevice(m_enabledFeatures, m_enabledExtensions);
+    m_wrappedDevice->CreateLogicalDevice(m_enabledFeatures, m_deviceExtensions);
     m_logicalDevice = m_wrappedDevice->m_logicalDevice;
 
     m_graphicsQueue = m_logicalDevice.getQueue(m_wrappedDevice->m_queueFamilyIndices.graphics, 0);
@@ -258,5 +230,15 @@ void VulkanRendererBase::CreateSwapchain()
 void VulkanRendererBase::CreateImageViews()
 {
     m_swapchain.CreateImageViews();
+}
+
+void VulkanRendererBase::CreateSemaphores()
+{
+    vk::SubmitInfo submitInfo;
+    submitInfo.pWaitDstStageMask = &m_submitPipelineStages;
+    submitInfo.waitSemaphoreCount = 1;
+    submitInfo.pWaitSemaphores      = &m_semaphores.presentComplete;
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores = &m_semaphores.renderComplete;
 }
 

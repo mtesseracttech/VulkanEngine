@@ -49,7 +49,7 @@ QueueFamilyIndices VulkanHelpers::FindQueueFamilies(vk::PhysicalDevice p_device,
             indices.presentFamily = i;
         }
 
-        if (indices.isComplete())
+        if (indices.IsComplete())
         {
             break;
         }
@@ -68,4 +68,30 @@ SwapChainSupportDetails VulkanHelpers::QuerySwapChainSupport(vk::PhysicalDevice 
             p_device.getSurfacePresentModesKHR(p_surface)
     };
     return details;
+}
+
+std::string VulkanHelpers::GetDeviceTypeName(vk::PhysicalDeviceType p_type)
+{
+    switch (p_type)
+    {
+        case vk::PhysicalDeviceType::eOther:         return "Other";
+        case vk::PhysicalDeviceType::eIntegratedGpu: return "Integrated";
+        case vk::PhysicalDeviceType::eDiscreteGpu:   return "Discrete";
+        case vk::PhysicalDeviceType::eVirtualGpu:    return "Virtual";
+        case vk::PhysicalDeviceType::eCpu:           return "CPU";
+    }
+}
+
+bool VulkanHelpers::CheckDeviceExtensionSupport(vk::PhysicalDevice p_device, std::vector<const char*> p_reqExtensions)
+{
+    std::vector<vk::ExtensionProperties> availableExtensions = p_device.enumerateDeviceExtensionProperties(nullptr);
+
+    std::set<std::string> requiredExtensions(p_reqExtensions.begin(), p_reqExtensions.end());
+
+    for (const auto& extension : availableExtensions)
+    {
+        requiredExtensions.erase(extension.extensionName);
+    }
+
+    return requiredExtensions.empty();
 }

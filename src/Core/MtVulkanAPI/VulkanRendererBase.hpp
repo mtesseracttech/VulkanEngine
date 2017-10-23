@@ -60,10 +60,7 @@ public:
     } m_settings;
 
 protected:
-private:
-    WrappedVulkanWindow *               m_window                    = nullptr;
-    int                                 m_windowHeight              = 720;
-    int                                 m_windowWidth               = 1080;
+
     vk::Instance                        m_instance                  = nullptr;
     //Device related:
     vk::PhysicalDevice                  m_physicalDevice            = nullptr;
@@ -72,12 +69,25 @@ private:
     vk::PhysicalDeviceMemoryProperties  m_deviceMemoryProperties;
     vk::PhysicalDeviceFeatures          m_enabledFeatures;
     vk::Device                          m_logicalDevice             = nullptr;
-    std::vector<const char*>            m_enabledExtensions;
-    const std::vector<const char*>      m_deviceExtensions          = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-    WrappedVulkanDevice*                m_wrappedDevice             = nullptr;
+    //Extensions
+    std::vector<const char*>            m_deviceExtensions          = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
     //Queue
     vk::Queue                           m_graphicsQueue             = nullptr;
     vk::Format                          m_depthFormat;
+
+    struct {
+        // Swap chain image presentation
+        vk::Semaphore presentComplete;
+        // Command buffer submission and execution
+        vk::Semaphore renderComplete;
+    } m_semaphores;
+
+private:
+    int                                 m_windowHeight              = 720;
+    int                                 m_windowWidth               = 1080;
+    WrappedVulkanWindow *               m_window                    = nullptr;
+    WrappedVulkanDevice *               m_wrappedDevice             = nullptr;
+
     //Swapchain
     WrappedVulkanSwapchain              m_swapchain;
     vk::CommandPool                     m_commandPool;
@@ -85,21 +95,19 @@ private:
     vk::SubmitInfo                      m_submitInfo;
 
 
+
     void CreateInstance();
     bool CheckValidationLayerSupport();
     std::vector<const char *> GetRequiredExtensions();
     void CreateDebugCallback();
     void SelectPhysicalDevice();
-    std::string GetDeviceTypeName(vk::PhysicalDeviceType p_type);
     void GetEnabledFeatures();
     void CreateLogicalDevice();
     void CreateSurface();
     void CreateSwapchain();
     void CreateImageViews();
-
+    void CreateSemaphores();
     bool IsDeviceSuitable(vk::PhysicalDevice p_device);
-
-    bool CheckDeviceExtensionSupport(vk::PhysicalDevice p_device);
 };
 
 

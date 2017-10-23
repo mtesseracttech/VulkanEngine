@@ -1,0 +1,15 @@
+//
+// Created by MTesseracT on 23-10-2017.
+//
+
+#ifndef VULKANENGINE_VULKANTEXTURE_HPP
+#define VULKANENGINE_VULKANTEXTURE_HPP
+
+
+class VulkanTexture
+{
+
+};
+
+
+#endif //VULKANENGINE_VULKANTEXTURE_HPP

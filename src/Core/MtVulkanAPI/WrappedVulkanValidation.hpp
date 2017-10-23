@@ -22,10 +22,6 @@ namespace mtvk
         const std::vector<const char *> validationLayers = {/*TODO: Getting validation layers to work on Linux*/};
 #endif
 
-        const std::vector<const char *> deviceExtensions = {
-                VK_KHR_SWAPCHAIN_EXTENSION_NAME
-        };
-
 #ifdef NDEBUG
         const bool EnableValidationLayers = false;
 #else
