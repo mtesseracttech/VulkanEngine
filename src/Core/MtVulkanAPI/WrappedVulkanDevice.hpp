@@ -289,6 +289,47 @@ struct WrappedVulkanDevice
         p_buffer->Bind();
     }
 
+    WrappedVulkanBuffer CreateBuffer(vk::BufferUsageFlags p_usageFlags, vk::MemoryPropertyFlags p_memoryPropertyFlags, vk::DeviceSize p_size, void *p_data = nullptr)
+    {
+        WrappedVulkanBuffer newBuffer;
+
+        newBuffer.m_device = m_logicalDevice;
+
+        vk::BufferCreateInfo bufferCreateInfo{};
+        bufferCreateInfo.usage = p_usageFlags;
+        bufferCreateInfo.size = p_size;
+
+        newBuffer.m_buffer = m_logicalDevice.createBuffer(bufferCreateInfo, nullptr);
+
+
+        vk::MemoryRequirements memoryRequirements;
+        m_logicalDevice.getBufferMemoryRequirements(newBuffer.m_buffer, &memoryRequirements);
+
+        vk::MemoryAllocateInfo memoryAllocateInfo;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = GetMemoryType(memoryRequirements.memoryTypeBits, p_memoryPropertyFlags);
+
+        newBuffer.m_memory = m_logicalDevice.allocateMemory(memoryAllocateInfo, nullptr);
+
+        newBuffer.m_alignment = memoryRequirements.alignment;
+        newBuffer.m_size = memoryAllocateInfo.allocationSize;
+        newBuffer.m_usageFlags = p_usageFlags;
+        newBuffer.m_memoryPropertyFlags = p_memoryPropertyFlags;
+
+        if(p_data != nullptr)
+        {
+            newBuffer.Map();
+            memcpy(newBuffer.m_mapped, p_data, p_size);
+            newBuffer.Unmap();
+        }
+
+        newBuffer.SetupDescriptor();
+
+        newBuffer.Bind();
+
+        return newBuffer;
+    }
+
     void CopyBuffer(WrappedVulkanBuffer* p_source, WrappedVulkanBuffer* p_destination, vk::Queue p_queue, vk::BufferCopy *p_copyRegion = nullptr)
     {
         assert(p_destination->m_size <= p_source->m_size);

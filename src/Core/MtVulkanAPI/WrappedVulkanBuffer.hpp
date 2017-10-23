@@ -73,7 +73,7 @@ struct WrappedVulkanBuffer
     {
         if (m_buffer)
         {
-            m_device.destroyBuffer(m_buffer, nullptr);
+            m_device.destroyBuffer(m_buffer);
         }
         if (m_memory)
         {
