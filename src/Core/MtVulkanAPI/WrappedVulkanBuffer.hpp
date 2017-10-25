@@ -19,9 +19,9 @@ struct WrappedVulkanBuffer
     vk::BufferUsageFlags        m_usageFlags;
     vk::MemoryPropertyFlags     m_memoryPropertyFlags;
 
-    void Map(vk::DeviceSize size = VK_WHOLE_SIZE, vk::DeviceSize offset = 0)
+    void Map(vk::DeviceSize p_size = VK_WHOLE_SIZE, vk::DeviceSize p_offset = 0)
     {
-        m_mapped = m_device.mapMemory(m_memory, offset, size, static_cast<vk::MemoryMapFlagBits>(0));
+        m_mapped = m_device.mapMemory(m_memory, p_offset, p_size, static_cast<vk::MemoryMapFlagBits>(0));
     }
 
     void Unmap()
@@ -45,10 +45,10 @@ struct WrappedVulkanBuffer
         m_descriptor.range = p_size;
     }
 
-    void CopyTo(void* data, VkDeviceSize size)
+    void CopyTo(void* p_data, vk::DeviceSize p_size)
     {
         assert(m_mapped);
-        memcpy(m_mapped, data, size);
+        memcpy(m_mapped, p_data, p_size);
     }
 
     vk::Result Flush(vk::DeviceSize p_size = VK_WHOLE_SIZE, vk::DeviceSize p_offset = 0)
@@ -71,6 +71,7 @@ struct WrappedVulkanBuffer
 
     void Destroy()
     {
+        assert(m_device);
         if (m_buffer)
         {
             m_device.destroyBuffer(m_buffer);

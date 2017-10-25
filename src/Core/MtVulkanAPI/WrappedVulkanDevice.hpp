@@ -262,9 +262,7 @@ struct WrappedVulkanDevice
 
         p_buffer->m_buffer = m_logicalDevice.createBuffer(bufferCreateInfo, nullptr);
 
-
-        vk::MemoryRequirements memoryRequirements;
-        m_logicalDevice.getBufferMemoryRequirements(p_buffer->m_buffer, &memoryRequirements);
+        vk::MemoryRequirements memoryRequirements = m_logicalDevice.getBufferMemoryRequirements(p_buffer->m_buffer);
 
         vk::MemoryAllocateInfo memoryAllocateInfo;
         memoryAllocateInfo.allocationSize = memoryRequirements.size;
@@ -301,9 +299,7 @@ struct WrappedVulkanDevice
 
         newBuffer.m_buffer = m_logicalDevice.createBuffer(bufferCreateInfo, nullptr);
 
-
-        vk::MemoryRequirements memoryRequirements;
-        m_logicalDevice.getBufferMemoryRequirements(newBuffer.m_buffer, &memoryRequirements);
+        vk::MemoryRequirements memoryRequirements = m_logicalDevice.getBufferMemoryRequirements(newBuffer.m_buffer);
 
         vk::MemoryAllocateInfo memoryAllocateInfo;
         memoryAllocateInfo.allocationSize = memoryRequirements.size;
@@ -351,10 +347,7 @@ struct WrappedVulkanDevice
 
     void FlushCommandBuffer(vk::CommandBuffer p_commandBuffer, vk::Queue p_queue, bool p_free = true)
     {
-        if(static_cast<VkCommandBuffer >(p_commandBuffer) == VK_NULL_HANDLE)
-        {
-            return;
-        }
+        if(!p_commandBuffer) return;
 
         p_commandBuffer.end();
 

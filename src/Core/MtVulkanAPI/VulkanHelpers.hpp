@@ -10,27 +10,48 @@
 
 struct SwapChainSupportDetails
 {
-	vk::SurfaceCapabilitiesKHR          capabilities;
-	std::vector<vk::SurfaceFormatKHR>   formats;
-	std::vector<vk::PresentModeKHR>     presentModes;
+    vk::SurfaceCapabilitiesKHR capabilities;
+    std::vector<vk::SurfaceFormatKHR> formats;
+    std::vector<vk::PresentModeKHR> presentModes;
 };
 
 struct QueueFamilyIndices
 {
-	int graphicsFamily = -1;
-	int presentFamily = -1;
+    int graphicsFamily = -1;
+    int presentFamily = -1;
 
-	bool IsComplete() { return graphicsFamily >= 0 && presentFamily >= 0; }
+    bool IsComplete()
+    { return graphicsFamily >= 0 && presentFamily >= 0; }
 };
 
 class VulkanHelpers
 {
 public:
-	static vk::Bool32 GetSupportedDepthFormat(vk::PhysicalDevice p_physicalDevice, vk::Format *p_depthFormat);
+    static vk::Bool32 GetSupportedDepthFormat(vk::PhysicalDevice p_physicalDevice, vk::Format *p_depthFormat);
+
     static QueueFamilyIndices FindQueueFamilies(vk::PhysicalDevice p_device, vk::SurfaceKHR p_surface);
-	static SwapChainSupportDetails QuerySwapChainSupport(vk::PhysicalDevice p_device, vk::SurfaceKHR p_surface);
+
+    static SwapChainSupportDetails QuerySwapChainSupport(vk::PhysicalDevice p_device, vk::SurfaceKHR p_surface);
+
     static std::string GetDeviceTypeName(vk::PhysicalDeviceType p_type);
-	static bool CheckDeviceExtensionSupport(vk::PhysicalDevice p_device, std::vector<const char*> p_reqExtensions);
+
+    static bool CheckDeviceExtensionSupport(vk::PhysicalDevice p_device, std::vector<const char *> p_reqExtensions);
+
+    static void SetImageLayout(vk::CommandBuffer p_commandbuffer,
+                               vk::Image p_image,
+                               vk::ImageLayout p_oldImageLayout,
+                               vk::ImageLayout p_newImageLayout,
+                               vk::ImageSubresourceRange p_subResourceRange,
+                               vk::PipelineStageFlags p_sourceStageMask = vk::PipelineStageFlagBits::eAllCommands,
+                               vk::PipelineStageFlags p_destinationStageMask = vk::PipelineStageFlagBits::eAllCommands);
+
+    static void SetImageLayout(vk::CommandBuffer p_commandbuffer,
+                               vk::Image p_image,
+                               vk::ImageAspectFlags p_aspectMask,
+                               vk::ImageLayout p_oldImageLayout,
+                               vk::ImageLayout p_newImageLayout,
+                               vk::PipelineStageFlags p_sourceStageMask = vk::PipelineStageFlagBits::eAllCommands,
+                               vk::PipelineStageFlags p_destinationStageMask = vk::PipelineStageFlagBits::eAllCommands);
 };
 
 

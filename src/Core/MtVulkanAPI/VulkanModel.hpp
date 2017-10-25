@@ -95,6 +95,8 @@ struct VulkanModel
         glm::vec3 size;
     } m_dimensions;
 
+
+    //Frees the index and vertex buffers
     void Destroy()
     {
         m_vertexBuffer.Destroy();
@@ -107,6 +109,9 @@ struct VulkanModel
     bool LoadFromFile(const std::string &p_filename, VertexLayout p_layout, WrappedVulkanDevice *p_device,
                       vk::Queue p_copyQueue, const int p_assimpFlags = defaultFlags)
     {
+        m_vertexBuffer.m_device = p_device->m_logicalDevice;
+        m_indexBuffer.m_device = p_device->m_logicalDevice;
+
         Assimp::Importer importer;
         const aiScene *scene;
 
@@ -213,11 +218,10 @@ struct VulkanModel
 
                 uint32_t indexBase = static_cast<uint32_t>(indexBuffer.size());
 
-                for (unsigned int j = 0; j < aiMesh->mNumFaces; j++)
+                for (unsigned int j = 0; j < aiMesh->mNumFaces; ++j)
                 {
                     const aiFace& Face = aiMesh->mFaces[j];
-                    if (Face.mNumIndices != 3)
-                        continue;
+                    if (Face.mNumIndices != 3) continue;
                     indexBuffer.push_back(indexBase + Face.mIndices[0]);
                     indexBuffer.push_back(indexBase + Face.mIndices[1]);
                     indexBuffer.push_back(indexBase + Face.mIndices[2]);
@@ -269,7 +273,7 @@ struct VulkanModel
 
             p_device->FlushCommandBuffer(copyCommand, p_copyQueue);
 
-            vk::Device device = p_device->m_logicalDevice;
+            //Free the staging buffers
 
             vertexStaging.Destroy();
             indexStaging.Destroy();
