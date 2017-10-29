@@ -69,7 +69,7 @@ public:
     void Create()
     {
         Logger::Log("Creating swapchain");
-        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(m_physicalDevice, m_window->m_surface);
+        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(m_physicalDevice, m_window->GetSurface());
 
         vk::SurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
         vk::PresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
@@ -82,7 +82,7 @@ public:
         }
 
         vk::SwapchainCreateInfoKHR swapchainCreateInfo;
-        swapchainCreateInfo.surface = m_window->m_surface;
+        swapchainCreateInfo.surface = m_window->GetSurface();
         swapchainCreateInfo.minImageCount = imageCount;
         swapchainCreateInfo.imageFormat = surfaceFormat.format;
         swapchainCreateInfo.imageColorSpace = surfaceFormat.colorSpace;
@@ -90,7 +90,7 @@ public:
         swapchainCreateInfo.imageArrayLayers = 1;
         swapchainCreateInfo.imageUsage = vk::ImageUsageFlagBits::eColorAttachment;
 
-        QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(m_physicalDevice, m_window->m_surface);
+        QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(m_physicalDevice, m_window->GetSurface());
 
         uint32_t queueFamilyIndices[] = {(uint32_t) indices.graphicsFamily, (uint32_t) indices.presentFamily};
 
@@ -212,7 +212,7 @@ private:
         else
         {
             int width, height;
-            glfwGetWindowSize(m_window->m_window, &width, &height);
+            glfwGetWindowSize(m_window->GetWindow(), &width, &height);
 
             vk::Extent2D actualExtent = {
                     static_cast<uint32_t>(width),

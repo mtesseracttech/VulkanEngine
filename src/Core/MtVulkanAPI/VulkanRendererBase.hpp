@@ -51,6 +51,7 @@ public:
     //Entry point
     void Initialize();
     void InitializeGlfwWindow();
+    GLFWwindow * GetWindow();
 
     struct RendererSettings
     {
@@ -58,6 +59,12 @@ public:
         bool fullscreen = false;
         bool vsync = false;
     } m_settings;
+
+    void DrawFrame();
+
+    void Cleanup();
+
+    void DeviceWaitIdle();
 
 protected:
 

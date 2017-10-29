@@ -15,7 +15,11 @@ class GameBase
 private:
     VulkanRendererBase * m_renderer = nullptr;
 public:
-    void Run();
+    void InitializeRenderer();
+
+    void RunGame();
+
+    virtual ~GameBase();
 };
 
 

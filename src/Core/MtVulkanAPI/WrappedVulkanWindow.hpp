@@ -14,8 +14,20 @@
 
 struct WrappedVulkanWindow
 {
+private:
     GLFWwindow *m_window;
     vk::SurfaceKHR m_surface;
+public:
+
+    GLFWwindow * GetWindow()
+    {
+        return m_window;
+    }
+
+    const vk::SurfaceKHR GetSurface()
+    {
+        return m_surface;
+    }
 
     WrappedVulkanWindow(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen)
     {

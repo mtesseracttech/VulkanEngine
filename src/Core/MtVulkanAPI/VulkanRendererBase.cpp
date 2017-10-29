@@ -196,14 +196,14 @@ void VulkanRendererBase::SelectPhysicalDevice()
 
 bool VulkanRendererBase::IsDeviceSuitable(vk::PhysicalDevice p_device)
 {
-    QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(p_device, m_window->m_surface);
+    QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(p_device, m_window->GetSurface());
 
     bool extensionsSupported = VulkanHelpers::CheckDeviceExtensionSupport(p_device, m_deviceExtensions);
 
     bool swapChainAdequate = false;
     if (extensionsSupported)
     {
-        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(p_device, m_window->m_surface);
+        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(p_device, m_window->GetSurface());
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
@@ -429,4 +429,24 @@ void VulkanRendererBase::SetupFrameBuffer()
 
         m_frameBuffers[i] = m_logicalDevice.createFramebuffer(framebufferInfo);
     }
+}
+
+GLFWwindow *VulkanRendererBase::GetWindow()
+{
+    return m_window->GetWindow();
+}
+
+void VulkanRendererBase::DrawFrame()
+{
+
+}
+
+void VulkanRendererBase::Cleanup()
+{
+    Logger::Log("Cleaning up");
+}
+
+void VulkanRendererBase::DeviceWaitIdle()
+{
+    m_logicalDevice.waitIdle();
 }
