@@ -109,8 +109,8 @@ void VulkanHelpers::SetImageLayout(
         vk::ImageLayout p_oldImageLayout,
         vk::ImageLayout p_newImageLayout,
         vk::ImageSubresourceRange p_subResourceRange,
-        vk::PipelineStageFlags p_sourceStageMask = vk::PipelineStageFlagBits::eAllCommands,
-        vk::PipelineStageFlags p_destinationStageMask = vk::PipelineStageFlagBits::eAllCommands)
+        vk::PipelineStageFlags p_sourceStageMask,
+        vk::PipelineStageFlags p_destinationStageMask)
 {
     // Create an image barrier object
     vk::ImageMemoryBarrier imageMemoryBarrier;
@@ -231,8 +231,8 @@ void VulkanHelpers::SetImageLayout(vk::CommandBuffer p_commandbuffer,
                                    vk::ImageAspectFlags p_aspectMask,
                                    vk::ImageLayout p_oldImageLayout,
                                    vk::ImageLayout p_newImageLayout,
-                                   vk::PipelineStageFlags p_sourceStageMask = vk::PipelineStageFlagBits::eAllCommands,
-                                   vk::PipelineStageFlags p_destinationStageMask = vk::PipelineStageFlagBits::eAllCommands)
+                                   vk::PipelineStageFlags p_sourceStageMask,
+                                   vk::PipelineStageFlags p_destinationStageMask)
 {
     vk::ImageSubresourceRange subresourceRange;
     subresourceRange.aspectMask = p_aspectMask;

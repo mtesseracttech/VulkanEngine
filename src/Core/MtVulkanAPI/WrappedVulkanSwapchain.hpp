@@ -11,16 +11,32 @@
 
 class WrappedVulkanSwapchain
 {
-    vk::Device m_device;
-    vk::PhysicalDevice m_physicalDevice;
-    vk::SwapchainKHR m_swapchain = nullptr;
-    vk::Format m_imageFormat;
-    vk::Extent2D m_swapchainExtent;
-    WrappedVulkanWindow *m_window;
-    std::vector<vk::Image> m_images;
-    std::vector<vk::ImageView> m_imageViews;
+private:
+    vk::Device                  m_device;
+    vk::PhysicalDevice          m_physicalDevice;
+    vk::SwapchainKHR            m_swapchain         = nullptr;
+    vk::Format                  m_imageFormat;
+    vk::Extent2D                m_swapchainExtent;
+    WrappedVulkanWindow*        m_window;
+    std::vector<vk::Image>      m_images;
+    std::vector<vk::ImageView>  m_imageViews;
 
 public:
+    uint32_t GetImageViewCount()
+    {
+        return static_cast<uint32_t>(m_imageViews.size());
+    }
+
+    const vk::Extent2D GetExtent()
+    {
+        return m_swapchainExtent;
+    }
+
+    const std::vector<vk::ImageView> GetImageViews()
+    {
+        return m_imageViews;
+    }
+
     vk::Result AcquireNextImage(vk::Semaphore p_presentCompleteSemaphore, uint32_t *p_imageIndex)
     {
         return m_device.acquireNextImageKHR(m_swapchain, UINT64_MAX, p_presentCompleteSemaphore, nullptr, p_imageIndex);
@@ -53,8 +69,7 @@ public:
     void Create()
     {
         Logger::Log("Creating swapchain");
-        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(m_physicalDevice,
-                                                                                        m_window->m_surface);
+        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(m_physicalDevice, m_window->m_surface);
 
         vk::SurfaceFormatKHR surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.formats);
         vk::PresentModeKHR presentMode = ChooseSwapPresentMode(swapChainSupport.presentModes);

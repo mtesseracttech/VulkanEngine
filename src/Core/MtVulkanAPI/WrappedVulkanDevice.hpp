@@ -131,9 +131,10 @@ struct WrappedVulkanDevice
 
     void CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatures,
                              std::vector<const char *> p_enabledExtensions, bool p_useSwapChain = true,
-                             vk::QueueFlags p_requestedQueueTypes = vk::QueueFlagBits::eGraphics |
-                                                                    vk::QueueFlagBits::eCompute)
+                             const vk::QueueFlags &p_requestedQueueTypes = vk::QueueFlagBits::eGraphics |
+                                                                           vk::QueueFlagBits::eCompute)
     {
+
         std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos{};
 
         const float defaultQueuePriority(0.0f);
@@ -199,6 +200,12 @@ struct WrappedVulkanDevice
         deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
         deviceCreateInfo.pEnabledFeatures = &p_enabledFeatures;
 
+//        if(ExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
+//        {
+//            deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
+//            deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
+//        }
+
         if (deviceExtensions.size() > 0)
         {
             deviceCreateInfo.enabledExtensionCount = (uint32_t)deviceExtensions.size();
@@ -258,7 +265,7 @@ struct WrappedVulkanDevice
 
         vk::BufferCreateInfo bufferCreateInfo{};
         bufferCreateInfo.usage = p_usageFlags;
-        bufferCreateInfo.size = p_size;
+        bufferCreateInfo.size  = p_size;
 
         p_buffer->m_buffer = m_logicalDevice.createBuffer(bufferCreateInfo, nullptr);
 
@@ -268,11 +275,10 @@ struct WrappedVulkanDevice
         memoryAllocateInfo.allocationSize = memoryRequirements.size;
         memoryAllocateInfo.memoryTypeIndex = GetMemoryType(memoryRequirements.memoryTypeBits, p_memoryPropertyFlags);
 
-        p_buffer->m_memory = m_logicalDevice.allocateMemory(memoryAllocateInfo, nullptr);
-
-        p_buffer->m_alignment = memoryRequirements.alignment;
-        p_buffer->m_size = memoryAllocateInfo.allocationSize;
-        p_buffer->m_usageFlags = p_usageFlags;
+        p_buffer->m_memory              = m_logicalDevice.allocateMemory(memoryAllocateInfo, nullptr);
+        p_buffer->m_alignment           = memoryRequirements.alignment;
+        p_buffer->m_size                = memoryAllocateInfo.allocationSize;
+        p_buffer->m_usageFlags          = p_usageFlags;
         p_buffer->m_memoryPropertyFlags = p_memoryPropertyFlags;
 
         if(p_data != nullptr)
@@ -289,27 +295,24 @@ struct WrappedVulkanDevice
 
     WrappedVulkanBuffer CreateBuffer(vk::BufferUsageFlags p_usageFlags, vk::MemoryPropertyFlags p_memoryPropertyFlags, vk::DeviceSize p_size, void *p_data = nullptr)
     {
-        WrappedVulkanBuffer newBuffer;
-
-        newBuffer.m_device = m_logicalDevice;
-
         vk::BufferCreateInfo bufferCreateInfo{};
         bufferCreateInfo.usage = p_usageFlags;
-        bufferCreateInfo.size = p_size;
+        bufferCreateInfo.size  = p_size;
 
+        WrappedVulkanBuffer newBuffer;
+        newBuffer.m_device = m_logicalDevice;
         newBuffer.m_buffer = m_logicalDevice.createBuffer(bufferCreateInfo, nullptr);
 
         vk::MemoryRequirements memoryRequirements = m_logicalDevice.getBufferMemoryRequirements(newBuffer.m_buffer);
 
         vk::MemoryAllocateInfo memoryAllocateInfo;
-        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.allocationSize  = memoryRequirements.size;
         memoryAllocateInfo.memoryTypeIndex = GetMemoryType(memoryRequirements.memoryTypeBits, p_memoryPropertyFlags);
 
-        newBuffer.m_memory = m_logicalDevice.allocateMemory(memoryAllocateInfo, nullptr);
-
-        newBuffer.m_alignment = memoryRequirements.alignment;
-        newBuffer.m_size = memoryAllocateInfo.allocationSize;
-        newBuffer.m_usageFlags = p_usageFlags;
+        newBuffer.m_memory              = m_logicalDevice.allocateMemory(memoryAllocateInfo, nullptr);
+        newBuffer.m_alignment           = memoryRequirements.alignment;
+        newBuffer.m_size                = memoryAllocateInfo.allocationSize;
+        newBuffer.m_usageFlags          = p_usageFlags;
         newBuffer.m_memoryPropertyFlags = p_memoryPropertyFlags;
 
         if(p_data != nullptr)
@@ -375,9 +378,9 @@ struct WrappedVulkanDevice
 
     vk::CommandBuffer CreateCommandBuffer(vk::CommandBufferLevel p_level, bool p_begin = false)
     {
-        vk::CommandBufferAllocateInfo commandBufferAllocateInfo;// = vks::initializers::commandBufferAllocateInfo(commandPool, level, 1);
-        commandBufferAllocateInfo.commandPool = m_commandPool;
-        commandBufferAllocateInfo.level = p_level;
+        vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
+        commandBufferAllocateInfo.commandPool        = m_commandPool;
+        commandBufferAllocateInfo.level              = p_level;
         commandBufferAllocateInfo.commandBufferCount = 1;
 
         vk::CommandBuffer commandBuffer = m_logicalDevice.allocateCommandBuffers(commandBufferAllocateInfo)[0];

@@ -75,6 +75,11 @@ protected:
     vk::Queue                           m_graphicsQueue             = nullptr;
     vk::Format                          m_depthFormat;
     vk::RenderPass                      m_renderPass;
+    //Command Buffers
+    std::vector<vk::CommandBuffer>      m_drawCmdBuffers;
+
+    vk::PipelineCache                   m_pipelineCache;
+    std::vector<vk::Framebuffer>          m_frameBuffers;
 
     struct {
         // Swap chain image presentation
@@ -82,6 +87,13 @@ protected:
         // Command buffer submission and execution
         vk::Semaphore renderComplete;
     } m_semaphores;
+
+    struct
+    {
+        VkImage image;
+        VkDeviceMemory memory;
+        VkImageView view;
+    } m_depthStencil;
 
 private:
     int                                 m_windowHeight              = 720;
@@ -98,17 +110,42 @@ private:
 
 
     void CreateInstance();
+
     bool CheckValidationLayerSupport();
+
     std::vector<const char *> GetRequiredExtensions();
+
     void CreateDebugCallback();
+
     void SelectPhysicalDevice();
+
     void GetEnabledFeatures();
+
     void CreateLogicalDevice();
+
     void CreateSurface();
-    void CreateSwapchain();
+
+    void ConnectSwapchain();
+
     void CreateImageViews();
-    void CreateRenderPass();
+
+    void SetupRenderPass();
+
     bool IsDeviceSuitable(vk::PhysicalDevice p_device);
+
+    void CreateCommandPool();
+
+    void CreateSwapchain();
+
+    void CreateCommandBuffers();
+
+    void Prepare();
+
+    void SetupDepthStencil();
+
+    void CreatePipelineCache();
+
+    void SetupFrameBuffer();
 };
 
 

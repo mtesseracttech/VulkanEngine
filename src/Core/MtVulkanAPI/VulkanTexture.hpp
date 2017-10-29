@@ -15,17 +15,17 @@
 struct AbstractVulkanTexture
 {
 protected:
-    vk::Device m_device;
-    vk::Image m_image;
-    vk::ImageLayout m_imageLayout;
-    vk::DeviceMemory m_deviceMemory;
-    vk::ImageView m_imageView;
+    vk::Device              m_device;
+    vk::Image               m_image;
+    vk::ImageLayout         m_imageLayout;
+    vk::DeviceMemory        m_deviceMemory;
+    vk::ImageView           m_imageView;
     vk::DescriptorImageInfo m_descriptorInfo;
-    vk::Sampler m_imageSampler;
-    uint32_t m_width;
-    uint32_t m_height;
-    uint32_t m_mipLevels;
-    uint32_t m_layers;
+    vk::Sampler             m_imageSampler;
+    uint32_t                m_width;
+    uint32_t                m_height;
+    uint32_t                m_mipLevels;
+    uint32_t                m_layers;
 
     void UpdateDescriptor()
     {
@@ -70,9 +70,10 @@ struct WrappedVulkanTexture : AbstractVulkanTexture
 
         m_device = p_device->m_logicalDevice;
 
-        m_width = static_cast<uint32_t>(texture[0].extent().x);
-        m_height = static_cast<uint32_t>(texture[0].extent().y);
+        m_width     = static_cast<uint32_t>(texture[0].extent().x);
+        m_height    = static_cast<uint32_t>(texture[0].extent().y);
         m_mipLevels = static_cast<uint32_t>(texture.levels());
+        m_layers    = static_cast<uint32_t>(texture.layers());
 
         vk::FormatProperties formatProperties;
         p_device->m_physicalDevice.getFormatProperties(p_format, &formatProperties);
@@ -87,9 +88,8 @@ struct WrappedVulkanTexture : AbstractVulkanTexture
         if (useStaging)
         {
             vk::BufferCreateInfo bufferCreateInfo;
-            bufferCreateInfo.size = texture.size();
-
-            bufferCreateInfo.usage = vk::BufferUsageFlagBits::eTransferSrc;
+            bufferCreateInfo.size        = texture.size();
+            bufferCreateInfo.usage       = vk::BufferUsageFlagBits::eTransferSrc;
             bufferCreateInfo.sharingMode = vk::SharingMode::eExclusive;
 
             vk::Buffer stagingBuffer = m_device.createBuffer(bufferCreateInfo);
@@ -131,16 +131,16 @@ struct WrappedVulkanTexture : AbstractVulkanTexture
 
             // Create optimal tiled target image
             vk::ImageCreateInfo imageCreateInfo;
-            imageCreateInfo.imageType = vk::ImageType::e2D;
-            imageCreateInfo.format = p_format;
-            imageCreateInfo.mipLevels = m_mipLevels;
-            imageCreateInfo.arrayLayers = 1;
-            imageCreateInfo.samples = vk::SampleCountFlagBits::e1;
-            imageCreateInfo.tiling = vk::ImageTiling::eOptimal;
-            imageCreateInfo.sharingMode = vk::SharingMode::eExclusive;
+            imageCreateInfo.imageType     = vk::ImageType::e2D;
+            imageCreateInfo.format        = p_format;
+            imageCreateInfo.mipLevels     = m_mipLevels;
+            imageCreateInfo.arrayLayers   = 1;
+            imageCreateInfo.samples       = vk::SampleCountFlagBits::e1;
+            imageCreateInfo.tiling        = vk::ImageTiling::eOptimal;
+            imageCreateInfo.sharingMode   = vk::SharingMode::eExclusive;
             imageCreateInfo.initialLayout = vk::ImageLayout::eUndefined;
-            imageCreateInfo.extent = {m_width, m_height, 1};
-            imageCreateInfo.usage = p_imageUsageFlags;
+            imageCreateInfo.extent        = {m_width, m_height, 1};
+            imageCreateInfo.usage         = p_imageUsageFlags;
             if (!(imageCreateInfo.usage & vk::ImageUsageFlagBits::eTransferDst))
             {
                 imageCreateInfo.usage |= vk::ImageUsageFlagBits::eTransferDst;
@@ -249,7 +249,7 @@ struct WrappedVulkanTexture : AbstractVulkanTexture
         samplerCreateInfo.mipLodBias = 0.0f;
         samplerCreateInfo.compareOp = vk::CompareOp::eNever;
         samplerCreateInfo.minLod = 0.0f;
-        samplerCreateInfo.maxLod = (useStaging) ? (float) m_mipLevels : 0.0f;
+        samplerCreateInfo.maxLod = (useStaging) ? static_cast<float>(m_mipLevels) : 0.0f;
         samplerCreateInfo.maxAnisotropy = device->enabledFeatures.samplerAnisotropy
                                           ? device->properties.limits.maxSamplerAnisotropy : 1.0f;
         samplerCreateInfo.anisotropyEnable = VK_TRUE;

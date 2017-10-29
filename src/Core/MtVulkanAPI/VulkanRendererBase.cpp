@@ -3,6 +3,7 @@
 //
 
 #include "VulkanRendererBase.hpp"
+#include "WrappedVulkanDevice.hpp"
 
 void VulkanRendererBase::InitializeGlfwWindow()
 {
@@ -18,9 +19,22 @@ void VulkanRendererBase::Initialize()
     CreateSurface();
     SelectPhysicalDevice();
     CreateLogicalDevice();
-    CreateSwapchain();
-    CreateImageViews();
+    ConnectSwapchain();
+    Prepare();
 }
+
+void VulkanRendererBase::Prepare()
+{
+    CreateSwapchain();
+    CreateCommandPool();
+    CreateImageViews();
+    CreateCommandBuffers();
+    SetupDepthStencil();
+    SetupRenderPass();
+    CreatePipelineCache();
+    SetupFrameBuffer();
+}
+
 
 void VulkanRendererBase::CreateInstance()
 {
@@ -223,10 +237,9 @@ void VulkanRendererBase::CreateSurface()
     m_window->CreateSurface(m_instance);
 }
 
-void VulkanRendererBase::CreateSwapchain()
+void VulkanRendererBase::ConnectSwapchain()
 {
     m_swapchain.Connect(m_wrappedDevice->m_physicalDevice, m_wrappedDevice->m_logicalDevice, m_window);
-    m_swapchain.Create();
 }
 
 void VulkanRendererBase::CreateImageViews()
@@ -234,8 +247,83 @@ void VulkanRendererBase::CreateImageViews()
     m_swapchain.CreateImageViews();
 }
 
-void VulkanRendererBase::CreateRenderPass()
+void VulkanRendererBase::CreateCommandPool()
 {
+    Logger::Log("Creating Command Pool");
+    vk::CommandPoolCreateInfo commandPoolCreateInfo;
+    commandPoolCreateInfo.queueFamilyIndex = m_wrappedDevice->m_queueFamilyIndices.graphics;
+
+    m_commandPool = m_logicalDevice.createCommandPool(commandPoolCreateInfo);
+}
+
+void VulkanRendererBase::CreateSwapchain()
+{
+    m_swapchain.Create();
+}
+
+void VulkanRendererBase::CreateCommandBuffers()
+{
+    Logger::Log("Creating command buffers");
+    m_drawCmdBuffers.resize(m_swapchain.GetImageViewCount());
+
+    vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
+    commandBufferAllocateInfo.commandPool = m_commandPool;
+    commandBufferAllocateInfo.level = vk::CommandBufferLevel::ePrimary;
+    commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(m_drawCmdBuffers.size());
+
+    m_logicalDevice.allocateCommandBuffers(&commandBufferAllocateInfo, m_drawCmdBuffers.data());
+}
+
+void VulkanRendererBase::SetupDepthStencil()
+{
+    Logger::Log("Setting up depth stencil");
+    vk::ImageCreateInfo image;
+    image.pNext = nullptr;
+    image.imageType = vk::ImageType::e2D;
+    image.format = m_depthFormat;
+    image.extent.width = m_swapchain.GetExtent().width;
+    image.extent.height = m_swapchain.GetExtent().height;
+    image.extent.depth = 1;
+    image.mipLevels = 1;
+    image.arrayLayers = 1;
+    image.samples = vk::SampleCountFlagBits::e1;
+    image.tiling = vk::ImageTiling::eOptimal;
+    image.usage = vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eTransferSrc;
+    image.flags = static_cast<vk::ImageCreateFlagBits>(0);
+
+    m_depthStencil.image = m_logicalDevice.createImage(image);
+
+    vk::MemoryRequirements memoryRequirements = m_logicalDevice.getImageMemoryRequirements(m_depthStencil.image);
+
+    vk::MemoryAllocateInfo memoryAllocateInfo;
+    memoryAllocateInfo.pNext = nullptr;
+    memoryAllocateInfo.allocationSize = 0;
+    memoryAllocateInfo.memoryTypeIndex = 0;
+    memoryAllocateInfo.allocationSize = memoryRequirements.size;
+    memoryAllocateInfo.memoryTypeIndex = m_wrappedDevice->GetMemoryType(memoryRequirements.memoryTypeBits,
+                                                                        vk::MemoryPropertyFlagBits::eDeviceLocal);
+    m_depthStencil.memory = m_logicalDevice.allocateMemory(memoryAllocateInfo);
+    m_logicalDevice.bindImageMemory(m_depthStencil.image, m_depthStencil.memory, 0);
+
+    vk::ImageViewCreateInfo depthStencilView;
+    depthStencilView.pNext = nullptr;
+    depthStencilView.viewType = vk::ImageViewType::e2D;
+    depthStencilView.format = m_depthFormat;
+    depthStencilView.flags = static_cast<vk::ImageViewCreateFlagBits >(0);
+    depthStencilView.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+    depthStencilView.subresourceRange.baseMipLevel = 0;
+    depthStencilView.subresourceRange.levelCount = 1;
+    depthStencilView.subresourceRange.baseArrayLayer = 0;
+    depthStencilView.subresourceRange.layerCount = 1;
+    depthStencilView.image = m_depthStencil.image;
+
+    m_depthStencil.view = m_logicalDevice.createImageView(depthStencilView);
+}
+
+void VulkanRendererBase::SetupRenderPass()
+{
+    Logger::Log("Setting up the render pass");
+
     vk::Format depthFormat;
     VulkanHelpers::GetSupportedDepthFormat(m_physicalDevice, &depthFormat);
 
@@ -268,28 +356,77 @@ void VulkanRendererBase::CreateRenderPass()
     depthAttachmentReference.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 
     vk::SubpassDescription subpassDescription;
-    subpassDescription.pipelineBindPoint = vk::PipelineBindPoint ::eGraphics;
+    subpassDescription.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
     subpassDescription.colorAttachmentCount = 1;
     subpassDescription.pColorAttachments = &colorAttachmentReference;
     subpassDescription.pDepthStencilAttachment = &depthAttachmentReference;
+    subpassDescription.inputAttachmentCount = 0;
+    subpassDescription.pInputAttachments = nullptr;
+    subpassDescription.preserveAttachmentCount = 0;
+    subpassDescription.pPreserveAttachments = nullptr;
+    subpassDescription.pResolveAttachments = nullptr;
 
-    vk::SubpassDependency subpassDependency;
-    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-    subpassDependency.dstSubpass = 0;
-    subpassDependency.srcStageMask = vk::PipelineStageFlagBits ::eColorAttachmentOutput;
-    subpassDependency.srcAccessMask = static_cast<vk::AccessFlagBits>(0);
-    subpassDependency.dstStageMask = vk::PipelineStageFlagBits ::eColorAttachmentOutput;
-    subpassDependency.dstAccessMask = vk::AccessFlagBits ::eColorAttachmentRead | vk::AccessFlagBits ::eColorAttachmentWrite;
+    std::array<vk::SubpassDependency, 2> dependencies;
+
+    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[0].dstSubpass = 0;
+    dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+    dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependencies[0].srcAccessMask = vk::AccessFlagBits::eMemoryRead;
+    dependencies[0].dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
+    dependencies[0].dependencyFlags = vk::DependencyFlagBits::eByRegion;
+
+    dependencies[1].srcSubpass = 0;
+    dependencies[1].dstSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[1].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+    dependencies[1].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+    dependencies[1].srcAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
+    dependencies[1].dstAccessMask = vk::AccessFlagBits::eMemoryRead;
+    dependencies[1].dependencyFlags = vk::DependencyFlagBits::eByRegion;
+
 
     std::array<vk::AttachmentDescription, 2> attachments = {colorAttachment, depthAttachment};
 
     vk::RenderPassCreateInfo renderPassCreateInfo;
-    renderPassCreateInfo.attachmentCount = attachments.size();
+    renderPassCreateInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
     renderPassCreateInfo.pAttachments = attachments.data();
     renderPassCreateInfo.subpassCount = 1;
     renderPassCreateInfo.pSubpasses = &subpassDescription;
-    renderPassCreateInfo.dependencyCount = 1;
-    renderPassCreateInfo.pDependencies = &subpassDependency;
+    renderPassCreateInfo.dependencyCount = static_cast<uint32_t>(dependencies.size());
+    renderPassCreateInfo.pDependencies = dependencies.data();
 
     m_renderPass = m_logicalDevice.createRenderPass(renderPassCreateInfo);
+}
+
+void VulkanRendererBase::CreatePipelineCache()
+{
+    vk::PipelineCacheCreateInfo pipelineCacheCreateInfo;
+    m_pipelineCache = m_logicalDevice.createPipelineCache(pipelineCacheCreateInfo);
+}
+
+void VulkanRendererBase::SetupFrameBuffer()
+{
+    Logger::Log("Setting up framebuffer");
+
+    m_frameBuffers.resize(m_swapchain.GetImageViewCount());
+
+    auto swapChainImageViews = m_swapchain.GetImageViews();
+
+    for (size_t i = 0; i < m_swapchain.GetImageViewCount(); i++)
+    {
+        std::array<vk::ImageView, 2> attachments = {
+                swapChainImageViews[i],
+                m_depthStencil.view
+        };
+
+        vk::FramebufferCreateInfo framebufferInfo = {};
+        framebufferInfo.renderPass = m_renderPass;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        framebufferInfo.pAttachments = attachments.data();
+        framebufferInfo.width = m_swapchain.GetExtent().width;
+        framebufferInfo.height = m_swapchain.GetExtent().height;
+        framebufferInfo.layers = 1;
+
+        m_frameBuffers[i] = m_logicalDevice.createFramebuffer(framebufferInfo);
+    }
 }
