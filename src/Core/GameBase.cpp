@@ -24,7 +24,7 @@ int main()
 void GameBase::InitializeRenderer()
 {
     Logger::Log("Initializing the renderer");
-    m_renderer = new VulkanRendererBase();
+    m_renderer = new SimpleRenderer();
     m_renderer->Initialize();
 }
 
@@ -38,9 +38,4 @@ void GameBase::RunGame()
     }
 
     m_renderer->DeviceWaitIdle();
-}
-
-GameBase::~GameBase()
-{
-    m_renderer->Cleanup();
 }

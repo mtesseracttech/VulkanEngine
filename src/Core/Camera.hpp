@@ -6,7 +6,9 @@
 #define VULKANENGINE_CAMERA_HPP
 
 
-class Camera
+#include "GameObject.hpp"
+
+class Camera : GameObject
 {
 public:
     Camera();

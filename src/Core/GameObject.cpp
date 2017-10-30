@@ -13,3 +13,8 @@ GameObject::GameObject() : m_transform()
 {
 
 }
+
+const Transform& GameObject::GetTransform() const
+{
+    return m_transform;
+}

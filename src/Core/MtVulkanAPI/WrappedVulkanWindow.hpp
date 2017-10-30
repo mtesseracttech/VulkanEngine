@@ -16,9 +16,9 @@ struct WrappedVulkanWindow
 {
 private:
     GLFWwindow *m_window;
+    vk::Instance m_instance;
     vk::SurfaceKHR m_surface;
 public:
-
     GLFWwindow * GetWindow()
     {
         return m_window;
@@ -46,7 +46,6 @@ public:
         m_window = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(),
                                     (fullscreen ? glfwGetPrimaryMonitor() : nullptr), nullptr);
         glfwSetWindowUserPointer(m_window, this);
-
     }
 
     void CreateSurface(vk::Instance p_instance)
@@ -61,6 +60,12 @@ public:
             Logger::Log("Successfully created KHR Surface");
         }
         m_surface = static_cast<vk::SurfaceKHR>(surface);
+        m_instance = p_instance;
+    }
+
+    void Cleanup()
+    {
+        m_instance.destroySurfaceKHR(m_surface);
     }
 };
 

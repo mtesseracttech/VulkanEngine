@@ -438,6 +438,11 @@ GLFWwindow *VulkanRendererBase::GetWindow()
 
 void VulkanRendererBase::DrawFrame()
 {
+    auto tStart = std::chrono::high_resolution_clock::now();
+    Render();
+    auto tEnd = std::chrono::high_resolution_clock::now();
+    auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
+    std::cout << "[FrameTime] " << 	(float)tDiff / 1000.0f << std::endl;
 
 }
 
@@ -450,3 +455,91 @@ void VulkanRendererBase::DeviceWaitIdle()
 {
     m_logicalDevice.waitIdle();
 }
+
+void VulkanRendererBase::CleanupSwapchain()
+{
+    //Cleaning up depth stencil
+    m_logicalDevice.destroyImageView(m_depthStencil.view);
+    m_logicalDevice.destroyImage(m_depthStencil.image);
+    m_logicalDevice.freeMemory(m_depthStencil.memory);
+
+    //Cleaning up framebuffer
+    for (size_t i = 0; i < m_frameBuffers.size(); ++i)
+    {
+        m_logicalDevice.destroyFramebuffer(m_frameBuffers[i]);
+    }
+
+    //Freeing commandbuffers
+    m_logicalDevice.freeCommandBuffers(m_commandPool, static_cast<uint32_t>(m_drawCmdBuffers.size()), m_drawCmdBuffers.data());
+}
+
+void VulkanRendererBase::PrepareFrame()
+{
+    vk::Result swapchainStatus = m_swapchain.AcquireNextImage(m_semaphores.presentComplete, &m_currentBuffer);
+
+    if (swapchainStatus == vk::Result::eErrorOutOfDateKHR || swapchainStatus == vk::Result::eSuboptimalKHR)
+    {
+        //Rebuild swapchain
+    }
+    else
+    {
+        throw std::runtime_error("Failed to acquire swap chain image!");
+    }
+}
+
+void VulkanRendererBase::SubmitFrame()
+{
+    m_swapchain.QueuePresent(m_graphicsQueue, m_currentBuffer, m_semaphores.renderComplete);
+    m_graphicsQueue.waitIdle();
+}
+
+vk::PipelineShaderStageCreateInfo VulkanRendererBase::LoadShader(const std::string &p_fileName, vk::ShaderStageFlagBits p_shaderStage)
+{
+    vk::PipelineShaderStageCreateInfo pipelineShaderStageCreateInfo;
+    pipelineShaderStageCreateInfo.stage = p_shaderStage;
+    pipelineShaderStageCreateInfo.module = VulkanHelpers::LoadShader(p_fileName.c_str(), m_logicalDevice);
+    pipelineShaderStageCreateInfo.pName = "main"; //Entry point in shader
+    m_shaderModules.push_back(pipelineShaderStageCreateInfo.module);
+    return pipelineShaderStageCreateInfo;
+}
+
+VulkanRendererBase::VulkanRendererBase() {}
+
+VulkanRendererBase::~VulkanRendererBase()
+{
+    m_swapchain.Cleanup();
+
+    if(m_descriptorPool) m_logicalDevice.destroyDescriptorPool(m_descriptorPool);
+
+    m_logicalDevice.freeCommandBuffers(m_commandPool, m_drawCmdBuffers);
+
+    m_logicalDevice.destroyRenderPass(m_renderPass);
+
+    for (size_t i = 0; i < m_frameBuffers.size(); ++i)
+    {
+        m_logicalDevice.destroyFramebuffer(m_frameBuffers[i]);
+    }
+
+    for (size_t i = 0; i < m_shaderModules.size(); ++i)
+    {
+        m_logicalDevice.destroyShaderModule(m_shaderModules[i]);
+    }
+
+    //Destroying depthstencil
+    m_logicalDevice.destroyImageView(m_depthStencil.view);
+    m_logicalDevice.destroyImage(m_depthStencil.image);
+    m_logicalDevice.freeMemory(m_depthStencil.memory);
+
+    m_logicalDevice.destroyPipelineCache(m_pipelineCache);
+
+    m_logicalDevice.destroyCommandPool(m_commandPool);
+
+    m_logicalDevice.destroySemaphore(m_semaphores.renderComplete);
+    m_logicalDevice.destroySemaphore(m_semaphores.presentComplete);
+
+    delete m_wrappedDevice;
+
+    m_instance.destroy();
+}
+
+

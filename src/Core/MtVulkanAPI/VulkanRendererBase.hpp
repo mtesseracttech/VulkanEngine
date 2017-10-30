@@ -48,7 +48,7 @@
 class VulkanRendererBase
 {
 public:
-    //Entry point
+    virtual //Entry point
     void Initialize();
     void InitializeGlfwWindow();
     GLFWwindow * GetWindow();
@@ -62,9 +62,15 @@ public:
 
     void DrawFrame();
 
+    virtual void Render() = 0;
+
     void Cleanup();
 
+    VulkanRendererBase();
+
     void DeviceWaitIdle();
+
+    virtual ~VulkanRendererBase();
 
 protected:
 
@@ -86,7 +92,11 @@ protected:
     std::vector<vk::CommandBuffer>      m_drawCmdBuffers;
 
     vk::PipelineCache                   m_pipelineCache;
-    std::vector<vk::Framebuffer>          m_frameBuffers;
+    std::vector<vk::Framebuffer>        m_frameBuffers;
+    uint32_t                            m_currentBuffer;
+    std::vector<vk::ShaderModule>       m_shaderModules;
+    vk::DescriptorPool                  m_descriptorPool            = nullptr;
+    vk::ClearColorValue                 m_defaultClearColor         = {{0.1f, 0.1f,0.1f,1.0f}};
 
     struct {
         // Swap chain image presentation
@@ -111,11 +121,9 @@ private:
     //Swapchain
     WrappedVulkanSwapchain              m_swapchain;
     vk::CommandPool                     m_commandPool;
-    vk::PipelineStageFlags              m_submitPipelineStages;
-    vk::SubmitInfo                      m_submitInfo;
 
 
-
+protected:
     void CreateInstance();
 
     bool CheckValidationLayerSupport();
@@ -126,7 +134,7 @@ private:
 
     void SelectPhysicalDevice();
 
-    void GetEnabledFeatures();
+    virtual void GetEnabledFeatures();
 
     void CreateLogicalDevice();
 
@@ -153,6 +161,14 @@ private:
     void CreatePipelineCache();
 
     void SetupFrameBuffer();
+
+    void CleanupSwapchain();
+
+    vk::PipelineShaderStageCreateInfo LoadShader(const std::string &p_fileName, vk::ShaderStageFlagBits p_shaderStage);
+
+    void PrepareFrame();
+
+    void SubmitFrame();
 };
 
 

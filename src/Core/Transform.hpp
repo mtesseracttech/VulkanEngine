@@ -24,6 +24,7 @@ public:
     glm::vec3 GetRight();
     glm::vec3 GetUp();
     void SetForward(const glm::vec3& p_forward, const glm::vec3& p_up);
+    const glm::mat4 &GetBaseMatrix() const;
 private:
     glm::mat4 m_matrix;
     glm::quat m_cachedRotation;
