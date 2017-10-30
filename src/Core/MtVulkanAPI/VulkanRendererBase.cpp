@@ -503,7 +503,9 @@ vk::PipelineShaderStageCreateInfo VulkanRendererBase::LoadShader(const std::stri
     return pipelineShaderStageCreateInfo;
 }
 
-VulkanRendererBase::VulkanRendererBase() {}
+VulkanRendererBase::VulkanRendererBase() {
+    m_defaultClearColor = std::array<float, 4>{0.1f, 0.1f,0.1f,1.0f};
+}
 
 VulkanRendererBase::~VulkanRendererBase()
 {

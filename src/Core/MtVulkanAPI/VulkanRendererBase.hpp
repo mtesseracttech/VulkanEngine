@@ -96,7 +96,7 @@ protected:
     uint32_t                            m_currentBuffer;
     std::vector<vk::ShaderModule>       m_shaderModules;
     vk::DescriptorPool                  m_descriptorPool            = nullptr;
-    vk::ClearColorValue                 m_defaultClearColor         = {{0.1f, 0.1f,0.1f,1.0f}};
+    vk::ClearColorValue                 m_defaultClearColor;
 
     struct {
         // Swap chain image presentation

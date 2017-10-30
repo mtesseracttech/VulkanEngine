@@ -19,6 +19,21 @@ private:
     vk::Instance m_instance;
     vk::SurfaceKHR m_surface;
 public:
+
+
+    glm::vec2 GetCursorPos(){
+        double x, y;
+        glfwGetCursorPos(m_window, &x, &y);
+        return glm::vec2(x, y);
+    }
+
+    glm::ivec2 GetWindowSize()
+    {
+        int width, height;
+        glfwGetWindowSize(m_window, &width, &height);
+        return glm::ivec2(width, height);
+    }
+
     GLFWwindow * GetWindow()
     {
         return m_window;
