@@ -5,10 +5,9 @@
 #ifndef VULKANENGINE_TRANSFORM_HPP
 #define VULKANENGINE_TRANSFORM_HPP
 
-#include <glm/mat4x4.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
+#include <glm/glm.hpp>
 #include <exception>
+#include <glm/gtc/quaternion.hpp>
 
 class Transform
 {

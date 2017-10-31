@@ -29,7 +29,7 @@ struct WrappedVulkanDevice
         uint32_t transfer;
     } m_queueFamilyIndices;
 
-    operator vk::Device()   { return m_logicalDevice; };
+    explicit operator vk::Device()   { return m_logicalDevice; };
 
     WrappedVulkanDevice(vk::PhysicalDevice p_physicalDevice) : m_deviceProperties(vk::PhysicalDeviceProperties())
     {
@@ -199,12 +199,6 @@ struct WrappedVulkanDevice
         deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());;
         deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
         deviceCreateInfo.pEnabledFeatures = &p_enabledFeatures;
-
-//        if(ExtensionSupported(VK_EXT_DEBUG_MARKER_EXTENSION_NAME))
-//        {
-//            deviceExtensions.push_back(VK_EXT_DEBUG_MARKER_EXTENSION_NAME);
-//            deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
-//        }
 
         if (deviceExtensions.size() > 0)
         {

@@ -30,10 +30,10 @@ void GameBase::InitializeRenderer()
 
 void GameBase::RunGame()
 {
-    while (!glfwWindowShouldClose(m_renderer->GetWindow()))
+    while (!glfwWindowShouldClose(m_renderer->GetWindow()->GetWindow()))
     {
         glfwPollEvents();
-        std::cout << "Waiting for stuff to happen" << std::endl;
+        //std::cout << "Waiting for stuff to happen" << std::endl;
         m_renderer->DrawFrame();
     }
 

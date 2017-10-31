@@ -266,10 +266,10 @@ struct VulkanModel
             vk::BufferCopy copyRegion;
 
             copyRegion.size = m_vertexBuffer.m_size;
-
             copyCommand.copyBuffer(vertexStaging.m_buffer, m_vertexBuffer.m_buffer, 1, &copyRegion);
 
-            copyRegion.size = m_vertexBuffer.m_size;
+            copyRegion.size = m_indexBuffer.m_size;
+            copyCommand.copyBuffer(indexStaging.m_buffer, m_indexBuffer.m_buffer, 1, &copyRegion);
 
             p_device->FlushCommandBuffer(copyCommand, p_copyQueue);
 

@@ -17,9 +17,7 @@ public:
 
     const Transform& GetTransform() const;
 private:
-    Transform   m_transform;
-    VulkanModel m_modelMeshes;
-
+    Transform     m_transform;
 };
 
 

@@ -15,13 +15,12 @@
 struct WrappedVulkanWindow
 {
 private:
-    GLFWwindow *m_window;
-    vk::Instance m_instance;
-    vk::SurfaceKHR m_surface;
+    GLFWwindow*     m_window;
+    vk::Instance    m_instance;
+    vk::SurfaceKHR  m_surface;
 public:
-
-
-    glm::vec2 GetCursorPos(){
+    glm::vec2 GetCursorPos()
+    {
         double x, y;
         glfwGetCursorPos(m_window, &x, &y);
         return glm::vec2(x, y);
@@ -78,9 +77,11 @@ public:
         m_instance = p_instance;
     }
 
-    void Cleanup()
+    void CleanupSurface()
     {
-        m_instance.destroySurfaceKHR(m_surface);
+        if(m_surface)m_instance.destroySurfaceKHR(m_surface);
+
+        m_surface = nullptr;
     }
 };
 

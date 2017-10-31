@@ -264,14 +264,14 @@ void VulkanRendererBase::CreateSwapchain()
 void VulkanRendererBase::CreateCommandBuffers()
 {
     Logger::Log("Creating command buffers");
-    m_drawCmdBuffers.resize(m_swapchain.GetImageViewCount());
+    m_drawCommandBuffers.resize(m_swapchain.GetImageViewCount());
 
     vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
     commandBufferAllocateInfo.commandPool = m_commandPool;
     commandBufferAllocateInfo.level = vk::CommandBufferLevel::ePrimary;
-    commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(m_drawCmdBuffers.size());
+    commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(m_drawCommandBuffers.size());
 
-    m_logicalDevice.allocateCommandBuffers(&commandBufferAllocateInfo, m_drawCmdBuffers.data());
+    m_logicalDevice.allocateCommandBuffers(&commandBufferAllocateInfo, m_drawCommandBuffers.data());
 }
 
 void VulkanRendererBase::SetupDepthStencil()
@@ -431,24 +431,20 @@ void VulkanRendererBase::SetupFrameBuffer()
     }
 }
 
-GLFWwindow *VulkanRendererBase::GetWindow()
-{
-    return m_window->GetWindow();
-}
-
 void VulkanRendererBase::DrawFrame()
 {
     auto tStart = std::chrono::high_resolution_clock::now();
     Render();
     auto tEnd = std::chrono::high_resolution_clock::now();
     auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
-    std::cout << "[FrameTime] " << 	(float)tDiff / 1000.0f << std::endl;
+    //std::cout << "[FrameTime] " << 	(float)tDiff / 1000.0f << std::endl;
 
 }
 
 void VulkanRendererBase::Cleanup()
 {
     Logger::Log("Cleaning up");
+    m_swapchain.Cleanup();
 }
 
 void VulkanRendererBase::DeviceWaitIdle()
@@ -456,21 +452,25 @@ void VulkanRendererBase::DeviceWaitIdle()
     m_logicalDevice.waitIdle();
 }
 
-void VulkanRendererBase::CleanupSwapchain()
+void VulkanRendererBase::RebuildSwapchain()
 {
-    //Cleaning up depth stencil
-    m_logicalDevice.destroyImageView(m_depthStencil.view);
-    m_logicalDevice.destroyImage(m_depthStencil.image);
-    m_logicalDevice.freeMemory(m_depthStencil.memory);
+    //Operations must be done before cleaning up
+    m_logicalDevice.waitIdle();
 
-    //Cleaning up framebuffer
-    for (size_t i = 0; i < m_frameBuffers.size(); ++i)
-    {
-        m_logicalDevice.destroyFramebuffer(m_frameBuffers[i]);
-    }
+    DestroySwapchain();
+    CreateSwapchain();
 
-    //Freeing commandbuffers
-    m_logicalDevice.freeCommandBuffers(m_commandPool, static_cast<uint32_t>(m_drawCmdBuffers.size()), m_drawCmdBuffers.data());
+    DestroyDepthStencil();
+    SetupDepthStencil();
+
+    DestroyFrameBuffers();
+    SetupFrameBuffer();
+
+    DestroyCommandBuffers();
+    CreateCommandBuffers();
+    BuildCommandBuffers();
+
+    m_logicalDevice.waitIdle();
 }
 
 void VulkanRendererBase::PrepareFrame()
@@ -481,8 +481,9 @@ void VulkanRendererBase::PrepareFrame()
     {
         //Rebuild swapchain
     }
-    else
+    else if(swapchainStatus != vk::Result::eSuccess)
     {
+        std::cout << vk::to_string(swapchainStatus) << std::endl;
         throw std::runtime_error("Failed to acquire swap chain image!");
     }
 }
@@ -503,7 +504,8 @@ vk::PipelineShaderStageCreateInfo VulkanRendererBase::LoadShader(const std::stri
     return pipelineShaderStageCreateInfo;
 }
 
-VulkanRendererBase::VulkanRendererBase() {
+VulkanRendererBase::VulkanRendererBase()
+{
     m_defaultClearColor = std::array<float, 4>{0.1f, 0.1f,0.1f,1.0f};
 }
 
@@ -513,7 +515,7 @@ VulkanRendererBase::~VulkanRendererBase()
 
     if(m_descriptorPool) m_logicalDevice.destroyDescriptorPool(m_descriptorPool);
 
-    m_logicalDevice.freeCommandBuffers(m_commandPool, m_drawCmdBuffers);
+    m_logicalDevice.freeCommandBuffers(m_commandPool, m_drawCommandBuffers);
 
     m_logicalDevice.destroyRenderPass(m_renderPass);
 
@@ -542,6 +544,36 @@ VulkanRendererBase::~VulkanRendererBase()
     delete m_wrappedDevice;
 
     m_instance.destroy();
+}
+
+void VulkanRendererBase::DestroyCommandBuffers()
+{
+    m_logicalDevice.freeCommandBuffers(m_commandPool, static_cast<uint32_t>(m_drawCommandBuffers.size()), m_drawCommandBuffers.data());
+}
+
+void VulkanRendererBase::DestroyDepthStencil()
+{
+    m_logicalDevice.destroyImageView(m_depthStencil.view);
+    m_logicalDevice.destroyImage(m_depthStencil.image);
+    m_logicalDevice.freeMemory(m_depthStencil.memory);
+}
+
+void VulkanRendererBase::DestroySwapchain()
+{
+    m_swapchain.Cleanup();
+}
+
+void VulkanRendererBase::DestroyFrameBuffers()
+{
+    for (size_t i = 0; i < m_frameBuffers.size(); ++i)
+    {
+        m_logicalDevice.destroyFramebuffer(m_frameBuffers[i]);
+    }
+}
+
+WrappedVulkanWindow * VulkanRendererBase::GetWindow()
+{
+    return m_window;
 }
 
 

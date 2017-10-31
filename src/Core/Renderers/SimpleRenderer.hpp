@@ -5,10 +5,18 @@
 #ifndef VULKANENGINE_SIMPLERENDERER_HPP
 #define VULKANENGINE_SIMPLERENDERER_HPP
 
-
 #include <Core/MtVulkanAPI/VulkanRendererBase.hpp>
+
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 #include <Core/MtVulkanAPI/VulkanModel.hpp>
 #include <Core/Camera.hpp>
+
+#include <vector>
+
 
 class SimpleRenderer : public VulkanRendererBase
 {
@@ -20,31 +28,56 @@ class SimpleRenderer : public VulkanRendererBase
     );
 
     struct {
-        VulkanModel bunny;
-        VulkanModel monkey;
         VulkanModel teapot;
     } m_models;
 
     struct UniformBufferObject {
-        glm::mat4 model;
-        glm::mat4 view;
-        glm::mat4 proj;
+        glm::mat4 projection;
+        glm::mat4 modelView;
+        glm::vec4 lightPos = glm::vec4(0.0f, 2.0f, 1.0f, 0.0f);
     } m_ubo;
 
-    vk::Pipeline                m_phong;
+    vk::Pipeline                m_graphicsPipeline;
     vk::PipelineLayout          m_pipelineLayout;
     vk::DescriptorSet           m_descriptorSet;
     vk::DescriptorSetLayout     m_descriptorSetLayout;
 
     WrappedVulkanBuffer         m_uniformBuffer;
 
-    Camera*                     m_camera;
+    glm::vec3                   m_cameraPosition = glm::vec3();
+    glm::vec3                   m_cameraRotation = glm::vec3(-25.0f, 15.0f, 0.0f);
+    float                       m_cameraZoom     = -10.5f;
+
+    //Camera*                     m_camera; //real camera
 
 public:
     SimpleRenderer();
-    virtual ~SimpleRenderer();
+
+    ~SimpleRenderer() override;
+
+    void Prepare() override;
+
     void GetEnabledFeatures() override;
+
     void Render() override;
+
+    void BuildCommandBuffers() override;
+
+    void LoadModels();
+
+    void PrepareUniformBuffers();
+
+    void UpdateUniformBuffers();
+
+    void SetupDescriptorSetLayout();
+
+    void PreparePipeline();
+
+    void SetupDescriptorPool();
+
+    void SetupDescriptorSet();
+
+    void DrawFrame();
 };
 
 

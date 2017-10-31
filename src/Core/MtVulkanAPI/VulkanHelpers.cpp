@@ -53,12 +53,8 @@ QueueFamilyIndices VulkanHelpers::FindQueueFamilies(vk::PhysicalDevice p_device,
             indices.presentFamily = i;
         }
 
-        if (indices.IsComplete())
-        {
-            break;
-        }
-
-        i++;
+        if (indices.IsComplete()) break;
+        ++i;
     }
 
     return indices;

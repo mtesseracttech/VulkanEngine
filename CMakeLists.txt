@@ -34,7 +34,11 @@ set(SOURCE_FILES
         src/Core/MtVulkanAPI/WrappedVulkanSwapchain.hpp
         src/Core/MtVulkanAPI/WrappedVulkanWindow.hpp
         src/Core/MtVulkanAPI/VulkanModel.hpp
-        src/Core/MtVulkanAPI/VulkanTexture.hpp src/Core/MtVulkanAPI/RendererLayer.hpp src/Core/GameWorld.hpp src/Core/Renderers/SimpleRenderer.cpp src/Core/Renderers/SimpleRenderer.hpp)
+        src/Core/MtVulkanAPI/VulkanTexture.hpp
+        src/Core/MtVulkanAPI/RendererLayer.hpp
+        src/Core/GameWorld.hpp
+        src/Core/Renderers/SimpleRenderer.cpp
+        src/Core/Renderers/SimpleRenderer.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 
