@@ -480,6 +480,7 @@ void VulkanRendererBase::PrepareFrame()
     if (swapchainStatus == vk::Result::eErrorOutOfDateKHR || swapchainStatus == vk::Result::eSuboptimalKHR)
     {
         //Rebuild swapchain
+        Logger::Log("Swapchain is not running optimal anymore, please reload it");
     }
     else if(swapchainStatus != vk::Result::eSuccess)
     {

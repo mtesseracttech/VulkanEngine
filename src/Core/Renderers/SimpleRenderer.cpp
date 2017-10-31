@@ -37,7 +37,6 @@ void SimpleRenderer::Render()
 
 void SimpleRenderer::GetEnabledFeatures()
 {
-    //Not needed for now, but will be needed for wireframe
 }
 
 void SimpleRenderer::BuildCommandBuffers()
@@ -127,6 +126,7 @@ void SimpleRenderer::UpdateUniformBuffers()
 
 void SimpleRenderer::SetupDescriptorSetLayout()
 {
+    Logger::Log("Setting up descriptor set layout");
     vk::DescriptorSetLayoutBinding vertexShaderBufferBinding;
     vertexShaderBufferBinding.descriptorType  = vk::DescriptorType ::eUniformBuffer;
     vertexShaderBufferBinding.stageFlags      = vk::ShaderStageFlagBits ::eVertex;
@@ -272,6 +272,7 @@ void SimpleRenderer::PreparePipeline()
 
 void SimpleRenderer::SetupDescriptorPool()
 {
+    Logger::Log("Setting up descriptor pool");
     vk::DescriptorPoolSize descriptorPoolSize;
     descriptorPoolSize.type = vk::DescriptorType::eUniformBuffer;
     descriptorPoolSize.descriptorCount = 1;
@@ -290,6 +291,7 @@ void SimpleRenderer::SetupDescriptorPool()
 
 void SimpleRenderer::SetupDescriptorSet()
 {
+    Logger::Log("Setting up descriptor set");
     vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo;
     descriptorSetAllocateInfo.descriptorPool = m_descriptorPool;
     descriptorSetAllocateInfo.pSetLayouts = &m_descriptorSetLayout;
@@ -314,6 +316,10 @@ void SimpleRenderer::SetupDescriptorSet()
 void SimpleRenderer::DrawFrame()
 {
     VulkanRendererBase::PrepareFrame();
+
+    static int slowFrameCounter = 0;
+    ++slowFrameCounter;
+    if(slowFrameCounter%1000 == 0) std::cout << "rendering" << std::endl;
 
     m_submitInfo.commandBufferCount = 1;
     m_submitInfo.pCommandBuffers = &m_drawCommandBuffers[m_currentBuffer];
