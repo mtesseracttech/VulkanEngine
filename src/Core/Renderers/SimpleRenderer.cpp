@@ -41,18 +41,20 @@ void SimpleRenderer::GetEnabledFeatures()
 
 void SimpleRenderer::BuildCommandBuffers()
 {
+    Logger::Log("Building Command Buffers");
     vk::CommandBufferBeginInfo commandBufferBeginInfo;
+    //commandBufferBeginInfo.flags = vk::CommandBufferUsageFlagBits ::eSimultaneousUse;
 
     std::array<vk::ClearValue, 2> clearValues;
     clearValues[0].color = m_defaultClearColor;
     clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
 
     vk::RenderPassBeginInfo renderPassBeginInfo;
-    renderPassBeginInfo.renderPass        = m_renderPass;
-    renderPassBeginInfo.renderArea.offset = vk::Offset2D(0,0);
+    renderPassBeginInfo.renderPass = m_renderPass;
+    renderPassBeginInfo.renderArea.offset = vk::Offset2D(0, 0);
     renderPassBeginInfo.renderArea.extent = m_swapchain.GetExtent();
-    renderPassBeginInfo.clearValueCount   = clearValues.size();
-    renderPassBeginInfo.pClearValues      = clearValues.data();
+    renderPassBeginInfo.clearValueCount = clearValues.size();
+    renderPassBeginInfo.pClearValues = clearValues.data();
 
     for (int32_t i = 0; i < m_drawCommandBuffers.size(); ++i)
     {
@@ -61,21 +63,26 @@ void SimpleRenderer::BuildCommandBuffers()
 
         m_drawCommandBuffers[i].beginRenderPass(renderPassBeginInfo, vk::SubpassContents::eInline);
 
-        vk::Viewport viewport;
-        viewport.x          = 0.0;
-        viewport.y          = 0.0;
-        viewport.width      = m_swapchain.GetExtent().width;
-        viewport.height     = m_swapchain.GetExtent().height;
-        viewport.minDepth   = 0.0f;
-        viewport.maxDepth   = 1.0f;
+        //std::cout << m_swapchain.GetExtent().width << ", " << m_swapchain.GetExtent().height << std::endl;
 
-        m_drawCommandBuffers[i].setViewport(0,1, &viewport);
+        vk::Viewport viewport;
+        viewport.x = 0.0;
+        viewport.y = 0.0;
+        viewport.width = m_swapchain.GetExtent().width;
+        viewport.height = m_swapchain.GetExtent().height;
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+
+        m_drawCommandBuffers[i].setViewport(0, 1, &viewport);
 
         vk::Rect2D scissor;
         scissor.extent = m_swapchain.GetExtent();
-        scissor.offset = vk::Offset2D(0,0);
+        scissor.offset = vk::Offset2D(0, 0);
 
-        m_drawCommandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
+        m_drawCommandBuffers[i].setScissor(0, 1, &scissor);
+
+        m_drawCommandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1,
+                                                   &m_descriptorSet, 0, nullptr);
 
         vk::DeviceSize offsets[1] = {0};
 
@@ -96,11 +103,15 @@ void SimpleRenderer::BuildCommandBuffers()
 void SimpleRenderer::LoadModels()
 {
     Logger::Log("Loading models!");
-    m_models.teapot.LoadFromFile(Constants::MODEL_PATH + "treasure_smooth.dae", m_vertexLayout, m_wrappedDevice, m_graphicsQueue);
+    m_models.teapot.LoadFromFile(Constants::MODEL_PATH + "treasure_smooth.dae",
+                                 m_vertexLayout,
+                                 m_wrappedDevice,
+                                 m_graphicsQueue);
 }
 
 void SimpleRenderer::PrepareUniformBuffers()
 {
+    Logger::Log("Preparing Uniform Buffers");
     m_wrappedDevice->CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
                                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                                   &m_uniformBuffer,
@@ -112,9 +123,10 @@ void SimpleRenderer::PrepareUniformBuffers()
 
 void SimpleRenderer::UpdateUniformBuffers()
 {
-    m_ubo.projection = glm::perspective(glm::radians(60.0f), (float)(m_swapchain.GetExtent().width / 3.0f) / (float)m_swapchain.GetExtent().height, 0.1f, 256.0f);
+    m_ubo.projection = glm::perspective(glm::radians(60.0f), (float) (m_swapchain.GetExtent().width / 3.0f) /
+                                                             (float) m_swapchain.GetExtent().height, 0.1f, 256.0f);
 
-    glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, m_cameraZoom));
+    glm::mat4 viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f));
 
     m_ubo.modelView = viewMatrix * glm::translate(glm::mat4(1.0f), m_cameraPosition);
     m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -128,9 +140,9 @@ void SimpleRenderer::SetupDescriptorSetLayout()
 {
     Logger::Log("Setting up descriptor set layout");
     vk::DescriptorSetLayoutBinding vertexShaderBufferBinding;
-    vertexShaderBufferBinding.descriptorType  = vk::DescriptorType ::eUniformBuffer;
-    vertexShaderBufferBinding.stageFlags      = vk::ShaderStageFlagBits ::eVertex;
-    vertexShaderBufferBinding.binding         = 0;
+    vertexShaderBufferBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+    vertexShaderBufferBinding.stageFlags = vk::ShaderStageFlagBits::eVertex;
+    vertexShaderBufferBinding.binding = 0;
     vertexShaderBufferBinding.descriptorCount = 1;
 
     std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings = {vertexShaderBufferBinding};
@@ -150,34 +162,34 @@ void SimpleRenderer::SetupDescriptorSetLayout()
 
 void SimpleRenderer::PreparePipeline()
 {
-    Logger::Log("Preparing pipeline");
+    Logger::Log("Preparing phong pipeline");
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState;
-    inputAssemblyState.topology = vk::PrimitiveTopology::eTriangleList;
-    inputAssemblyState.flags = static_cast<vk::PipelineInputAssemblyStateCreateFlagBits >(0);
+    inputAssemblyState.topology         = vk::PrimitiveTopology::eTriangleList;
+    inputAssemblyState.flags            = static_cast<vk::PipelineInputAssemblyStateCreateFlagBits >(0);
     inputAssemblyState.primitiveRestartEnable = static_cast<vk::Bool32>(false);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
-    rasterizationState.polygonMode = vk::PolygonMode::eFill;
-    rasterizationState.cullMode = vk::CullModeFlagBits::eBack;
-    rasterizationState.frontFace = vk::FrontFace::eClockwise;
-    rasterizationState.flags = static_cast<vk::PipelineRasterizationStateCreateFlagBits>(0);
+    rasterizationState.polygonMode      = vk::PolygonMode::eFill;
+    rasterizationState.cullMode         = vk::CullModeFlagBits::eBack;
+    rasterizationState.frontFace        = vk::FrontFace::eClockwise;
+    rasterizationState.flags            = static_cast<vk::PipelineRasterizationStateCreateFlagBits>(0);
     rasterizationState.depthClampEnable = static_cast<vk::Bool32>(false);
-    rasterizationState.lineWidth = 1.0f;
+    rasterizationState.lineWidth        = 1.0f;
 
     vk::PipelineColorBlendAttachmentState blendAttachmentState;
     blendAttachmentState.colorWriteMask = static_cast<vk::ColorComponentFlagBits >(0xf);
-    blendAttachmentState.blendEnable = static_cast<vk::Bool32>(false);
+    blendAttachmentState.blendEnable    = static_cast<vk::Bool32>(false);
 
     vk::PipelineColorBlendStateCreateInfo colorBlendState;
-    colorBlendState.attachmentCount = 1;
-    colorBlendState.pAttachments = &blendAttachmentState;
+    colorBlendState.attachmentCount     = 1;
+    colorBlendState.pAttachments        = &blendAttachmentState;
 
     vk::PipelineDepthStencilStateCreateInfo depthStencilState;
-    depthStencilState.depthTestEnable = static_cast<vk::Bool32>(true);
-    depthStencilState.depthWriteEnable = static_cast<vk::Bool32>(true);
-    depthStencilState.depthCompareOp = vk::CompareOp::eLessOrEqual;
-    depthStencilState.front = depthStencilState.back;
-    depthStencilState.back.compareOp = vk::CompareOp::eAlways;
+    depthStencilState.depthTestEnable   = static_cast<vk::Bool32>(true);
+    depthStencilState.depthWriteEnable  = static_cast<vk::Bool32>(true);
+    depthStencilState.depthCompareOp    = vk::CompareOp::eLessOrEqual;
+    depthStencilState.front             = depthStencilState.back;
+    depthStencilState.back.compareOp    = vk::CompareOp::eAlways;
 
     vk::PipelineViewportStateCreateInfo viewportState;
     viewportState.viewportCount = 1;
@@ -190,8 +202,8 @@ void SimpleRenderer::PreparePipeline()
 
     std::vector<vk::DynamicState> dynamicStateEnables = {
             vk::DynamicState::eViewport,
-            vk::DynamicState ::eScissor,
-            vk::DynamicState ::eLineWidth
+            vk::DynamicState::eScissor,
+            vk::DynamicState::eLineWidth
     };
 
     vk::PipelineDynamicStateCreateInfo dynamicState;
@@ -204,10 +216,10 @@ void SimpleRenderer::PreparePipeline()
     vk::VertexInputBindingDescription vertexInputBindingDescription;
     vertexInputBindingDescription.binding = 0;
     vertexInputBindingDescription.stride = m_vertexLayout.GetStride();
-    vertexInputBindingDescription.inputRate = vk::VertexInputRate ::eVertex;
+    vertexInputBindingDescription.inputRate = vk::VertexInputRate::eVertex;
 
     std::vector<vk::VertexInputBindingDescription> vertexInputBindings = {
-        vertexInputBindingDescription
+            vertexInputBindingDescription
     };
 
     vk::VertexInputAttributeDescription positionAttribute;
@@ -234,7 +246,7 @@ void SimpleRenderer::PreparePipeline()
     colorAttribute.format = vk::Format::eR32G32B32Sfloat;
     colorAttribute.offset = sizeof(float) * 8;
 
-    std::vector<vk::VertexInputAttributeDescription> vertexInputAttributes ={
+    std::vector<vk::VertexInputAttributeDescription> vertexInputAttributes = {
             positionAttribute,
             normalAttribute,
             uvAttribute,
@@ -297,11 +309,12 @@ void SimpleRenderer::SetupDescriptorSet()
     descriptorSetAllocateInfo.pSetLayouts = &m_descriptorSetLayout;
     descriptorSetAllocateInfo.descriptorSetCount = 1;
 
-    m_descriptorSet = m_logicalDevice.allocateDescriptorSets(descriptorSetAllocateInfo)[0]; //only one is given, so taking the first works
+    m_descriptorSet = m_logicalDevice.allocateDescriptorSets(
+            descriptorSetAllocateInfo)[0]; //only one is given, so taking the first works
 
     vk::WriteDescriptorSet writeDescriptorSet;
     writeDescriptorSet.dstSet = m_descriptorSet;
-    writeDescriptorSet.descriptorType = vk::DescriptorType ::eUniformBuffer;
+    writeDescriptorSet.descriptorType = vk::DescriptorType::eUniformBuffer;
     writeDescriptorSet.dstBinding = 0;
     writeDescriptorSet.pBufferInfo = &m_uniformBuffer.m_descriptor;
     writeDescriptorSet.descriptorCount = 1;
@@ -310,7 +323,8 @@ void SimpleRenderer::SetupDescriptorSet()
             writeDescriptorSet
     };
 
-    m_logicalDevice.updateDescriptorSets(static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
+    m_logicalDevice.updateDescriptorSets(static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(),
+                                         0, nullptr);
 }
 
 void SimpleRenderer::DrawFrame()
@@ -318,8 +332,7 @@ void SimpleRenderer::DrawFrame()
     VulkanRendererBase::PrepareFrame();
 
     static int slowFrameCounter = 0;
-    ++slowFrameCounter;
-    if(slowFrameCounter%1000 == 0) std::cout << "rendering" << std::endl;
+    if (++slowFrameCounter % 1000 == 0) std::cout << "rendered 1000 frames" << std::endl;
 
     m_submitInfo.commandBufferCount = 1;
     m_submitInfo.pCommandBuffers = &m_drawCommandBuffers[m_currentBuffer];
