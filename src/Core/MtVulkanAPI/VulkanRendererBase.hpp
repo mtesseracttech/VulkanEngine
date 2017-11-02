@@ -19,7 +19,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 //STB
-#include <stb_image.h>
+//#include <stb_image.h>
 
 //STL/C libs
 #include <iostream>

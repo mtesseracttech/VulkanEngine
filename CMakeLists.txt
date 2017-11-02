@@ -35,10 +35,9 @@ set(SOURCE_FILES
         src/Core/MtVulkanAPI/WrappedVulkanWindow.hpp
         src/Core/MtVulkanAPI/VulkanModel.hpp
         src/Core/MtVulkanAPI/VulkanTexture.hpp
-        src/Core/MtVulkanAPI/RendererLayer.hpp
         src/Core/GameWorld.hpp
         src/Core/Renderers/SimpleRenderer.cpp
-        src/Core/Renderers/SimpleRenderer.hpp)
+        src/Core/Renderers/SimpleRenderer.hpp src/Core/Material/AbstractMaterial.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 
@@ -78,4 +77,5 @@ if(ASSIMP_FOUND)
     message(STATUS "Found ASSIMP, Including and Linking now")
     include_directories(${ASSIMP_INCLUDE_DIR})
     target_link_libraries (VulkanEngine ${ASSIMP_LIBRARY})
+    #message(STATUS ${ASSIMP_INCLUDE_DIR})
 endif (ASSIMP_FOUND)

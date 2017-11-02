@@ -44,7 +44,7 @@ void SimpleRenderer::BuildCommandBuffers()
     vk::CommandBufferBeginInfo commandBufferBeginInfo;
 
     std::array<vk::ClearValue, 2> clearValues;
-    clearValues[0].color = m_defaultClearColor;
+    clearValues[0].color = vk::ClearColorValue(std::array<float,4>{0.1f, 0.1f,0.1f,1.0f});
     clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
 
     vk::RenderPassBeginInfo renderPassBeginInfo;
