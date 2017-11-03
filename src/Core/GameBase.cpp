@@ -26,16 +26,18 @@ void GameBase::InitializeRenderer()
     Logger::Log("Initializing the renderer");
     m_renderer = new SimpleRenderer();
     m_renderer->Initialize();
+    m_renderer->Prepare();
 }
 
 void GameBase::RunGame()
 {
-    while (!glfwWindowShouldClose(m_renderer->GetWindow()->GetWindow()))
+    GLFWwindow * window = m_renderer->GetWindow()->GetWindow();
+    while(glfwWindowShouldClose(window) != GLFW_TRUE)
     {
         glfwPollEvents();
-        //std::cout << "Waiting for stuff to happen" << std::endl;
-        m_renderer->DrawFrame();
+        m_renderer->RenderFrame();
+        m_renderer->DeviceWaitIdle();
     }
 
-    m_renderer->DeviceWaitIdle();
+    delete m_renderer;
 }

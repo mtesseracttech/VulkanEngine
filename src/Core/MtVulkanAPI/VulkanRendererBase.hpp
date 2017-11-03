@@ -77,7 +77,7 @@ protected:
     uint32_t                            m_currentBuffer;
     std::vector<vk::ShaderModule>       m_shaderModules;
     vk::DescriptorPool                  m_descriptorPool            = nullptr;
-    vk::ClearColorValue                 m_defaultClearColor;
+    vk::ClearColorValue                 m_defaultClearColor         = std::array<float, 4>{0.1f, 0.1f,0.1f,1.0f};
 
     //Swapchain
     WrappedVulkanSwapchain              m_swapchain;
@@ -88,6 +88,7 @@ protected:
 
     //Contains command buffers and semaphores to be presented to the queue
     vk::SubmitInfo                      m_submitInfo;
+    vk::PipelineStageFlags              m_submitPipelineStages      = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
     struct {
         // Swap chain image presentation
@@ -111,8 +112,8 @@ public:
     //Initializes the base of vulkan
     virtual void Initialize();
 
-    //Draws the frame with the current commandbuffers
-    void DrawFrame();
+    //Initializes the render type specific parts
+    virtual void Prepare();
 
     //Constructor
     VulkanRendererBase();
@@ -125,6 +126,9 @@ public:
 
     //Gives a pointer to the underlying GLFW window
     WrappedVulkanWindow * GetWindow();
+
+    //Draws the frame with the current commandbuffers
+    void RenderFrame();
 
 protected:
     void InitializeGlfwWindow();
@@ -141,10 +145,7 @@ protected:
 
     void ConnectSwapchain();
 
-    //Initializes the render type specific parts
-    virtual void Prepare();
-
-    void CreateSwapchain();
+    void SetupSwapchain();
 
     void CreateCommandPool();
 
@@ -199,6 +200,8 @@ protected:
     void PrepareFrame();
 
     void SubmitFrame();
+
+    void CreateSemaphores();
 };
 
 

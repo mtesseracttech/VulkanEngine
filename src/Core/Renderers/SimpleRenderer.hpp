@@ -27,6 +27,8 @@ class SimpleRenderer : public VulkanRendererBase
              VulkanVertexComponent ::eColor}
     );
 
+    const uint32_t VERTEX_BUFFER_BIND_ID = 0;
+
     struct {
         VulkanModel teapot;
     } m_models;
@@ -37,7 +39,7 @@ class SimpleRenderer : public VulkanRendererBase
         glm::vec4 lightPos = glm::vec4(0.0f, 2.0f, 1.0f, 0.0f);
     } m_ubo;
 
-    vk::Pipeline                m_graphicsPipeline;
+    vk::Pipeline                m_phongPipeline;
     vk::PipelineLayout          m_pipelineLayout;
     vk::DescriptorSet           m_descriptorSet;
     vk::DescriptorSetLayout     m_descriptorSetLayout;
@@ -76,8 +78,6 @@ public:
     void SetupDescriptorPool();
 
     void SetupDescriptorSet();
-
-    void DrawFrame();
 };
 
 

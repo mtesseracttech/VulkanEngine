@@ -83,6 +83,11 @@ public:
 
         m_surface = nullptr;
     }
+
+    void SetTitle(const std::string p_title)
+    {
+        glfwSetWindowTitle(m_window, p_title.c_str());
+    }
 };
 
 

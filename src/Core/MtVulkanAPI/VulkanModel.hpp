@@ -71,6 +71,7 @@ struct VulkanModel
     WrappedVulkanBuffer m_indexBuffer;
     uint32_t m_indexCount;
     uint32_t m_vertexCount;
+    std::string m_fileName;
 
     struct ModelPart
     {
@@ -111,6 +112,7 @@ struct VulkanModel
     {
         m_vertexBuffer.m_device = p_device->m_logicalDevice;
         m_indexBuffer.m_device = p_device->m_logicalDevice;
+        m_fileName = p_filename;
 
         Assimp::Importer importer;
         const aiScene *scene;
@@ -235,28 +237,33 @@ struct VulkanModel
 
             //Create staging buffers
 
-            WrappedVulkanBuffer vertexStaging = p_device->CreateBuffer(
-                    vk::BufferUsageFlagBits::eTransferSrc,
-                    vk::MemoryPropertyFlagBits::eHostVisible,
-                    vertexBufferSize,
-                    vertexBuffer.data());
+            WrappedVulkanBuffer vertexStaging, indexStaging;
 
-            WrappedVulkanBuffer indexStaging = p_device->CreateBuffer(
-                    vk::BufferUsageFlagBits::eTransferSrc,
-                    vk::MemoryPropertyFlagBits::eHostVisible,
-                    indexBufferSize,
-                    indexBuffer.data());
+            p_device->CreateBuffer(vk::BufferUsageFlagBits::eTransferSrc,
+                                   vk::MemoryPropertyFlagBits::eHostVisible,
+                                   &vertexStaging,
+                                   vertexBufferSize,
+                                   vertexBuffer.data());
+
+            p_device->CreateBuffer(vk::BufferUsageFlagBits::eTransferSrc,
+                                   vk::MemoryPropertyFlagBits::eHostVisible,
+                                   &indexStaging,
+                                   indexBufferSize,
+                                   indexBuffer.data());
 
             //Local target buffers
-
-            m_vertexBuffer = p_device->CreateBuffer(
-                    vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                    vk::MemoryPropertyFlagBits::eDeviceLocal,
+            //Vertex buffer
+            p_device->CreateBuffer(
+                    vk::BufferUsageFlagBits ::eVertexBuffer | vk::BufferUsageFlagBits ::eTransferDst,
+                    vk::MemoryPropertyFlagBits ::eDeviceLocal,
+                    &m_vertexBuffer,
                     vertexBufferSize);
 
-            m_indexBuffer = p_device->CreateBuffer(
-                    vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
-                    vk::MemoryPropertyFlagBits::eDeviceLocal,
+            // Index buffer
+            p_device->CreateBuffer(
+                    vk::BufferUsageFlagBits ::eIndexBuffer | vk::BufferUsageFlagBits::eTransferDst,
+                    vk::MemoryPropertyFlagBits ::eDeviceLocal,
+                    &m_indexBuffer,
                     indexBufferSize);
 
             //Copy from staging buffers
@@ -288,6 +295,18 @@ struct VulkanModel
 
             return false;
         }
+    }
+
+    const std::string GetModelInfo()
+    {
+        std::stringstream output;
+        output << "Model info: " << m_fileName << std::endl;
+        output << "Total Vertices: " << m_vertexCount << std::endl;
+        output << "Total Indices: " << m_indexCount << std::endl;
+        output << "Size: (" << m_dimensions.size.x << "," << m_dimensions.size.y << "," << m_dimensions.size.z << ")" << std::endl;
+        output << "Parts: " << m_parts.size() << std::endl;
+
+        return output.str();
     }
 };
 

@@ -213,114 +213,92 @@ struct WrappedVulkanDevice
         m_enabledFeatures = p_enabledFeatures;
     }
 
-    void CreateBuffer(vk::BufferUsageFlags p_usageFlags, vk::MemoryPropertyFlags p_memoryPropertyFlags,
-                      vk::DeviceSize p_size, vk::Buffer *p_buffer, vk::DeviceMemory *p_memory, void *p_data = nullptr)
+    vk::Result CreateBuffer(vk::BufferUsageFlags usageFlags, vk::MemoryPropertyFlags memoryPropertyFlags, vk::DeviceSize size, vk::Buffer *buffer, vk::DeviceMemory *memory, void *data = nullptr)
     {
-        vk::BufferCreateInfo bufferCreateInfo{};
-        bufferCreateInfo.usage = p_usageFlags;
-        bufferCreateInfo.size = p_size;
-        bufferCreateInfo.sharingMode = vk::SharingMode::eExclusive;
+        // Create the buffer handle
+        //vk::BufferCreateInfo bufferCreateInfo = vks::initializers::bufferCreateInfo(usageFlags, size);
+        vk::BufferCreateInfo bufferCreateInfo;
+        bufferCreateInfo.usage = usageFlags;
+        bufferCreateInfo.size = size;
+        bufferCreateInfo.sharingMode = vk::SharingMode ::eExclusive;
+        *buffer = m_logicalDevice.createBuffer(bufferCreateInfo);
 
-        *p_buffer = m_logicalDevice.createBuffer(bufferCreateInfo, nullptr);
+        // Create the memory backing up the buffer handle
+        vk::MemoryRequirements memReqs = m_logicalDevice.getBufferMemoryRequirements(*buffer);
 
-        vk::MemoryRequirements memoryRequirements;
-        m_logicalDevice.getBufferMemoryRequirements(*p_buffer, &memoryRequirements);
+        vk::MemoryAllocateInfo memAlloc;
+        memAlloc.allocationSize = memReqs.size;
+        memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags);
 
-        vk::MemoryAllocateInfo memoryAllocateInfo;
-        memoryAllocateInfo.allocationSize = memoryRequirements.size;
-        memoryAllocateInfo.memoryTypeIndex = GetMemoryType(memoryRequirements.memoryTypeBits, p_memoryPropertyFlags);
+        *memory = m_logicalDevice.allocateMemory(memAlloc);
+        //m_logicalDevice.allocateMemory(&memAlloc, nullptr, memory);
 
-        *p_memory = m_logicalDevice.allocateMemory(memoryAllocateInfo, nullptr);
-
-        if(p_data != nullptr)
+        // If a pointer to the buffer data has been passed, map the buffer and copy over the data
+        if (data != nullptr)
         {
-            void* mapped;
-            mapped = m_logicalDevice.mapMemory(*p_memory, 0, p_size);
-            memcpy(mapped, p_data, p_size);
-
-            if ((p_memoryPropertyFlags & vk::MemoryPropertyFlagBits::eHostCoherent) == static_cast<vk::MemoryPropertyFlagBits>(0))
+            void *mapped;
+            mapped = m_logicalDevice.mapMemory(*memory, 0, size, static_cast<vk::MemoryMapFlagBits>(0));
+            memcpy(mapped, data, size);
+            // If host coherency hasn't been requested, do a manual flush to make writes visible
+            if ((memoryPropertyFlags & vk::MemoryPropertyFlagBits ::eHostCoherent) == vk::MemoryPropertyFlagBits(0))
             {
                 vk::MappedMemoryRange mappedRange;
-                mappedRange.memory = *p_memory;
+                mappedRange.memory = *memory;
                 mappedRange.offset = 0;
-                mappedRange.size = p_size;
+                mappedRange.size = size;
                 m_logicalDevice.flushMappedMemoryRanges(1, &mappedRange);
+                //vkFlushMappedMemoryRanges(logicalDevice, 1, &mappedRange);
             }
-            m_logicalDevice.unmapMemory(*p_memory);
+            m_logicalDevice.unmapMemory(*memory);
         }
 
-        m_logicalDevice.bindBufferMemory(*p_buffer, *p_memory, 0);
+        // Attach the memory to the buffer object
+        m_logicalDevice.bindBufferMemory(*buffer, *memory, 0);
+        //VK_CHECK_RESULT(vkBindBufferMemory(logicalDevice, *buffer, *memory, 0));
+
+        return vk::Result::eSuccess;
     }
 
 
-    void CreateBuffer(vk::BufferUsageFlags p_usageFlags, vk::MemoryPropertyFlags p_memoryPropertyFlags, WrappedVulkanBuffer* p_buffer, vk::DeviceSize p_size, void *p_data = nullptr)
+    vk::Result CreateBuffer(vk::BufferUsageFlags usageFlags, vk::MemoryPropertyFlags memoryPropertyFlags, WrappedVulkanBuffer *buffer, vk::DeviceSize size, void *data = nullptr)
     {
-        p_buffer->m_device = m_logicalDevice;
+        buffer->m_device = m_logicalDevice;
 
-        vk::BufferCreateInfo bufferCreateInfo{};
-        bufferCreateInfo.usage = p_usageFlags;
-        bufferCreateInfo.size  = p_size;
+        // Create the buffer handle
+        vk::BufferCreateInfo bufferCreateInfo;
+        bufferCreateInfo.usage = usageFlags;
+        bufferCreateInfo.size = size;
 
-        p_buffer->m_buffer = m_logicalDevice.createBuffer(bufferCreateInfo, nullptr);
+        buffer->m_buffer = m_logicalDevice.createBuffer(bufferCreateInfo);
 
-        vk::MemoryRequirements memoryRequirements = m_logicalDevice.getBufferMemoryRequirements(p_buffer->m_buffer);
+        // Create the memory backing up the buffer handle
+        vk::MemoryRequirements memReqs = m_logicalDevice.getBufferMemoryRequirements(buffer->m_buffer);
 
-        vk::MemoryAllocateInfo memoryAllocateInfo;
-        memoryAllocateInfo.allocationSize = memoryRequirements.size;
-        memoryAllocateInfo.memoryTypeIndex = GetMemoryType(memoryRequirements.memoryTypeBits, p_memoryPropertyFlags);
+        vk::MemoryAllocateInfo memAlloc;
+        memAlloc.allocationSize = memReqs.size;
+        memAlloc.memoryTypeIndex = GetMemoryType(memReqs.memoryTypeBits, memoryPropertyFlags);
 
-        p_buffer->m_memory              = m_logicalDevice.allocateMemory(memoryAllocateInfo, nullptr);
-        p_buffer->m_alignment           = memoryRequirements.alignment;
-        p_buffer->m_size                = memoryAllocateInfo.allocationSize;
-        p_buffer->m_usageFlags          = p_usageFlags;
-        p_buffer->m_memoryPropertyFlags = p_memoryPropertyFlags;
+        buffer->m_memory = m_logicalDevice.allocateMemory(memAlloc);
+        buffer->m_alignment = memReqs.alignment;
+        buffer->m_size = memAlloc.allocationSize;
+        buffer->m_usageFlags = usageFlags;
+        buffer->m_memoryPropertyFlags = memoryPropertyFlags;
 
-        if(p_data != nullptr)
+        // If a pointer to the buffer data has been passed, map the buffer and copy over the data
+        if (data != nullptr)
         {
-            p_buffer->Map();
-            memcpy(p_buffer->m_mapped, p_data, p_size);
-            p_buffer->Unmap();
+            buffer->Map();
+            //VK_CHECK_RESULT(buffer->map());
+            memcpy(buffer->m_mapped, data, size);
+            buffer->Unmap();
         }
 
-        p_buffer->SetupDescriptor();
+        // Initialize a default descriptor that covers the whole buffer size
+        buffer->SetupDescriptor();
 
-        p_buffer->Bind();
-    }
-
-    WrappedVulkanBuffer CreateBuffer(vk::BufferUsageFlags p_usageFlags, vk::MemoryPropertyFlags p_memoryPropertyFlags, vk::DeviceSize p_size, void *p_data = nullptr)
-    {
-        vk::BufferCreateInfo bufferCreateInfo{};
-        bufferCreateInfo.usage = p_usageFlags;
-        bufferCreateInfo.size  = p_size;
-
-        WrappedVulkanBuffer newBuffer;
-        newBuffer.m_device = m_logicalDevice;
-        newBuffer.m_buffer = m_logicalDevice.createBuffer(bufferCreateInfo, nullptr);
-
-        vk::MemoryRequirements memoryRequirements = m_logicalDevice.getBufferMemoryRequirements(newBuffer.m_buffer);
-
-        vk::MemoryAllocateInfo memoryAllocateInfo;
-        memoryAllocateInfo.allocationSize  = memoryRequirements.size;
-        memoryAllocateInfo.memoryTypeIndex = GetMemoryType(memoryRequirements.memoryTypeBits, p_memoryPropertyFlags);
-
-        newBuffer.m_memory              = m_logicalDevice.allocateMemory(memoryAllocateInfo, nullptr);
-        newBuffer.m_alignment           = memoryRequirements.alignment;
-        newBuffer.m_size                = memoryAllocateInfo.allocationSize;
-        newBuffer.m_usageFlags          = p_usageFlags;
-        newBuffer.m_memoryPropertyFlags = p_memoryPropertyFlags;
-
-        if(p_data != nullptr)
-        {
-            newBuffer.Map();
-            memcpy(newBuffer.m_mapped, p_data, p_size);
-            newBuffer.Unmap();
-        }
-
-        newBuffer.SetupDescriptor();
-
-        newBuffer.Bind();
-
-        return newBuffer;
+        // Attach the memory to the buffer object
+        buffer->Bind();
+        return vk::Result ::eSuccess;
     }
 
     void CopyBuffer(WrappedVulkanBuffer* p_source, WrappedVulkanBuffer* p_destination, vk::Queue p_queue, vk::BufferCopy *p_copyRegion = nullptr)

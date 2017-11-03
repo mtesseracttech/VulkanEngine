@@ -20,12 +20,12 @@ void VulkanRendererBase::Initialize()
     SelectPhysicalDevice();
     CreateLogicalDevice();
     ConnectSwapchain();
-    Prepare();
+    CreateSemaphores();
 }
 
 void VulkanRendererBase::Prepare()
 {
-    CreateSwapchain();
+    SetupSwapchain();
     CreateCommandPool();
     CreateImageViews();
     CreateCommandBuffers();
@@ -256,7 +256,7 @@ void VulkanRendererBase::CreateCommandPool()
     m_commandPool = m_logicalDevice.createCommandPool(commandPoolCreateInfo);
 }
 
-void VulkanRendererBase::CreateSwapchain()
+void VulkanRendererBase::SetupSwapchain()
 {
     m_swapchain.Create();
 }
@@ -431,7 +431,7 @@ void VulkanRendererBase::SetupFrameBuffer()
     }
 }
 
-void VulkanRendererBase::DrawFrame()
+void VulkanRendererBase::RenderFrame()
 {
     auto tStart = std::chrono::high_resolution_clock::now();
     Render();
@@ -454,11 +454,12 @@ void VulkanRendererBase::DeviceWaitIdle()
 
 void VulkanRendererBase::RebuildSwapchain()
 {
+    //TODO: Make it so this does not crash
     //Operations must be done before cleaning up
     m_logicalDevice.waitIdle();
 
     DestroySwapchain();
-    CreateSwapchain();
+    SetupSwapchain();
 
     DestroyDepthStencil();
     SetupDepthStencil();
@@ -507,11 +508,12 @@ vk::PipelineShaderStageCreateInfo VulkanRendererBase::LoadShader(const std::stri
 
 VulkanRendererBase::VulkanRendererBase()
 {
-    m_defaultClearColor = std::array<float, 4>{0.1f, 0.1f,0.1f,1.0f};
 }
 
 VulkanRendererBase::~VulkanRendererBase()
 {
+    Logger::Log("Cleaning up stuff");
+
     m_swapchain.Cleanup();
 
     if(m_descriptorPool) m_logicalDevice.destroyDescriptorPool(m_descriptorPool);
@@ -575,6 +577,22 @@ void VulkanRendererBase::DestroyFrameBuffers()
 WrappedVulkanWindow * VulkanRendererBase::GetWindow()
 {
     return m_window;
+}
+
+void VulkanRendererBase::CreateSemaphores()
+{
+    // Create synchronization objects
+    vk::SemaphoreCreateInfo semaphoreCreateInfo;
+
+    m_semaphores.presentComplete = m_logicalDevice.createSemaphore(semaphoreCreateInfo);
+
+    m_semaphores.renderComplete = m_logicalDevice.createSemaphore(semaphoreCreateInfo);
+
+    m_submitInfo.pWaitDstStageMask    = &m_submitPipelineStages;
+    m_submitInfo.waitSemaphoreCount   = 1;
+    m_submitInfo.pWaitSemaphores      = &m_semaphores.presentComplete;
+    m_submitInfo.signalSemaphoreCount = 1;
+    m_submitInfo.pSignalSemaphores    = &m_semaphores.renderComplete;
 }
 
 

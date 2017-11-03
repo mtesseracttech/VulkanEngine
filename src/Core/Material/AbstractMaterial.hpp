@@ -12,7 +12,8 @@
 
 class AbstractMaterial
 {
-    void UpdateUbo(const GameObject& p_gameObject){
+    void UpdateUbo(const GameObject& p_gameObject)
+    {
 
     }
 };
