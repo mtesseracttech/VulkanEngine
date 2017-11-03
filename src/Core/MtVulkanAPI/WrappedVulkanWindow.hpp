@@ -15,9 +15,23 @@
 struct WrappedVulkanWindow
 {
 private:
-    GLFWwindow *m_window;
-    vk::SurfaceKHR m_surface;
+    GLFWwindow*     m_window;
+    vk::Instance    m_instance;
+    vk::SurfaceKHR  m_surface;
 public:
+    glm::vec2 GetCursorPos()
+    {
+        double x, y;
+        glfwGetCursorPos(m_window, &x, &y);
+        return glm::vec2(x, y);
+    }
+
+    glm::ivec2 GetWindowSize()
+    {
+        int width, height;
+        glfwGetWindowSize(m_window, &width, &height);
+        return glm::ivec2(width, height);
+    }
 
     GLFWwindow * GetWindow()
     {
@@ -46,7 +60,6 @@ public:
         m_window = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(),
                                     (fullscreen ? glfwGetPrimaryMonitor() : nullptr), nullptr);
         glfwSetWindowUserPointer(m_window, this);
-
     }
 
     void CreateSurface(vk::Instance p_instance)
@@ -61,6 +74,19 @@ public:
             Logger::Log("Successfully created KHR Surface");
         }
         m_surface = static_cast<vk::SurfaceKHR>(surface);
+        m_instance = p_instance;
+    }
+
+    void CleanupSurface()
+    {
+        if(m_surface)m_instance.destroySurfaceKHR(m_surface);
+
+        m_surface = nullptr;
+    }
+
+    void SetTitle(const std::string p_title)
+    {
+        glfwSetWindowTitle(m_window, p_title.c_str());
     }
 };
 

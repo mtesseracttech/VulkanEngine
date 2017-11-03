@@ -20,12 +20,12 @@ void VulkanRendererBase::Initialize()
     SelectPhysicalDevice();
     CreateLogicalDevice();
     ConnectSwapchain();
-    Prepare();
+    CreateSemaphores();
 }
 
 void VulkanRendererBase::Prepare()
 {
-    CreateSwapchain();
+    SetupSwapchain();
     CreateCommandPool();
     CreateImageViews();
     CreateCommandBuffers();
@@ -256,7 +256,7 @@ void VulkanRendererBase::CreateCommandPool()
     m_commandPool = m_logicalDevice.createCommandPool(commandPoolCreateInfo);
 }
 
-void VulkanRendererBase::CreateSwapchain()
+void VulkanRendererBase::SetupSwapchain()
 {
     m_swapchain.Create();
 }
@@ -264,14 +264,14 @@ void VulkanRendererBase::CreateSwapchain()
 void VulkanRendererBase::CreateCommandBuffers()
 {
     Logger::Log("Creating command buffers");
-    m_drawCmdBuffers.resize(m_swapchain.GetImageViewCount());
+    m_drawCommandBuffers.resize(m_swapchain.GetImageViewCount());
 
     vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
     commandBufferAllocateInfo.commandPool = m_commandPool;
     commandBufferAllocateInfo.level = vk::CommandBufferLevel::ePrimary;
-    commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(m_drawCmdBuffers.size());
+    commandBufferAllocateInfo.commandBufferCount = static_cast<uint32_t>(m_drawCommandBuffers.size());
 
-    m_logicalDevice.allocateCommandBuffers(&commandBufferAllocateInfo, m_drawCmdBuffers.data());
+    m_logicalDevice.allocateCommandBuffers(&commandBufferAllocateInfo, m_drawCommandBuffers.data());
 }
 
 void VulkanRendererBase::SetupDepthStencil()
@@ -431,22 +431,168 @@ void VulkanRendererBase::SetupFrameBuffer()
     }
 }
 
-GLFWwindow *VulkanRendererBase::GetWindow()
+void VulkanRendererBase::RenderFrame()
 {
-    return m_window->GetWindow();
-}
-
-void VulkanRendererBase::DrawFrame()
-{
+    auto tStart = std::chrono::high_resolution_clock::now();
+    Render();
+    auto tEnd = std::chrono::high_resolution_clock::now();
+    auto tDiff = std::chrono::duration<double, std::milli>(tEnd - tStart).count();
+    //std::cout << "[FrameTime] " << 	(float)tDiff / 1000.0f << std::endl;
 
 }
 
 void VulkanRendererBase::Cleanup()
 {
     Logger::Log("Cleaning up");
+    m_swapchain.Cleanup();
 }
 
 void VulkanRendererBase::DeviceWaitIdle()
 {
     m_logicalDevice.waitIdle();
 }
+
+void VulkanRendererBase::RebuildSwapchain()
+{
+    //TODO: Make it so this does not crash
+    //Operations must be done before cleaning up
+    m_logicalDevice.waitIdle();
+
+    DestroySwapchain();
+    SetupSwapchain();
+
+    DestroyDepthStencil();
+    SetupDepthStencil();
+
+    DestroyFrameBuffers();
+    SetupFrameBuffer();
+
+    DestroyCommandBuffers();
+    CreateCommandBuffers();
+    BuildCommandBuffers();
+
+    m_logicalDevice.waitIdle();
+}
+
+void VulkanRendererBase::PrepareFrame()
+{
+    vk::Result swapchainStatus = m_swapchain.AcquireNextImage(m_semaphores.presentComplete, &m_currentBuffer);
+
+    if (swapchainStatus == vk::Result::eErrorOutOfDateKHR || swapchainStatus == vk::Result::eSuboptimalKHR)
+    {
+        //Rebuild swapchain
+        Logger::Log("Swapchain is not running optimal anymore, please reload it");
+    }
+    else if(swapchainStatus != vk::Result::eSuccess)
+    {
+        std::cout << vk::to_string(swapchainStatus) << std::endl;
+        throw std::runtime_error("Failed to acquire swap chain image!");
+    }
+}
+
+void VulkanRendererBase::SubmitFrame()
+{
+    m_swapchain.QueuePresent(m_graphicsQueue, m_currentBuffer, m_semaphores.renderComplete);
+    m_graphicsQueue.waitIdle();
+}
+
+vk::PipelineShaderStageCreateInfo VulkanRendererBase::LoadShader(const std::string &p_fileName, vk::ShaderStageFlagBits p_shaderStage)
+{
+    vk::PipelineShaderStageCreateInfo pipelineShaderStageCreateInfo;
+    pipelineShaderStageCreateInfo.stage = p_shaderStage;
+    pipelineShaderStageCreateInfo.module = VulkanHelpers::LoadShader(p_fileName.c_str(), m_logicalDevice);
+    pipelineShaderStageCreateInfo.pName = "main"; //Entry point in shader
+    m_shaderModules.push_back(pipelineShaderStageCreateInfo.module);
+    return pipelineShaderStageCreateInfo;
+}
+
+VulkanRendererBase::VulkanRendererBase()
+{
+}
+
+VulkanRendererBase::~VulkanRendererBase()
+{
+    Logger::Log("Cleaning up stuff");
+
+    m_swapchain.Cleanup();
+
+    if(m_descriptorPool) m_logicalDevice.destroyDescriptorPool(m_descriptorPool);
+
+    m_logicalDevice.freeCommandBuffers(m_commandPool, m_drawCommandBuffers);
+
+    m_logicalDevice.destroyRenderPass(m_renderPass);
+
+    for (size_t i = 0; i < m_frameBuffers.size(); ++i)
+    {
+        m_logicalDevice.destroyFramebuffer(m_frameBuffers[i]);
+    }
+
+    for (size_t i = 0; i < m_shaderModules.size(); ++i)
+    {
+        m_logicalDevice.destroyShaderModule(m_shaderModules[i]);
+    }
+
+    //Destroying depthstencil
+    m_logicalDevice.destroyImageView(m_depthStencil.view);
+    m_logicalDevice.destroyImage(m_depthStencil.image);
+    m_logicalDevice.freeMemory(m_depthStencil.memory);
+
+    m_logicalDevice.destroyPipelineCache(m_pipelineCache);
+
+    m_logicalDevice.destroyCommandPool(m_commandPool);
+
+    m_logicalDevice.destroySemaphore(m_semaphores.renderComplete);
+    m_logicalDevice.destroySemaphore(m_semaphores.presentComplete);
+
+    delete m_wrappedDevice;
+
+    m_instance.destroy();
+}
+
+void VulkanRendererBase::DestroyCommandBuffers()
+{
+    m_logicalDevice.freeCommandBuffers(m_commandPool, static_cast<uint32_t>(m_drawCommandBuffers.size()), m_drawCommandBuffers.data());
+}
+
+void VulkanRendererBase::DestroyDepthStencil()
+{
+    m_logicalDevice.destroyImageView(m_depthStencil.view);
+    m_logicalDevice.destroyImage(m_depthStencil.image);
+    m_logicalDevice.freeMemory(m_depthStencil.memory);
+}
+
+void VulkanRendererBase::DestroySwapchain()
+{
+    m_swapchain.Cleanup();
+}
+
+void VulkanRendererBase::DestroyFrameBuffers()
+{
+    for (size_t i = 0; i < m_frameBuffers.size(); ++i)
+    {
+        m_logicalDevice.destroyFramebuffer(m_frameBuffers[i]);
+    }
+}
+
+WrappedVulkanWindow * VulkanRendererBase::GetWindow()
+{
+    return m_window;
+}
+
+void VulkanRendererBase::CreateSemaphores()
+{
+    // Create synchronization objects
+    vk::SemaphoreCreateInfo semaphoreCreateInfo;
+
+    m_semaphores.presentComplete = m_logicalDevice.createSemaphore(semaphoreCreateInfo);
+
+    m_semaphores.renderComplete = m_logicalDevice.createSemaphore(semaphoreCreateInfo);
+
+    m_submitInfo.pWaitDstStageMask    = &m_submitPipelineStages;
+    m_submitInfo.waitSemaphoreCount   = 1;
+    m_submitInfo.pWaitSemaphores      = &m_semaphores.presentComplete;
+    m_submitInfo.signalSemaphoreCount = 1;
+    m_submitInfo.pSignalSemaphores    = &m_semaphores.renderComplete;
+}
+
+

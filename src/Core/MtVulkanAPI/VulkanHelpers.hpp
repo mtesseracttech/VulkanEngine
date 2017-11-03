@@ -52,6 +52,8 @@ public:
                                vk::ImageLayout p_newImageLayout,
                                vk::PipelineStageFlags p_sourceStageMask = vk::PipelineStageFlagBits::eAllCommands,
                                vk::PipelineStageFlags p_destinationStageMask = vk::PipelineStageFlagBits::eAllCommands);
+
+    static vk::ShaderModule LoadShader(const char *p_fileName, vk::Device p_device);
 };
 
 

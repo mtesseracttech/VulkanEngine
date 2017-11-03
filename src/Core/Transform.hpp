@@ -5,10 +5,9 @@
 #ifndef VULKANENGINE_TRANSFORM_HPP
 #define VULKANENGINE_TRANSFORM_HPP
 
-#include <glm/mat4x4.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <glm/gtx/quaternion.hpp>
+#include <glm/glm.hpp>
 #include <exception>
+#include <glm/gtc/quaternion.hpp>
 
 class Transform
 {
@@ -24,6 +23,7 @@ public:
     glm::vec3 GetRight();
     glm::vec3 GetUp();
     void SetForward(const glm::vec3& p_forward, const glm::vec3& p_up);
+    const glm::mat4 &GetBaseMatrix() const;
 private:
     glm::mat4 m_matrix;
     glm::quat m_cachedRotation;

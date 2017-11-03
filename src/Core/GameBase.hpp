@@ -8,7 +8,7 @@
 #include <stdexcept>
 #include <iostream>
 #include <Utility/Logger.hpp>
-#include <Core/MtVulkanAPI/VulkanRendererBase.hpp>
+#include <Core/Renderers/SimpleRenderer.hpp>
 
 class GameBase
 {
@@ -16,10 +16,7 @@ private:
     VulkanRendererBase * m_renderer = nullptr;
 public:
     void InitializeRenderer();
-
     void RunGame();
-
-    virtual ~GameBase();
 };
 
 

@@ -37,8 +37,6 @@ namespace mtvk
                 const char *p_message,
                 void *p_userData);
 
-
-
         void SetupDebugCallback(vk::Instance p_instance, vk::DebugReportFlagsEXT p_flags, vk::DebugReportCallbackEXT p_callBack);
     }
 

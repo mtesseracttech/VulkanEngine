@@ -55,19 +55,24 @@ void Transform::SetForward(const glm::vec3& p_forward, const glm::vec3& p_up = g
     m_isDirty = true;
 }
 
-void Transform::SetPosition(const glm::vec3 &p_position)
+void Transform::SetPosition(const glm::vec3&p_position)
 {
     m_matrix[3] = glm::vec4(p_position, 1);
 }
 
-void Transform::SetRotation(const glm::quat & p_rotation)
+void Transform::SetRotation(const glm::quat& p_rotation)
 {
     SetRotation(glm::mat3_cast(p_rotation));
 }
 
-void Transform::SetRotation(const glm::mat3 &p_rotation)
+void Transform::SetRotation(const glm::mat3& p_rotation)
 {
     m_matrix[0] = glm::vec4(p_rotation[0], m_matrix[0][3]);
     m_matrix[1] = glm::vec4(p_rotation[1], m_matrix[1][3]);
     m_matrix[2] = glm::vec4(p_rotation[2], m_matrix[2][3]);
+}
+
+const glm::mat4& Transform::GetBaseMatrix() const
+{
+    return m_matrix;
 }

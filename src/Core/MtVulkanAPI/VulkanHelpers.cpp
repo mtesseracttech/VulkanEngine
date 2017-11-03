@@ -3,6 +3,10 @@
 //
 
 #include "VulkanHelpers.hpp"
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <Utility/Logger.hpp>
 
 vk::Bool32 VulkanHelpers::GetSupportedDepthFormat(vk::PhysicalDevice p_physicalDevice, vk::Format *p_depthFormat)
 {
@@ -49,12 +53,8 @@ QueueFamilyIndices VulkanHelpers::FindQueueFamilies(vk::PhysicalDevice p_device,
             indices.presentFamily = i;
         }
 
-        if (indices.IsComplete())
-        {
-            break;
-        }
-
-        i++;
+        if (indices.IsComplete()) break;
+        ++i;
     }
 
     return indices;
@@ -241,4 +241,40 @@ void VulkanHelpers::SetImageLayout(vk::CommandBuffer p_commandbuffer,
     subresourceRange.layerCount = 1;
     SetImageLayout(p_commandbuffer, p_image, p_oldImageLayout, p_newImageLayout, subresourceRange, p_sourceStageMask,
                    p_destinationStageMask);
+}
+
+vk::ShaderModule VulkanHelpers::LoadShader(const char *p_fileName, vk::Device p_device)
+{
+    std::ifstream is(p_fileName, std::ios::binary | std::ios::in | std::ios::ate);
+
+    if (is.is_open())
+    {
+        auto size = static_cast<size_t>(is.tellg());
+        is.seekg(0, std::ios::beg);
+        auto * shaderCode = new char[size];
+        is.read(shaderCode, size);
+        is.close();
+
+        assert(size > 0);
+
+        VkShaderModuleCreateInfo moduleCreateInfo{};
+        moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        moduleCreateInfo.codeSize = size;
+        moduleCreateInfo.pCode = (uint32_t*)shaderCode;
+
+        vk::ShaderModule shaderModule = p_device.createShaderModule(moduleCreateInfo);
+
+        delete[] shaderCode;
+
+        assert(shaderModule);
+
+        return shaderModule;
+    }
+    else
+    {
+        std::stringstream message;
+        message << "Error: Could not open shader file \"" << p_fileName << "\"";
+        Logger::Log(message.str(), LogError);
+        return nullptr;
+    }
 }

@@ -5,12 +5,10 @@
 #ifndef VULKANENGINE_VULKANTEXTURE_HPP
 #define VULKANENGINE_VULKANTEXTURE_HPP
 
-
-#include <gli/gli.hpp>
 #include <sstream>
-#include <lm.h>
 #include "WrappedVulkanDevice.hpp"
 #include "VulkanHelpers.hpp"
+#include <gli/gli.hpp>
 
 struct AbstractVulkanTexture
 {
@@ -29,9 +27,9 @@ protected:
 
     void UpdateDescriptor()
     {
-        m_descriptorInfo.sampler = m_imageSampler;
+        m_descriptorInfo.sampler     = m_imageSampler;
         m_descriptorInfo.imageLayout = m_imageLayout;
-        m_descriptorInfo.imageView = m_imageView;
+        m_descriptorInfo.imageView   = m_imageView;
     }
 
 public:
@@ -48,7 +46,7 @@ public:
     }
 };
 
-struct WrappedVulkanTexture : AbstractVulkanTexture
+struct VulkanTexture2D : AbstractVulkanTexture
 {
     void LoadFromFile(
             WrappedVulkanDevice *p_device,
@@ -114,15 +112,15 @@ struct WrappedVulkanTexture : AbstractVulkanTexture
 
             for (uint32_t i = 0; i < m_mipLevels; ++i)
             {
-                vk::BufferImageCopy bufferCopyRegion = {};
-                bufferCopyRegion.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
-                bufferCopyRegion.imageSubresource.mipLevel = i;
+                vk::BufferImageCopy bufferCopyRegion;
+                bufferCopyRegion.imageSubresource.aspectMask     = vk::ImageAspectFlagBits::eColor;
+                bufferCopyRegion.imageSubresource.mipLevel       = i;
                 bufferCopyRegion.imageSubresource.baseArrayLayer = 0;
-                bufferCopyRegion.imageSubresource.layerCount = 1;
-                bufferCopyRegion.imageExtent.width = static_cast<uint32_t>(texture[i].extent().x);
-                bufferCopyRegion.imageExtent.height = static_cast<uint32_t>(texture[i].extent().y);
-                bufferCopyRegion.imageExtent.depth = 1;
-                bufferCopyRegion.bufferOffset = offset;
+                bufferCopyRegion.imageSubresource.layerCount     = 1;
+                bufferCopyRegion.imageExtent.width               = static_cast<uint32_t>(texture[i].extent().x);
+                bufferCopyRegion.imageExtent.height              = static_cast<uint32_t>(texture[i].extent().y);
+                bufferCopyRegion.imageExtent.depth               = 1;
+                bufferCopyRegion.bufferOffset                    = offset;
 
                 bufferCopyRegions.push_back(bufferCopyRegion);
 
@@ -139,7 +137,9 @@ struct WrappedVulkanTexture : AbstractVulkanTexture
             imageCreateInfo.tiling        = vk::ImageTiling::eOptimal;
             imageCreateInfo.sharingMode   = vk::SharingMode::eExclusive;
             imageCreateInfo.initialLayout = vk::ImageLayout::eUndefined;
-            imageCreateInfo.extent        = {m_width, m_height, 1};
+            imageCreateInfo.extent.width  = m_width;
+            imageCreateInfo.extent.height = m_height;
+            imageCreateInfo.extent.depth  = 1;
             imageCreateInfo.usage         = p_imageUsageFlags;
             if (!(imageCreateInfo.usage & vk::ImageUsageFlagBits::eTransferDst))
             {
@@ -197,7 +197,9 @@ struct WrappedVulkanTexture : AbstractVulkanTexture
             vk::ImageCreateInfo imageCreateInfo;
             imageCreateInfo.imageType = vk::ImageType::e2D;
             imageCreateInfo.format = p_format;
-            imageCreateInfo.extent = {m_width, m_height, 1};
+            imageCreateInfo.extent.width = m_width;
+            imageCreateInfo.extent.height = m_height;
+            imageCreateInfo.extent.depth = 1;
             imageCreateInfo.mipLevels = 1;
             imageCreateInfo.arrayLayers = 1;
             imageCreateInfo.samples = vk::SampleCountFlagBits::e1;
@@ -250,8 +252,8 @@ struct WrappedVulkanTexture : AbstractVulkanTexture
         samplerCreateInfo.compareOp = vk::CompareOp::eNever;
         samplerCreateInfo.minLod = 0.0f;
         samplerCreateInfo.maxLod = (useStaging) ? static_cast<float>(m_mipLevels) : 0.0f;
-        samplerCreateInfo.maxAnisotropy = device->enabledFeatures.samplerAnisotropy
-                                          ? device->properties.limits.maxSamplerAnisotropy : 1.0f;
+        samplerCreateInfo.maxAnisotropy = p_device->m_enabledFeatures.samplerAnisotropy
+                                          ? p_device->m_deviceProperties.limits.maxSamplerAnisotropy : 1.0f;
         samplerCreateInfo.anisotropyEnable = VK_TRUE;
         samplerCreateInfo.borderColor = vk::BorderColor::eFloatOpaqueWhite;
 

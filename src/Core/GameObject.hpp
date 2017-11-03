@@ -6,6 +6,7 @@
 #define VULKANENGINE_GAMEOBJECT_HPP
 
 
+#include <Core/MtVulkanAPI/VulkanModel.hpp>
 #include "Transform.hpp"
 
 class GameObject
@@ -13,8 +14,10 @@ class GameObject
 public:
     GameObject();
     GameObject(const Transform &p_transform);
+
+    const Transform& GetTransform() const;
 private:
-    Transform m_transform;
+    Transform     m_transform;
 };
 
 

@@ -22,6 +22,22 @@ private:
     std::vector<vk::ImageView>  m_imageViews;
 
 public:
+    void Cleanup()
+    {
+        if (m_swapchain)
+        {
+            for (uint32_t i= 0; i < m_imageViews.size(); ++i)
+            {
+                m_device.destroyImageView(m_imageViews[i]);
+            }
+        }
+        if (m_window->GetSurface())
+        {
+            m_device.destroySwapchainKHR(m_swapchain);
+            m_swapchain = nullptr;
+        }
+    }
+
     uint32_t GetImageViewCount()
     {
         return static_cast<uint32_t>(m_imageViews.size());
