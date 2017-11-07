@@ -11,13 +11,17 @@
 class Camera : GameObject
 {
 private:
+    glm::vec3 m_rotation;
     glm::mat4 m_perspective;
+
+    void UpdateMatrix();
 public:
     Camera();
     virtual ~Camera();
+    void SetPosition(const glm::vec3 p_position);
     void SetStraightRotation(glm::vec3 p_rotation);
-    void SetPerspective(glm::mat4 p_perspective);
     const glm::mat4& GetPerspective();
+    void SetPerspective(float p_fovY, float p_aspectRatio, float p_nearClipPlane, float p_farClipPlane);
 };
 
 

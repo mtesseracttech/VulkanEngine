@@ -8,8 +8,6 @@ set(SOURCE_FILES
         src/Utility/Logger.hpp
         src/Utility/ShaderUtils.hpp
         src/Utility/Timer.hpp
-        src/Core/Texture.cpp
-        src/Core/Texture.hpp
         src/Utility/Constants.hpp
         src/Utility/Constants.cpp
         src/Core/Camera.cpp
@@ -37,7 +35,7 @@ set(SOURCE_FILES
         src/Core/MtVulkanAPI/VulkanTexture.hpp
         src/Core/GameWorld.hpp
         src/Core/Renderers/SimpleRenderer.cpp
-        src/Core/Renderers/SimpleRenderer.hpp src/Core/Material/AbstractMaterial.hpp)
+        src/Core/Renderers/SimpleRenderer.hpp src/Core/Material/AbstractMaterial.hpp src/Core/Material/SkyboxMaterial.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 

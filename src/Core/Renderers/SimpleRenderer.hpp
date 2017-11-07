@@ -12,10 +12,13 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+#include <gli/gli.hpp>
+
 #include <Core/MtVulkanAPI/VulkanModel.hpp>
 #include <Core/Camera.hpp>
 
 #include <vector>
+#include <Core/MtVulkanAPI/VulkanTexture.hpp>
 
 
 class SimpleRenderer : public VulkanRendererBase
@@ -39,6 +42,7 @@ class SimpleRenderer : public VulkanRendererBase
         glm::vec4 lightPos = glm::vec4(0.0f, 2.0f, 1.0f, 0.0f);
     } m_ubo;
 
+    vk::Pipeline                m_skyboxPipeline;
     vk::Pipeline                m_phongPipeline;
     vk::PipelineLayout          m_pipelineLayout;
     vk::DescriptorSet           m_descriptorSet;
@@ -50,7 +54,9 @@ class SimpleRenderer : public VulkanRendererBase
     glm::vec3                   m_cameraRotation = glm::vec3(-25.0f, 15.0f, 0.0f);
     float                       m_cameraZoom     = -10.5f;
 
-    //Camera*                     m_camera; //real camera
+    VulkanCubemap               m_skyboxTex;
+
+    Camera*                     m_camera; //real camera
 
 public:
     SimpleRenderer();
@@ -65,6 +71,8 @@ public:
 
     void BuildCommandBuffers() override;
 
+    void LoadSkyboxAssets();
+
     void LoadModels();
 
     void PrepareUniformBuffers();
@@ -78,6 +86,8 @@ public:
     void SetupDescriptorPool();
 
     void SetupDescriptorSet();
+
+    void CreateCubemap(const std::string &p_filename, vk::Format p_format);
 };
 
 

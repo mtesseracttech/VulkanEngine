@@ -16,7 +16,7 @@ public:
     GameObject(const Transform &p_transform);
 
     const Transform& GetTransform() const;
-private:
+protected:
     Transform     m_transform;
 };
 

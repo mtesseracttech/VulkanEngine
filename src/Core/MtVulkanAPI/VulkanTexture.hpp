@@ -10,9 +10,8 @@
 #include "VulkanHelpers.hpp"
 #include <gli/gli.hpp>
 
-struct AbstractVulkanTexture
+struct VulkanBaseTexture
 {
-protected:
     vk::Device              m_device;
     vk::Image               m_image;
     vk::ImageLayout         m_imageLayout;
@@ -46,7 +45,7 @@ public:
     }
 };
 
-struct VulkanTexture2D : AbstractVulkanTexture
+struct VulkanTexture2D : VulkanBaseTexture
 {
     void LoadFromFile(
             WrappedVulkanDevice *p_device,
@@ -271,6 +270,159 @@ struct VulkanTexture2D : AbstractVulkanTexture
         m_imageView = m_device.createImageView(viewCreateInfo);
 
         UpdateDescriptor();
+    }
+};
+
+struct VulkanCubemap : VulkanBaseTexture
+{
+    void LoadFromFile(
+            WrappedVulkanDevice* p_device,
+            std::string p_filename,
+            vk::Format p_format,
+            vk::Queue p_copyQueue)
+    {
+        gli::texture_cube cubeTexture(gli::load(p_filename));
+
+        if(cubeTexture.empty())
+        {
+            std::stringstream error;
+            error << "Could not load " << p_filename;
+            throw std::runtime_error(error.str());
+        }
+
+        m_width     = static_cast<uint32_t>(cubeTexture.extent().x);
+        m_height    = static_cast<uint32_t>(cubeTexture.extent().y);
+        m_mipLevels = static_cast<uint32_t>(cubeTexture.levels());
+
+        WrappedVulkanBuffer stagingbuffer;
+        p_device->CreateBuffer(vk::BufferUsageFlagBits::eTransferSrc,
+                               vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+                               &stagingbuffer,
+                               cubeTexture.size(),
+                               cubeTexture.data());
+
+        vk::ImageCreateInfo imageCreateInfo;
+        imageCreateInfo.imageType       = vk::ImageType::e2D;
+        imageCreateInfo.format          = p_format;
+        imageCreateInfo.mipLevels       = m_mipLevels;
+        imageCreateInfo.samples         = vk::SampleCountFlagBits::e1;
+        imageCreateInfo.tiling          = vk::ImageTiling ::eOptimal;
+        imageCreateInfo.usage           = vk::ImageUsageFlagBits::eSampled;
+        imageCreateInfo.sharingMode     = vk::SharingMode::eExclusive;
+        imageCreateInfo.initialLayout   = vk::ImageLayout::eUndefined;
+        imageCreateInfo.extent          = vk::Extent3D(m_width, m_height, 1);
+        imageCreateInfo.usage           = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
+        // Cube faces count as array layers in Vulkan
+        imageCreateInfo.arrayLayers = 6;
+        // This flag is required for cube map images
+        imageCreateInfo.flags = vk::ImageCreateFlagBits ::eCubeCompatible;
+
+        m_image = p_device->m_logicalDevice.createImage(imageCreateInfo);
+
+        vk::MemoryRequirements memoryRequirements = p_device->m_logicalDevice.getImageMemoryRequirements(m_image);
+
+        vk::MemoryAllocateInfo memoryAllocateInfo;
+        memoryAllocateInfo.allocationSize = memoryRequirements.size;
+        memoryAllocateInfo.memoryTypeIndex = p_device->GetMemoryType(memoryRequirements.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal);
+
+        m_deviceMemory = p_device->m_logicalDevice.allocateMemory(memoryAllocateInfo);
+
+        p_device->m_logicalDevice.bindImageMemory(m_image, m_deviceMemory, 0);
+
+        //Starts the copy command immediately
+        vk::CommandBuffer copyCommand = p_device->CreateCommandBuffer(vk::CommandBufferLevel::ePrimary, true);
+
+        std::vector<vk::BufferImageCopy> bufferCopyRegions;
+        uint32_t offset = 0;
+
+        for (uint32_t face = 0; face < 6; ++face)
+        {
+            for (uint32_t level = 0; level < m_mipLevels; ++level)
+            {
+                vk::Extent3D imageExtent;
+                imageExtent.width  = static_cast<uint32_t>(cubeTexture[face][level].extent().x);
+                imageExtent.height = static_cast<uint32_t>(cubeTexture[face][level].extent().y);
+                imageExtent.depth  = 1;
+
+                vk::ImageSubresourceLayers subresource;
+                subresource.aspectMask     = vk::ImageAspectFlagBits ::eColor;
+                subresource.mipLevel       = level;
+                subresource.baseArrayLayer = face;
+                subresource.layerCount     = 1;
+
+                vk::BufferImageCopy bufferCopyRegion;
+                bufferCopyRegion.imageExtent      = imageExtent;
+                bufferCopyRegion.imageSubresource = subresource;
+                bufferCopyRegion.bufferOffset     = offset;
+
+                bufferCopyRegions.push_back(bufferCopyRegion);
+
+                offset += cubeTexture[face][level].size();
+            }
+        }
+
+        vk::ImageSubresourceRange subresourceRange;
+        subresourceRange.aspectMask   = vk::ImageAspectFlagBits::eColor;
+        subresourceRange.baseMipLevel = 0;
+        subresourceRange.levelCount   = m_mipLevels;
+        subresourceRange.layerCount   = 6;
+
+        VulkanHelpers::SetImageLayout(copyCommand,
+                                      m_image,
+                                      vk::ImageLayout::eUndefined,
+                                      vk::ImageLayout::eTransferDstOptimal,
+                                      subresourceRange);
+
+        copyCommand.copyBufferToImage(stagingbuffer.m_buffer,
+                                      m_image,
+                                      vk::ImageLayout::eTransferDstOptimal,
+                                      static_cast<uint32_t>(bufferCopyRegions.size()),
+                                      bufferCopyRegions.data());
+
+        m_imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+
+        VulkanHelpers::SetImageLayout(copyCommand,
+                                      m_image,
+                                      vk::ImageLayout::eTransferDstOptimal,
+                                      m_imageLayout,
+                                      subresourceRange);
+
+        p_device->FlushCommandBuffer(copyCommand, p_copyQueue, true);
+
+        vk::SamplerCreateInfo samplerCreateInfo;
+        samplerCreateInfo.magFilter = vk::Filter::eLinear;
+        samplerCreateInfo.minFilter = vk::Filter::eLinear;
+        samplerCreateInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
+        samplerCreateInfo.addressModeU = vk::SamplerAddressMode::eClampToEdge;
+        samplerCreateInfo.addressModeV = vk::SamplerAddressMode::eClampToEdge;
+        samplerCreateInfo.addressModeW = vk::SamplerAddressMode::eClampToEdge;
+        samplerCreateInfo.mipLodBias = 0.0f;
+        samplerCreateInfo.compareOp = vk::CompareOp::eNever;
+        samplerCreateInfo.minLod = 0.0f;
+        samplerCreateInfo.maxLod = m_mipLevels;
+        samplerCreateInfo.borderColor = vk::BorderColor ::eFloatOpaqueWhite;
+        samplerCreateInfo.maxAnisotropy = 1.0f;
+
+        if (p_device->m_deviceFeatures.samplerAnisotropy)
+        {
+            samplerCreateInfo.maxAnisotropy = p_device->m_deviceProperties.limits.maxSamplerAnisotropy;
+            samplerCreateInfo.anisotropyEnable = vk::Bool32(true);
+        }
+
+        m_imageSampler = p_device->m_logicalDevice.createSampler(samplerCreateInfo);
+
+        vk::ImageViewCreateInfo viewCreateInfo;
+        viewCreateInfo.viewType = vk::ImageViewType ::eCube;
+        viewCreateInfo.format = p_format;
+        viewCreateInfo.components = {vk::ComponentSwizzle ::eR, vk::ComponentSwizzle ::eG, vk::ComponentSwizzle ::eB, vk::ComponentSwizzle ::eA};
+        viewCreateInfo.subresourceRange = { vk::ImageAspectFlagBits::eColor, 0, 1, 0, 1 };
+        viewCreateInfo.subresourceRange.layerCount = 6;
+        viewCreateInfo.subresourceRange.levelCount = m_mipLevels;
+        viewCreateInfo.image = m_image;
+
+        m_imageView = p_device->m_logicalDevice.createImageView(viewCreateInfo);
+
+        stagingbuffer.Destroy();
     }
 };
 

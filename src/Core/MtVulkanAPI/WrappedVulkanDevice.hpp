@@ -220,7 +220,7 @@ struct WrappedVulkanDevice
         vk::BufferCreateInfo bufferCreateInfo;
         bufferCreateInfo.usage = usageFlags;
         bufferCreateInfo.size = size;
-        bufferCreateInfo.sharingMode = vk::SharingMode ::eExclusive;
+        bufferCreateInfo.sharingMode = vk::SharingMode::eExclusive;
         *buffer = m_logicalDevice.createBuffer(bufferCreateInfo);
 
         // Create the memory backing up the buffer handle
@@ -237,7 +237,7 @@ struct WrappedVulkanDevice
         if (data != nullptr)
         {
             void *mapped;
-            mapped = m_logicalDevice.mapMemory(*memory, 0, size, static_cast<vk::MemoryMapFlagBits>(0));
+            mapped = m_logicalDevice.mapMemory(*memory, 0, size, vk::MemoryMapFlagBits(0));
             memcpy(mapped, data, size);
             // If host coherency hasn't been requested, do a manual flush to make writes visible
             if ((memoryPropertyFlags & vk::MemoryPropertyFlagBits ::eHostCoherent) == vk::MemoryPropertyFlagBits(0))
@@ -351,17 +351,14 @@ struct WrappedVulkanDevice
     vk::CommandBuffer CreateCommandBuffer(vk::CommandBufferLevel p_level, bool p_begin = false)
     {
         vk::CommandBufferAllocateInfo commandBufferAllocateInfo;
-        commandBufferAllocateInfo.commandPool        = m_commandPool;
-        commandBufferAllocateInfo.level              = p_level;
+        commandBufferAllocateInfo.commandPool = m_commandPool;
+        commandBufferAllocateInfo.level = p_level;
         commandBufferAllocateInfo.commandBufferCount = 1;
 
+        //Only creates one, so just taking the first from the vector
         vk::CommandBuffer commandBuffer = m_logicalDevice.allocateCommandBuffers(commandBufferAllocateInfo)[0];
 
-        if (p_begin)
-        {
-            vk::CommandBufferBeginInfo commandBufferInfo;
-            commandBuffer.begin(commandBufferInfo);
-        }
+        if(p_begin) commandBuffer.begin(vk::CommandBufferBeginInfo()); //Start with empty info
 
         return commandBuffer;
     }

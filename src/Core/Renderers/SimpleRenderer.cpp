@@ -21,6 +21,7 @@ SimpleRenderer::~SimpleRenderer()
 void SimpleRenderer::Prepare()
 {
     VulkanRendererBase::Prepare();
+    LoadSkyboxAssets();
     LoadModels();
     PrepareUniformBuffers();
     SetupDescriptorSetLayout();
@@ -161,28 +162,28 @@ void SimpleRenderer::PreparePipeline()
     Logger::Log("Preparing phong pipeline");
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState;
     inputAssemblyState.topology         = vk::PrimitiveTopology::eTriangleList;
-    inputAssemblyState.flags            = static_cast<vk::PipelineInputAssemblyStateCreateFlagBits >(0);
-    inputAssemblyState.primitiveRestartEnable = static_cast<vk::Bool32>(false);
+    inputAssemblyState.flags            = vk::PipelineInputAssemblyStateCreateFlagBits(0);
+    inputAssemblyState.primitiveRestartEnable = vk::Bool32(false);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
     rasterizationState.polygonMode      = vk::PolygonMode::eFill;
     rasterizationState.cullMode         = vk::CullModeFlagBits::eBack;
     rasterizationState.frontFace        = vk::FrontFace::eClockwise;
-    rasterizationState.flags            = static_cast<vk::PipelineRasterizationStateCreateFlagBits>(0);
-    rasterizationState.depthClampEnable = static_cast<vk::Bool32>(false);
+    rasterizationState.flags            = vk::PipelineRasterizationStateCreateFlagBits(0);
+    rasterizationState.depthClampEnable = vk::Bool32(false);
     rasterizationState.lineWidth        = 1.0f;
 
     vk::PipelineColorBlendAttachmentState blendAttachmentState;
     blendAttachmentState.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-    blendAttachmentState.blendEnable    = static_cast<vk::Bool32>(false);
+    blendAttachmentState.blendEnable    = vk::Bool32(false);
 
     vk::PipelineColorBlendStateCreateInfo colorBlendState;
     colorBlendState.attachmentCount     = 1;
     colorBlendState.pAttachments        = &blendAttachmentState;
 
     vk::PipelineDepthStencilStateCreateInfo depthStencilState;
-    depthStencilState.depthTestEnable   = static_cast<vk::Bool32>(true);
-    depthStencilState.depthWriteEnable  = static_cast<vk::Bool32>(true);
+    depthStencilState.depthTestEnable   = vk::Bool32(true);
+    depthStencilState.depthWriteEnable  = vk::Bool32(true);
     depthStencilState.depthCompareOp    = vk::CompareOp::eLessOrEqual;
     depthStencilState.front             = depthStencilState.back;
     depthStencilState.back.compareOp    = vk::CompareOp::eAlways;
@@ -190,11 +191,11 @@ void SimpleRenderer::PreparePipeline()
     vk::PipelineViewportStateCreateInfo viewportState;
     viewportState.viewportCount         = 1;
     viewportState.scissorCount          = 1;
-    viewportState.flags                 = static_cast<vk::PipelineViewportStateCreateFlagBits>(0);
+    viewportState.flags                 = vk::PipelineViewportStateCreateFlagBits(0);
 
     vk::PipelineMultisampleStateCreateInfo multisampleState;
     multisampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
-    multisampleState.flags                = static_cast<vk::PipelineMultisampleStateCreateFlagBits >(0);
+    multisampleState.flags                = vk::PipelineMultisampleStateCreateFlagBits(0);
 
     std::vector<vk::DynamicState> dynamicStateEnables = {
             vk::DynamicState::eViewport,
@@ -204,13 +205,13 @@ void SimpleRenderer::PreparePipeline()
 
     vk::PipelineDynamicStateCreateInfo dynamicState;
     dynamicState.pDynamicStates         = dynamicStateEnables.data();
-    dynamicState.dynamicStateCount      = static_cast<uint32_t>(dynamicStateEnables.size());
-    dynamicState.flags                  = static_cast<vk::PipelineDynamicStateCreateFlagBits>(0);
+    dynamicState.dynamicStateCount      = uint32_t(dynamicStateEnables.size());
+    dynamicState.flags                  = vk::PipelineDynamicStateCreateFlagBits(0);
 
     vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
     pipelineCreateInfo.layout = m_pipelineLayout;
     pipelineCreateInfo.renderPass = m_renderPass;
-    pipelineCreateInfo.flags = static_cast<vk::PipelineCreateFlagBits>(0);
+    pipelineCreateInfo.flags = vk::PipelineCreateFlagBits(0);
     pipelineCreateInfo.basePipelineIndex = -1;
     pipelineCreateInfo.basePipelineHandle = nullptr;
 
@@ -273,10 +274,23 @@ void SimpleRenderer::PreparePipeline()
 
     pipelineCreateInfo.pVertexInputState = &vertexInputState;
 
-    shaderStages[0] = LoadShader(Constants::SHADER_PATH + "vert.spv", vk::ShaderStageFlagBits::eVertex);
-    shaderStages[1] = LoadShader(Constants::SHADER_PATH + "frag.spv", vk::ShaderStageFlagBits::eFragment);
+    //Phong specific
+
+    shaderStages[0] = LoadShader(Constants::SHADER_PATH + "phong.vert.spv", vk::ShaderStageFlagBits::eVertex);
+    shaderStages[1] = LoadShader(Constants::SHADER_PATH + "phong.frag.spv", vk::ShaderStageFlagBits::eFragment);
 
     m_phongPipeline = m_logicalDevice.createGraphicsPipeline(m_pipelineCache, pipelineCreateInfo);
+
+
+    //Skybox specific:
+    depthStencilState.depthWriteEnable  = vk::Bool32(false);
+    depthStencilState.depthTestEnable   = vk::Bool32(false);
+    rasterizationState.cullMode         = vk::CullModeFlagBits::eBack;
+
+    shaderStages[0] = LoadShader(Constants::SHADER_PATH + "skybox.vert.spv", vk::ShaderStageFlagBits::eVertex);
+    shaderStages[1] = LoadShader(Constants::SHADER_PATH + "skybox.frag.spv", vk::ShaderStageFlagBits::eFragment);
+
+    m_skyboxPipeline = m_logicalDevice.createGraphicsPipeline(m_pipelineCache, pipelineCreateInfo);
 }
 
 void SimpleRenderer::SetupDescriptorPool()
@@ -335,3 +349,32 @@ void SimpleRenderer::Render()
 
     VulkanRendererBase::SubmitFrame();
 }
+
+void SimpleRenderer::LoadSkyboxAssets()
+{
+    //Skybox texture
+    if(m_deviceFeatures.textureCompressionBC)
+    {
+        CreateCubemap("cubemap_yokohama_bc3_unorm.ktx", vk::Format::eBc2UnormBlock);
+    }
+    else if(m_deviceFeatures.textureCompressionASTC_LDR)
+    {
+        CreateCubemap("cubemap_yokohama_astc_8x8_unorm.ktx", vk::Format::eAstc8x8UnormBlock);
+    }
+    else if (m_deviceFeatures.textureCompressionETC2)
+    {
+        CreateCubemap("cubemap_yokohama_etc2_unorm.ktx", vk::Format::eEtc2R8G8B8UnormBlock);
+    }
+    else
+    {
+        throw std::runtime_error("Could not load any textures because compression formats are not supported");
+    }
+}
+
+void SimpleRenderer::CreateCubemap(const std::string &p_filename, vk::Format p_format)
+{
+    Logger::Log("Loading skybox: " + p_filename);
+    m_skyboxTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + p_filename, p_format, m_graphicsQueue);
+}
+
+

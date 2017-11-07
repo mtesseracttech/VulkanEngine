@@ -12,10 +12,12 @@
 
 class AbstractMaterial
 {
-    void UpdateUbo(const GameObject& p_gameObject)
-    {
-
-    }
+protected:
+    vk::Pipeline m_pipeline;
+public:
+    virtual void UpdateUbo(const GameObject& p_gameObject) = 0;
+    virtual void CreatePipeline(vk::Device p_logicalDevice) = 0;
+    vk::Pipeline GetPipeline() {return m_pipeline;};
 };
 
 

@@ -594,5 +594,3 @@ void VulkanRendererBase::CreateSemaphores()
     m_submitInfo.signalSemaphoreCount = 1;
     m_submitInfo.pSignalSemaphores    = &m_semaphores.renderComplete;
 }
-
-

@@ -2,7 +2,6 @@
 // Created by MTesseracT on 8-10-2017.
 //
 
-
 #include "Transform.hpp"
 
 Transform::Transform(const glm::mat4 &m_matrix) : m_matrix(m_matrix)
@@ -72,7 +71,12 @@ void Transform::SetRotation(const glm::mat3& p_rotation)
     m_matrix[2] = glm::vec4(p_rotation[2], m_matrix[2][3]);
 }
 
-const glm::mat4& Transform::GetBaseMatrix() const
+glm::mat4 & Transform::BaseMatrix()
 {
     return m_matrix;
+}
+
+void Transform::Translate(const glm::vec3 p_translation)
+{
+    glm::translate(m_matrix, p_translation);
 }
