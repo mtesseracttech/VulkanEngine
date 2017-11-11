@@ -312,10 +312,8 @@ struct VulkanCubemap : VulkanBaseTexture
         imageCreateInfo.initialLayout   = vk::ImageLayout::eUndefined;
         imageCreateInfo.extent          = vk::Extent3D(m_width, m_height, 1);
         imageCreateInfo.usage           = vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled;
-        // Cube faces count as array layers in Vulkan
-        imageCreateInfo.arrayLayers = 6;
-        // This flag is required for cube map images
-        imageCreateInfo.flags = vk::ImageCreateFlagBits ::eCubeCompatible;
+        imageCreateInfo.arrayLayers     = 6;
+        imageCreateInfo.flags           = vk::ImageCreateFlagBits ::eCubeCompatible;
 
         m_image = p_device->m_logicalDevice.createImage(imageCreateInfo);
 

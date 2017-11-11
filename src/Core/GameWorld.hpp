@@ -15,7 +15,7 @@ private:
 protected:
 
 public:
-    const Camera& GetPrimaryCamera() const {return m_camera;}
+    const Camera& GetCamera() const {return m_camera;}
 };
 
 #endif //VULKANENGINE_GAMEWORLD_HPP

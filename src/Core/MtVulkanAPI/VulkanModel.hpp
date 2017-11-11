@@ -18,6 +18,30 @@
 #include "WrappedVulkanBuffer.hpp"
 #include "WrappedVulkanDevice.hpp"
 
+struct ModelCreateInfo
+{
+    glm::vec3 m_center;
+    glm::vec3 m_scale;
+    glm::vec2 m_uvScale;
+
+    ModelCreateInfo() {};
+
+    ModelCreateInfo(glm::vec3 p_scale, glm::vec2 p_uvScale, glm::vec3 p_center)
+    {
+        m_center  = p_center;
+        m_scale   = p_scale;
+        m_uvScale = p_uvScale;
+    }
+
+    ModelCreateInfo(float p_scale, float p_uvScale, float p_center)
+    {
+        m_center  = glm::vec3(p_center);
+        m_scale   = glm::vec3(p_scale);
+        m_uvScale = glm::vec2(p_uvScale);
+    }
+};
+
+
 enum VulkanVertexComponent
 {
     ePosition,
@@ -107,8 +131,12 @@ struct VulkanModel
         }
     }
 
-    bool LoadFromFile(const std::string &p_filename, VertexLayout p_layout, WrappedVulkanDevice *p_device,
-                      vk::Queue p_copyQueue, const int p_assimpFlags = defaultFlags)
+    bool LoadFromFile(const std::string &p_filename,
+                      VertexLayout p_layout,
+                      WrappedVulkanDevice *p_device,
+                      vk::Queue p_copyQueue,
+                      ModelCreateInfo* p_createInfo = nullptr,
+                      const int p_assimpFlags = defaultFlags)
     {
         m_vertexBuffer.m_device = p_device->m_logicalDevice;
         m_indexBuffer.m_device = p_device->m_logicalDevice;
@@ -127,6 +155,13 @@ struct VulkanModel
             glm::vec3 scale(1.0f);
             glm::vec2 uvscale(1.0f);
             glm::vec3 center(0.0f);
+
+            if (p_createInfo)
+            {
+                scale =   p_createInfo->m_scale;
+                uvscale = p_createInfo->m_uvScale;
+                center =  p_createInfo->m_center;
+            }
 
             std::vector<float> vertexBuffer;
             std::vector<uint32_t> indexBuffer;
@@ -295,6 +330,12 @@ struct VulkanModel
 
             return false;
         }
+    }
+
+    bool LoadFromFile(const std::string& p_fileName, VertexLayout p_layout, WrappedVulkanDevice *p_device, VkQueue p_copyQueue, float p_scale = 1, const int p_flags = defaultFlags)
+    {
+        ModelCreateInfo createInfo(p_scale, 1.0f, 0.0f);
+        return LoadFromFile(p_fileName, p_layout, p_device, p_copyQueue, &createInfo, p_flags);
     }
 
     const std::string GetModelInfo()

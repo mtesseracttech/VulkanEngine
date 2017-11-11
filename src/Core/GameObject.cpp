@@ -18,3 +18,8 @@ const Transform& GameObject::GetTransform() const
 {
     return m_transform;
 }
+
+void GameObject::Update()
+{
+
+}

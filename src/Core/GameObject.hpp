@@ -14,6 +14,7 @@ class GameObject
 public:
     GameObject();
     GameObject(const Transform &p_transform);
+    void Update();
 
     const Transform& GetTransform() const;
 protected:

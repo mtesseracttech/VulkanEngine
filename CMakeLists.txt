@@ -16,12 +16,8 @@ set(SOURCE_FILES
         src/Core/GameObject.hpp
         src/Core/Transform.cpp
         src/Core/Transform.hpp
-        src/Core/ShaderProgram.cpp
-        src/Core/ShaderProgram.hpp
         src/Core/MtVulkanAPI/VulkanRendererBase.cpp
         src/Core/MtVulkanAPI/VulkanRendererBase.hpp
-        src/Materials/Material.cpp
-        src/Materials/Material.hpp
         src/Core/MtVulkanAPI/WrappedVulkanDevice.hpp
         src/Core/MtVulkanAPI/WrappedVulkanBuffer.hpp
         src/Core/GameBase.cpp src/Core/GameBase.hpp
@@ -35,7 +31,9 @@ set(SOURCE_FILES
         src/Core/MtVulkanAPI/VulkanTexture.hpp
         src/Core/GameWorld.hpp
         src/Core/Renderers/SimpleRenderer.cpp
-        src/Core/Renderers/SimpleRenderer.hpp src/Core/Material/AbstractMaterial.hpp src/Core/Material/SkyboxMaterial.hpp)
+        src/Core/Renderers/SimpleRenderer.hpp
+        src/Material/AbstractMaterial.hpp
+        src/Material/SkyboxMaterial.hpp src/Core/MtVulkanAPI/VulkanShaderProgram.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 

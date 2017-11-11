@@ -21,6 +21,7 @@ public:
 
     void CreatePipeline(vk::Device p_logicalDevice) override
     {
+
     }
 };
 

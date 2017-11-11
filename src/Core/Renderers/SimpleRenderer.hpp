@@ -32,23 +32,44 @@ class SimpleRenderer : public VulkanRendererBase
 
     const uint32_t VERTEX_BUFFER_BIND_ID = 0;
 
-    struct {
-        VulkanModel teapot;
-    } m_models;
+    struct VertexInfo{
+        vk::PipelineVertexInputStateCreateInfo           inputState;
+        std::vector<vk::VertexInputBindingDescription>   bindingDescriptions;
+        std::vector<vk::VertexInputAttributeDescription> attributeDescriptions;
+    } m_vertexInfo;
 
-    struct UniformBufferObject {
+
+    struct {
         glm::mat4 projection;
         glm::mat4 modelView;
         glm::vec4 lightPos = glm::vec4(0.0f, 2.0f, 1.0f, 0.0f);
     } m_ubo;
 
-    vk::Pipeline                m_skyboxPipeline;
-    vk::Pipeline                m_phongPipeline;
-    vk::PipelineLayout          m_pipelineLayout;
-    vk::DescriptorSet           m_descriptorSet;
-    vk::DescriptorSetLayout     m_descriptorSetLayout;
+    //Info that individual objects should store
+    struct {
+        VulkanModel centerModel;
+        VulkanModel skybox;
+    } m_models;
 
-    WrappedVulkanBuffer         m_uniformBuffer;
+    struct {
+        WrappedVulkanBuffer         centerObject;
+        WrappedVulkanBuffer         skybox;
+    } m_uniformBuffers;
+
+    struct {
+        vk::Pipeline            centerObject;
+        vk::Pipeline            skybox;
+    } m_pipelines;
+
+    struct{
+        vk::DescriptorSet       centerObject;
+        vk::DescriptorSet       skybox;
+    } m_descriptorSets;
+
+
+    //Layouts
+    vk::PipelineLayout          m_pipelineLayout;
+    vk::DescriptorSetLayout     m_descriptorSetLayout;
 
     glm::vec3                   m_cameraPosition = glm::vec3();
     glm::vec3                   m_cameraRotation = glm::vec3(-25.0f, 15.0f, 0.0f);
@@ -85,9 +106,11 @@ public:
 
     void SetupDescriptorPool();
 
-    void SetupDescriptorSet();
+    void SetupDescriptorSets();
 
     void CreateCubemap(const std::string &p_filename, vk::Format p_format);
+
+    void SetupVertexDescriptions();
 };
 
 
