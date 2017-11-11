@@ -16,11 +16,13 @@ set(SOURCE_FILES
         src/Core/GameObject.hpp
         src/Core/Transform.cpp
         src/Core/Transform.hpp
+        src/Core/GameWorld.hpp
+        src/Core/GameBase.cpp 
+        src/Core/GameBase.hpp
         src/Core/MtVulkanAPI/VulkanRendererBase.cpp
         src/Core/MtVulkanAPI/VulkanRendererBase.hpp
         src/Core/MtVulkanAPI/WrappedVulkanDevice.hpp
         src/Core/MtVulkanAPI/WrappedVulkanBuffer.hpp
-        src/Core/GameBase.cpp src/Core/GameBase.hpp
         src/Core/MtVulkanAPI/WrappedVulkanValidation.cpp
         src/Core/MtVulkanAPI/WrappedVulkanValidation.hpp
         src/Core/MtVulkanAPI/VulkanHelpers.cpp
@@ -29,11 +31,13 @@ set(SOURCE_FILES
         src/Core/MtVulkanAPI/WrappedVulkanWindow.hpp
         src/Core/MtVulkanAPI/VulkanModel.hpp
         src/Core/MtVulkanAPI/VulkanTexture.hpp
-        src/Core/GameWorld.hpp
+	src/Core/MtVulkanAPI/VulkanShaderProgram.hpp
         src/Core/Renderers/SimpleRenderer.cpp
         src/Core/Renderers/SimpleRenderer.hpp
         src/Material/AbstractMaterial.hpp
-        src/Material/SkyboxMaterial.hpp src/Core/MtVulkanAPI/VulkanShaderProgram.hpp)
+        src/Material/SkyboxMaterial.hpp 
+        src/Core/KeyInput.cpp 
+	src/Core/KeyInput.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 
