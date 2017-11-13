@@ -10,11 +10,6 @@ Camera::Camera()
 {
 }
 
-void Camera::Update()
-{
-
-}
-
 Camera::~Camera()
 {
 

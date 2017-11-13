@@ -7,16 +7,21 @@
 
 #include <GLFW/glfw3.h>
 #include <map>
+#include <Utility/Timer.hpp>
 
 class KeyInput
 {
 public:
-    void Initialize(GLFWwindow *p_window);
+    static void Initialize(GLFWwindow* p_window);
+    static bool GetKeyDown(int p_key);
+    static bool GetKey(int p_key);
 private:
-    std::map<int, float> m_keys;
-    void OnKeyAction(GLFWwindow * p_window, int p_key, int p_scancode, int p_action, int p_mods);
-    void KeyUp(int p_key);
-    void KeyDown(int p_key);
+    static std::map<int, float> m_keys;
+    static Timer                m_timer;
+
+    static void OnKeyAction(GLFWwindow * p_window, int p_key, int p_scancode, int p_action, int p_mods);
+    static void KeyUp(int p_key);
+    static void KeyDown(int p_key);
 };
 
 
