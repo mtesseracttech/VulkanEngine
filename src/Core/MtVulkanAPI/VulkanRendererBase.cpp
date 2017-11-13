@@ -460,6 +460,7 @@ void VulkanRendererBase::RebuildSwapchain()
 
     DestroySwapchain();
     SetupSwapchain();
+    CreateImageViews();
 
     DestroyDepthStencil();
     SetupDepthStencil();
@@ -482,6 +483,7 @@ void VulkanRendererBase::PrepareFrame()
     {
         //Rebuild swapchain
         Logger::Log("Swapchain is not running optimal anymore, please reload it");
+        RebuildSwapchain();
     }
     else if(swapchainStatus != vk::Result::eSuccess)
     {

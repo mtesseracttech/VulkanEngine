@@ -24,6 +24,7 @@ SimpleRenderer::~SimpleRenderer()
 void SimpleRenderer::Prepare()
 {
     VulkanRendererBase::Prepare();
+    SetupCamera();
     LoadSkyboxAssets();
     LoadModels();
     SetupVertexDescriptions();
@@ -118,7 +119,7 @@ void SimpleRenderer::BuildCommandBuffers()
 void SimpleRenderer::LoadModels()
 {
     Logger::Log("Loading models!");
-    m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "treasure_smooth.dae",
+    m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "bunny.obj",
                                  m_vertexLayout,
                                  m_wrappedDevice,
                                  m_graphicsQueue);
@@ -156,19 +157,78 @@ void SimpleRenderer::UpdateUniformBuffers()
     glm::vec2 swapchainSize (m_swapchain.GetExtent().width, m_swapchain.GetExtent().height);
 
     // 3D object
-    glm::mat4 viewMatrix = glm::mat4(1.0f);
-    m_ubo.projection = glm::perspective(glm::radians(60.0f), swapchainSize.x / swapchainSize.y, 0.001f, 256.0f);
-    viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, m_cameraZoom));
+    //glm::mat4 viewMatrix = glm::mat4(1.0f);
+    //m_ubo.projection = glm::perspective(glm::radians(60.0f), swapchainSize.x / swapchainSize.y, 0.001f, 256.0f);
+    //viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, m_cameraZoom));
 
-    m_ubo.modelView = glm::mat4(1.0f);
-    m_ubo.modelView = viewMatrix * glm::translate(m_ubo.modelView, m_cameraPosition);
-    m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    //m_ubo.modelView = glm::mat4(1.0f);
+    //m_ubo.modelView = viewMatrix * glm::translate(m_ubo.modelView, m_cameraPosition);
+    //m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+    //m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+    //m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    static float xRot, yRot;
+
+    //Moving the camera
+    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_W)){
+        m_camera.SetPosition(m_camera.GetPosition() - m_camera.GetForward() * 0.001f);
+    }
+    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_S)){
+        m_camera.SetPosition(m_camera.GetPosition() + m_camera.GetForward() * 0.001f);
+    }
+
+    if(glfwGetMouseButton(m_window->GetWindow(), GLFW_MOUSE_BUTTON_1)){
+
+        double mouseX, mouseY;
+        glfwGetCursorPos(m_window->GetWindow(), &mouseX, &mouseY);
+        int screenCenterX = m_swapchain.GetExtent().width /2;
+        int screenCenterY = m_swapchain.GetExtent().height/2;
+        auto xScale = -static_cast<float>((mouseX - screenCenterX) / screenCenterX);
+        auto yScale = static_cast<float>((mouseY - screenCenterY) / screenCenterY);
+
+        m_camera.SetRotation(m_camera.GetRotation() + glm::vec3(yScale/10,xScale/10,0.0f));
+    }
+
+    //Rotating the center model
+    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_I)){
+        xRot += 0.1f;
+    }
+    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_K)){
+        xRot -= 0.1f;
+    }
+    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_J)){
+        yRot += 0.1f;
+    }
+    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_L)){
+        yRot -= 0.1f;
+    }
+
+    glm::mat4 modelMatrix (1.0f);
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(xRot), glm::vec3(1.0f, 0.0f, 0.0f));
+    modelMatrix = glm::rotate(modelMatrix, glm::radians(yRot), glm::vec3(0.0f, 1.0f, 0.0f));
+
+    //Loading up the ubo for the center object
+    m_ubo.projection = m_camera.GetPerspectiveMat();
+    m_ubo.view       = m_camera.GetViewMat();
+    m_ubo.model      = modelMatrix;
 
     memcpy(m_uniformBuffers.centerObject.m_mapped, &m_ubo, sizeof(m_ubo));
 
+    m_ubo.model = glm::mat4(1.0f);
+
+    //
+    //glm::mat4 viewMatrix = glm::mat4(1.0f);
+    //m_ubo.projection = glm::perspective(glm::radians(60.0f), swapchainSize.x / swapchainSize.y, 0.001f, 256.0f);
+
+    /*m_ubo.view  = viewMatrix;
+    m_ubo.model = glm::mat4(1.0f);
+    m_ubo.model = viewMatrix * glm::translate(m_ubo.model, glm::vec3(0, 0, 0));
+    m_ubo.model = glm::rotate(m_ubo.model, glm::radians(m_camera.GetRotation().x), glm::vec3(1.0f, 0.0f, 0.0f));
+    m_ubo.model = glm::rotate(m_ubo.model, glm::radians(m_camera.GetRotation().y), glm::vec3(0.0f, 1.0f, 0.0f));
+    m_ubo.model = glm::rotate(m_ubo.model, glm::radians(m_camera.GetRotation().z), glm::vec3(0.0f, 0.0f, 1.0f));
+    */
     // Skybox
+    /*
     viewMatrix = glm::mat4(1.0f);
     m_ubo.projection = glm::perspective(glm::radians(60.0f), swapchainSize.x / swapchainSize.y, 0.001f, 256.0f);
 
@@ -177,6 +237,7 @@ void SimpleRenderer::UpdateUniformBuffers()
     m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
     m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    */
 
     memcpy(m_uniformBuffers.skybox.m_mapped, &m_ubo, sizeof(m_ubo));
 }
@@ -345,8 +406,6 @@ void SimpleRenderer::SetupDescriptorSets()
     };
 
     m_logicalDevice.updateDescriptorSets(static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
-
-    //m_logicalDevice.updateDescriptorSets(writeDescriptorSets, nullptr);
 }
 
 void SimpleRenderer::Render()
@@ -367,7 +426,10 @@ void SimpleRenderer::Render()
 void SimpleRenderer::LoadSkyboxAssets()
 {
     //Skybox texture
-    CreateCubemap("pinksky.dds", vk::Format::eR8G8B8A8Unorm);
+    //CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3UnormBlock);
+    //CreateCubemap("SpaceSkyRGBA32.ktx", vk::Format::eR32G32B32A32Sfloat); //With skybox
+    CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3UnormBlock);
+
     /*
     if(m_deviceFeatures.textureCompressionBC)
     {
@@ -430,4 +492,11 @@ void SimpleRenderer::SetupVertexDescriptions()
     m_vertexInfo.inputState.vertexAttributeDescriptionCount = static_cast<uint32_t>(m_vertexInfo.attributeDescriptions.size());
     m_vertexInfo.inputState.pVertexBindingDescriptions      = m_vertexInfo.bindingDescriptions.data();
     m_vertexInfo.inputState.pVertexAttributeDescriptions    = m_vertexInfo.attributeDescriptions.data();
+}
+
+void SimpleRenderer::SetupCamera()
+{
+    m_camera.SetPerspective(60, (static_cast<float>(m_swapchain.GetExtent().width) / static_cast<float>(m_swapchain.GetExtent().height)), 0.01f, 256.0f);
+    m_camera.SetPosition(glm::vec3(0,0,0));
+    m_camera.SetRotation(glm::vec3(-25.0f, 15.0f, 0.0f));
 }
