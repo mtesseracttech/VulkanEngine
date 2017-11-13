@@ -93,4 +93,6 @@ CTestTestfile.cmake
 
 cmake-build-release/
 cmake-build-debug/
-resources/models/lucy.ply
+
+# should allow obj files in resources to be synced
+!resources/models/*.obj
