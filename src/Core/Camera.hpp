@@ -8,19 +8,29 @@
 
 #include "GameObject.hpp"
 
-class Camera : GameObject
+class Camera
 {
 private:
     glm::vec3 m_rotation;
+    glm::vec3 m_position;
     glm::mat4 m_perspective;
+    glm::mat4 m_view;
+    float     m_zoom;
 
     void UpdateMatrix();
 public:
-    Camera();
-    virtual ~Camera();
-    void SetPosition(const glm::vec3 p_position);
-    void SetStraightRotation(glm::vec3 p_rotation);
-    const glm::mat4& GetPerspective();
+    Camera(){};
+    virtual ~Camera(){};
+    void SetPosition(glm::vec3 p_position);
+    void SetRotation(glm::vec3 p_rotation);
+    void SetZoom(float p_zoom);
+    const glm::vec3 GetForward();
+    const glm::mat4 GetPerspectiveMat();
+    const glm::mat4 GetViewMat();
+
+    const glm::vec3 GetPosition();
+    const glm::vec3 GetRotation();
+
     void SetPerspective(float p_fovY, float p_aspectRatio, float p_nearClipPlane, float p_farClipPlane);
 };
 

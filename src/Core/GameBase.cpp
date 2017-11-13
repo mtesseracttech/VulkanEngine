@@ -35,6 +35,7 @@ void GameBase::RunGame()
     while(glfwWindowShouldClose(window) != GLFW_TRUE)
     {
         glfwPollEvents();
+        m_renderer->UpdateUniformBuffers();
         m_renderer->RenderFrame();
         m_renderer->DeviceWaitIdle();
     }

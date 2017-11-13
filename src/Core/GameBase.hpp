@@ -13,7 +13,7 @@
 class GameBase
 {
 private:
-    VulkanRendererBase * m_renderer = nullptr;
+    SimpleRenderer * m_renderer = nullptr;
 public:
     void InitializeRenderer();
     void RunGame();

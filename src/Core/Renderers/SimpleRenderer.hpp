@@ -40,9 +40,10 @@ class SimpleRenderer : public VulkanRendererBase
 
 
     struct {
+        glm::mat4 model;
+        glm::mat4 view;
         glm::mat4 projection;
-        glm::mat4 modelView;
-        glm::vec4 lightPos = glm::vec4(0.0f, 2.0f, 1.0f, 0.0f);
+        float lodBias;
     } m_ubo;
 
     //Info that individual objects should store
@@ -71,13 +72,9 @@ class SimpleRenderer : public VulkanRendererBase
     vk::PipelineLayout          m_pipelineLayout;
     vk::DescriptorSetLayout     m_descriptorSetLayout;
 
-    glm::vec3                   m_cameraPosition = glm::vec3();
-    glm::vec3                   m_cameraRotation = glm::vec3(-25.0f, 15.0f, 0.0f);
-    float                       m_cameraZoom     = -10.5f;
-
     VulkanCubemap               m_skyboxTex;
 
-    Camera*                     m_camera; //real camera
+    Camera                      m_camera; //real camera
 
 public:
     SimpleRenderer();
@@ -111,6 +108,8 @@ public:
     void CreateCubemap(const std::string &p_filename, vk::Format p_format);
 
     void SetupVertexDescriptions();
+
+    void SetupCamera();
 };
 
 
