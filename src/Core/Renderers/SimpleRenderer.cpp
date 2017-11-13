@@ -427,8 +427,8 @@ void SimpleRenderer::LoadSkyboxAssets()
 {
     //Skybox texture
     //CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3UnormBlock);
-    CreateCubemap("SpaceSkyRGBA32.ktx", vk::Format::eR32G32B32A32Sfloat); //With skybox
-    CreateCubemap("SpaceSkyRGBA16.ktx", vk::Format::eR16G16B16A16Sfloatvk::Format::eR32G32B32A32Sfloat);
+    //CreateCubemap("SpaceSkyRGBA32.ktx", vk::Format::eR32G32B32A32Sfloat); //With skybox
+    CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3UnormBlock);
 
     /*
     if(m_deviceFeatures.textureCompressionBC)
