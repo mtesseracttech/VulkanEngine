@@ -2,9 +2,10 @@
 // Created by mtesseract on 4-11-17.
 //
 
+#include <Utility/Logger.hpp>
 #include "KeyInput.hpp"
 
-std::map<int, float> KeyInput::m_keys;
+std::map<int, double> KeyInput::m_keys;
 
 Timer KeyInput::m_timer;
 
@@ -31,24 +32,27 @@ void KeyInput::OnKeyAction(GLFWwindow *p_window, int p_key, int p_scancode, int 
 
 void KeyInput::KeyUp(int p_key)
 {
-    m_keys[p_key] = 0.0f;
+    std::cout << p_key << " up" << std::endl;
+    m_keys[p_key] = 0.0;
 }
 
 void KeyInput::KeyDown(int p_key)
 {
-    float time = m_keys[p_key];
-    if(time == 0.0f)
+    std::cout << p_key << " down" << std::endl;
+    double time = m_keys[p_key];
+    if(time == 0.0)
     {
-        m_keys[p_key] = static_cast<float>(m_timer.GetElapsed());
+        m_keys[p_key] = m_timer.GetElapsed();
     }
 }
 
 bool KeyInput::GetKeyDown(int p_key)
 {
+    return m_keys[p_key] > m_timer.GetElapsed() - 1.0/60.0;
     try
     {
         //Todo: Integrate time step in this properly
-        return (m_keys.at(p_key) > m_timer.GetElapsed() - 1.0f/60.0f);
+        //return (m_keys.at(p_key) > m_timer.GetElapsed() - 1.0/60.0);
     }
     catch (const std::out_of_range& ex)
     {
@@ -60,7 +64,7 @@ bool KeyInput::GetKey(int p_key)
 {
     try
     {
-        return m_keys.at(p_key) > 0;
+        return m_keys.at(p_key) > 0.0f;
     }
     catch (const std::out_of_range& ex)
     {

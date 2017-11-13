@@ -16,7 +16,7 @@ public:
     static bool GetKeyDown(int p_key);
     static bool GetKey(int p_key);
 private:
-    static std::map<int, float> m_keys;
+    static std::map<int, double> m_keys;
     static Timer                m_timer;
 
     static void OnKeyAction(GLFWwindow * p_window, int p_key, int p_scancode, int p_action, int p_mods);

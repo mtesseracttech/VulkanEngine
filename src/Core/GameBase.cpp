@@ -3,6 +3,7 @@
 //
 
 #include "GameBase.hpp"
+#include "KeyInput.hpp"
 
 int main()
 {
@@ -10,6 +11,7 @@ int main()
     try
     {
         game.InitializeRenderer();
+        game.InitializeInput();
         game.RunGame();
     }
     catch (const std::runtime_error& e)
@@ -38,7 +40,23 @@ void GameBase::RunGame()
         m_renderer->UpdateUniformBuffers();
         m_renderer->RenderFrame();
         m_renderer->DeviceWaitIdle();
+
+        if(KeyInput::GetKey(GLFW_KEY_Z))
+        {
+            std::cout << "Key Z" << std::endl;
+        }
+        if(KeyInput::GetKeyDown(GLFW_KEY_X))
+        {
+            std::cout << "Key X" << std::endl;
+        }
     }
 
+
     delete m_renderer;
+}
+
+void GameBase::InitializeInput()
+{
+    Logger::Log("Initializing Key Input Manager");
+    KeyInput::Initialize(m_renderer->GetWindow()->GetWindow());
 }

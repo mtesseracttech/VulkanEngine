@@ -17,6 +17,8 @@ private:
 public:
     void InitializeRenderer();
     void RunGame();
+
+    void InitializeInput();
 };
 
 

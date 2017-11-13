@@ -51,11 +51,11 @@ void SimpleRenderer::BuildCommandBuffers()
     clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
 
     vk::RenderPassBeginInfo renderPassBeginInfo;
-    renderPassBeginInfo.renderPass = m_renderPass;
+    renderPassBeginInfo.renderPass        = m_renderPass;
     renderPassBeginInfo.renderArea.offset = vk::Offset2D(0, 0);
     renderPassBeginInfo.renderArea.extent = m_swapchain.GetExtent();
-    renderPassBeginInfo.clearValueCount = clearValues.size();
-    renderPassBeginInfo.pClearValues = clearValues.data();
+    renderPassBeginInfo.clearValueCount   = clearValues.size();
+    renderPassBeginInfo.pClearValues      = clearValues.data();
 
     for (int32_t i = 0; i < m_drawCommandBuffers.size(); ++i)
     {
