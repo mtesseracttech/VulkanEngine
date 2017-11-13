@@ -95,4 +95,4 @@ cmake-build-release/
 cmake-build-debug/
 
 # should allow obj files in resources to be synced
-!resources/models/*.objs
+!resources/models/*.obj
