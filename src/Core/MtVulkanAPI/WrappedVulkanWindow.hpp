@@ -19,6 +19,51 @@ private:
     vk::Instance    m_instance;
     vk::SurfaceKHR  m_surface;
 public:
+    WrappedVulkanWindow(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen)
+    {
+        Logger::Log("GLFW is initializing");
+        if (glfwInit() == GLFW_TRUE)
+        {
+            Logger::Log("GLFW Initialized Successfully!");
+        }
+        else
+        {
+            throw std::runtime_error("GLFW Failed to initialize, terminating...");
+        }
+
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+
+        if(fullscreen)
+        {
+            int count;
+            const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+
+            windowWidth  = mode->width;
+            windowHeight = mode->height;
+
+            std::cout << "Primary monitor size: " << windowWidth << ", " << windowHeight << std::endl;
+        }
+
+        Logger::Log("GLFW set to load without an API, so Vulkan can be used");
+        m_window = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(),
+                                    (fullscreen ? glfwGetPrimaryMonitor() : nullptr), nullptr);
+    }
+
+    void CreateSurface(vk::Instance p_instance)
+    {
+        VkSurfaceKHR surface;
+        if (glfwCreateWindowSurface(static_cast<VkInstance >(p_instance), m_window, nullptr, &surface) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create window surface!");
+        }
+        else
+        {
+            Logger::Log("Successfully created KHR Surface");
+        }
+        m_surface = static_cast<vk::SurfaceKHR>(surface);
+        m_instance = p_instance;
+    }
+
     glm::vec2 GetCursorPos()
     {
         double x, y;
@@ -43,39 +88,6 @@ public:
         return m_surface;
     }
 
-    WrappedVulkanWindow(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen)
-    {
-        Logger::Log("GLFW is initializing");
-        if (glfwInit() == GLFW_TRUE)
-        {
-            Logger::Log("GLFW Initialized Successfully!");
-        }
-        else
-        {
-            throw std::runtime_error("GLFW Failed to initialize, terminating...");
-        }
-
-        glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-        Logger::Log("GLFW set to load without an API, so Vulkan can be used");
-        m_window = glfwCreateWindow(windowWidth, windowHeight, windowTitle.c_str(),
-                                    (fullscreen ? glfwGetPrimaryMonitor() : nullptr), nullptr);
-        glfwSetWindowUserPointer(m_window, this);
-    }
-
-    void CreateSurface(vk::Instance p_instance)
-    {
-        VkSurfaceKHR surface;
-        if (glfwCreateWindowSurface(static_cast<VkInstance >(p_instance), m_window, nullptr, &surface) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create window surface!");
-        }
-        else
-        {
-            Logger::Log("Successfully created KHR Surface");
-        }
-        m_surface = static_cast<vk::SurfaceKHR>(surface);
-        m_instance = p_instance;
-    }
 
     void CleanupSurface()
     {

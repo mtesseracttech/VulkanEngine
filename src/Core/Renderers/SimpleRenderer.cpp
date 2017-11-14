@@ -64,8 +64,6 @@ void SimpleRenderer::BuildCommandBuffers()
 
         m_drawCommandBuffers[i].beginRenderPass(&renderPassBeginInfo, vk::SubpassContents::eInline);
 
-        //std::cout << m_swapchain.GetExtent().width << ", " << m_swapchain.GetExtent().height << std::endl;
-
         vk::Viewport viewport;
         viewport.width = m_swapchain.GetExtent().width;
         viewport.height = m_swapchain.GetExtent().height;
@@ -108,6 +106,8 @@ void SimpleRenderer::BuildCommandBuffers()
 
         m_drawCommandBuffers[i].drawIndexed(m_models.centerModel.m_indexCount, 1, 0, 0, 0);
 
+        //TODO: go into world object, into child objects and add them to the renderpass, needs to be redone for every add/removal
+
         //End render pass
 
         m_drawCommandBuffers[i].endRenderPass();
@@ -119,10 +119,11 @@ void SimpleRenderer::BuildCommandBuffers()
 void SimpleRenderer::LoadModels()
 {
     Logger::Log("Loading models!");
-    m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "bunny.obj",
+    m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "teapot.obj",
                                  m_vertexLayout,
                                  m_wrappedDevice,
-                                 m_graphicsQueue);
+                                 m_graphicsQueue,
+                                 0.05f);
 
     m_models.skybox.LoadFromFile(Constants::MODEL_PATH + "cube.obj",
                                  m_vertexLayout,
@@ -154,21 +155,6 @@ void SimpleRenderer::PrepareUniformBuffers()
 
 void SimpleRenderer::UpdateUniformBuffers()
 {
-    glm::vec2 swapchainSize (m_swapchain.GetExtent().width, m_swapchain.GetExtent().height);
-
-    // 3D object
-    //glm::mat4 viewMatrix = glm::mat4(1.0f);
-    //m_ubo.projection = glm::perspective(glm::radians(60.0f), swapchainSize.x / swapchainSize.y, 0.001f, 256.0f);
-    //viewMatrix = glm::translate(viewMatrix, glm::vec3(0.0f, 0.0f, m_cameraZoom));
-
-    //m_ubo.modelView = glm::mat4(1.0f);
-    //m_ubo.modelView = viewMatrix * glm::translate(m_ubo.modelView, m_cameraPosition);
-    //m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    //m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    //m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-
-    static float xRot, yRot;
-
     //Moving the camera
     if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_W)){
         m_camera.SetPosition(m_camera.GetPosition() - m_camera.GetForward() * 0.001f);
@@ -179,17 +165,19 @@ void SimpleRenderer::UpdateUniformBuffers()
 
     if(glfwGetMouseButton(m_window->GetWindow(), GLFW_MOUSE_BUTTON_1)){
 
-        double mouseX, mouseY;
-        glfwGetCursorPos(m_window->GetWindow(), &mouseX, &mouseY);
         int screenCenterX = m_swapchain.GetExtent().width /2;
         int screenCenterY = m_swapchain.GetExtent().height/2;
-        auto xScale = -static_cast<float>((mouseX - screenCenterX) / screenCenterX);
-        auto yScale = static_cast<float>((mouseY - screenCenterY) / screenCenterY);
+        auto xScale = -static_cast<float>((m_window->GetCursorPos().x - screenCenterX) / screenCenterX);
+        auto yScale = static_cast<float>((m_window->GetCursorPos().y - screenCenterY) / screenCenterY);
 
         m_camera.SetRotation(m_camera.GetRotation() + glm::vec3(yScale/10,xScale/10,0.0f));
     }
 
-    //Rotating the center model
+    //Scoped statics storing the center object rotation
+    static float xRot, yRot;
+
+    //TODO: Finalize key input system using callback
+    //Deciding the rotation
     if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_I)){
         xRot += 0.1f;
     }
@@ -203,6 +191,7 @@ void SimpleRenderer::UpdateUniformBuffers()
         yRot -= 0.1f;
     }
 
+    //Composing the model matrix
     glm::mat4 modelMatrix (1.0f);
     modelMatrix = glm::rotate(modelMatrix, glm::radians(xRot), glm::vec3(1.0f, 0.0f, 0.0f));
     modelMatrix = glm::rotate(modelMatrix, glm::radians(yRot), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -212,34 +201,21 @@ void SimpleRenderer::UpdateUniformBuffers()
     m_ubo.view       = m_camera.GetViewMat();
     m_ubo.model      = modelMatrix;
 
+    //Copy to the buffer
     memcpy(m_uniformBuffers.centerObject.m_mapped, &m_ubo, sizeof(m_ubo));
 
+    //temp store camera position
+    glm::vec3 cameraPos = m_camera.GetPosition();
+
+    //Set the position to 0,0,0 so that the cube is always renderer around the camera
+    m_camera.SetPosition(glm::vec3(0,0,0));
     m_ubo.model = glm::mat4(1.0f);
-
-    //
-    //glm::mat4 viewMatrix = glm::mat4(1.0f);
-    //m_ubo.projection = glm::perspective(glm::radians(60.0f), swapchainSize.x / swapchainSize.y, 0.001f, 256.0f);
-
-    /*m_ubo.view  = viewMatrix;
-    m_ubo.model = glm::mat4(1.0f);
-    m_ubo.model = viewMatrix * glm::translate(m_ubo.model, glm::vec3(0, 0, 0));
-    m_ubo.model = glm::rotate(m_ubo.model, glm::radians(m_camera.GetRotation().x), glm::vec3(1.0f, 0.0f, 0.0f));
-    m_ubo.model = glm::rotate(m_ubo.model, glm::radians(m_camera.GetRotation().y), glm::vec3(0.0f, 1.0f, 0.0f));
-    m_ubo.model = glm::rotate(m_ubo.model, glm::radians(m_camera.GetRotation().z), glm::vec3(0.0f, 0.0f, 1.0f));
-    */
-    // Skybox
-    /*
-    viewMatrix = glm::mat4(1.0f);
-    m_ubo.projection = glm::perspective(glm::radians(60.0f), swapchainSize.x / swapchainSize.y, 0.001f, 256.0f);
-
-    m_ubo.modelView = glm::mat4(1.0f);
-    m_ubo.modelView = viewMatrix * glm::translate(m_ubo.modelView, glm::vec3(0, 0, 0));
-    m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    m_ubo.modelView = glm::rotate(m_ubo.modelView, glm::radians(m_cameraRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    */
+    m_ubo.view  = m_camera.GetViewMat();
 
     memcpy(m_uniformBuffers.skybox.m_mapped, &m_ubo, sizeof(m_ubo));
+
+    //Restore camera position
+    m_camera.SetPosition(cameraPos);
 }
 
 void SimpleRenderer::SetupDescriptorSetLayout()
@@ -410,10 +386,8 @@ void SimpleRenderer::SetupDescriptorSets()
 
 void SimpleRenderer::Render()
 {
+    //Prepares a swap chain image
     VulkanRendererBase::PrepareFrame();
-
-    //static int slowFrameCounter = 0;
-    //if (++slowFrameCounter % 1000 == 0) std::cout << "rendered 1000 frames" << std::endl;
 
     m_submitInfo.commandBufferCount = 1;
     m_submitInfo.pCommandBuffers = &m_drawCommandBuffers[m_currentBuffer];
@@ -426,27 +400,7 @@ void SimpleRenderer::Render()
 void SimpleRenderer::LoadSkyboxAssets()
 {
     //Skybox texture
-    //CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3UnormBlock);
-    //CreateCubemap("SpaceSkyRGBA32.ktx", vk::Format::eR32G32B32A32Sfloat); //With skybox
-    CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3UnormBlock);
-
-    /*
-    if(m_deviceFeatures.textureCompressionBC)
-    {
-        CreateCubemap("cubemap_yokohama_bc3_unorm.ktx", vk::Format::eBc2UnormBlock);
-    }
-    else if(m_deviceFeatures.textureCompressionASTC_LDR)
-    {
-        CreateCubemap("cubemap_yokohama_astc_8x8_unorm.ktx", vk::Format::eAstc8x8UnormBlock);
-    }
-    else if (m_deviceFeatures.textureCompressionETC2)
-    {
-        CreateCubemap("cubemap_yokohama_etc2_unorm.ktx", vk::Format::eEtc2R8G8B8UnormBlock);
-    }
-    else
-    {
-        throw std::runtime_error("Could not load any textures because compression formats are not supported");
-    }*/
+    if(m_deviceFeatures.textureCompressionBC) CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3UnormBlock);
 }
 
 void SimpleRenderer::CreateCubemap(const std::string &p_filename, vk::Format p_format)
@@ -457,14 +411,12 @@ void SimpleRenderer::CreateCubemap(const std::string &p_filename, vk::Format p_f
 
 void SimpleRenderer::SetupVertexDescriptions()
 {
-    //Just 1 vertex layout
+    //Single vertex layout is needed since loaded models will be forced to have this layout through m_vertexLayout
     m_vertexInfo.bindingDescriptions.resize(1);
 
-    //Can likely be automated
     m_vertexInfo.bindingDescriptions[0].binding     = VERTEX_BUFFER_BIND_ID;
     m_vertexInfo.bindingDescriptions[0].stride      = m_vertexLayout.GetStride();
     m_vertexInfo.bindingDescriptions[0].inputRate   = vk::VertexInputRate::eVertex;
-
 
     //Vertex layout contains 3 components
     m_vertexInfo.attributeDescriptions.resize(3);
@@ -496,7 +448,14 @@ void SimpleRenderer::SetupVertexDescriptions()
 
 void SimpleRenderer::SetupCamera()
 {
-    m_camera.SetPerspective(60, (static_cast<float>(m_swapchain.GetExtent().width) / static_cast<float>(m_swapchain.GetExtent().height)), 0.01f, 256.0f);
+    vk::Extent2D screenSize = m_swapchain.GetExtent();
+    m_camera.SetPerspective(60, (static_cast<float>(screenSize.width) / static_cast<float>(screenSize.height)), 0.01f, 256.0f);
     m_camera.SetPosition(glm::vec3(0,0,0));
     m_camera.SetRotation(glm::vec3(-25.0f, 15.0f, 0.0f));
+}
+
+void SimpleRenderer::WindowResized()
+{
+    vk::Extent2D screenSize = m_swapchain.GetExtent();
+    m_camera.SetPerspective(60, (static_cast<float>(screenSize.width) / static_cast<float>(screenSize.height)), 0.01f, 256.0f);
 }

@@ -108,6 +108,7 @@ private:
     int                                 m_windowHeight              = 720;
     int                                 m_windowWidth               = 1080;
 
+    static void OnWindowResized(GLFWwindow* p_window, int p_width, int p_height);
 public:
     //Initializes the base of vulkan
     virtual void Initialize();
@@ -202,6 +203,8 @@ protected:
     void SubmitFrame();
 
     void CreateSemaphores();
+
+    virtual void WindowResized(){};
 };
 
 

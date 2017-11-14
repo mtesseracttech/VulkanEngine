@@ -8,6 +8,9 @@
 void VulkanRendererBase::InitializeGlfwWindow()
 {
     m_window = new WrappedVulkanWindow(m_windowWidth, m_windowHeight, "Vulkan", false);
+
+    glfwSetWindowUserPointer(m_window->GetWindow(), this);
+    glfwSetWindowSizeCallback(m_window->GetWindow(), OnWindowResized);
 }
 
 void VulkanRendererBase::Initialize()
@@ -454,8 +457,6 @@ void VulkanRendererBase::DeviceWaitIdle()
 
 void VulkanRendererBase::RebuildSwapchain()
 {
-    //TODO: Make it so this does not crash
-    //Operations must be done before cleaning up
     m_logicalDevice.waitIdle();
 
     DestroySwapchain();
@@ -514,7 +515,7 @@ VulkanRendererBase::VulkanRendererBase()
 
 VulkanRendererBase::~VulkanRendererBase()
 {
-    Logger::Log("Cleaning up stuff");
+    Logger::Log("Cleaning up vulkan base");
 
     m_swapchain.Cleanup();
 
@@ -595,4 +596,11 @@ void VulkanRendererBase::CreateSemaphores()
     m_submitInfo.pWaitSemaphores      = &m_semaphores.presentComplete;
     m_submitInfo.signalSemaphoreCount = 1;
     m_submitInfo.pSignalSemaphores    = &m_semaphores.renderComplete;
+}
+
+void VulkanRendererBase::OnWindowResized(GLFWwindow* p_window, int p_width, int p_height)
+{
+    VulkanRendererBase *rendererBase = reinterpret_cast<VulkanRendererBase *>(glfwGetWindowUserPointer(p_window));
+    rendererBase->RebuildSwapchain();
+    rendererBase->WindowResized();
 }

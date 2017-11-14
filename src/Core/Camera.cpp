@@ -2,27 +2,23 @@
 // Created by MTesseracT on 8-10-2017.
 //
 
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/string_cast.hpp>
 #include "Camera.hpp"
 
+//Sets the rotation of the camera and updates the view matrix
 void Camera::SetRotation(glm::vec3 p_rotation)
 {
     m_rotation = p_rotation;
     UpdateMatrix();
 }
 
+//Sets the position of the camera and updates the view matrix
 void Camera::SetPosition(const glm::vec3 p_position)
 {
     m_position = p_position;
     UpdateMatrix();
 }
 
-void Camera::SetZoom(float p_zoom)
-{
-    m_zoom = p_zoom;
-}
-
+//Updates the view matrix using the current rotation and position
 void Camera::UpdateMatrix()
 {
     glm::mat4 rotMat = glm::mat4(1.0f);
@@ -35,6 +31,7 @@ void Camera::UpdateMatrix()
     m_view = posMat * rotMat;
 }
 
+//Allows to set a perspective matrix for the camera, using FoV (in degrees), aspect ratio, and clip plane limits
 void Camera::SetPerspective(float p_fovY, float p_aspectRatio, float p_nearClipPlane, float p_farClipPlane)
 {
     m_perspective = glm::perspective(glm::radians(p_fovY), p_aspectRatio, p_nearClipPlane, p_farClipPlane);

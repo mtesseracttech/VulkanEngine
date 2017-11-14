@@ -32,13 +32,11 @@ void KeyInput::OnKeyAction(GLFWwindow *p_window, int p_key, int p_scancode, int 
 
 void KeyInput::KeyUp(int p_key)
 {
-    std::cout << p_key << " up" << std::endl;
     m_keys[p_key] = 0.0;
 }
 
 void KeyInput::KeyDown(int p_key)
 {
-    std::cout << p_key << " down" << std::endl;
     double time = m_keys[p_key];
     if(time == 0.0)
     {

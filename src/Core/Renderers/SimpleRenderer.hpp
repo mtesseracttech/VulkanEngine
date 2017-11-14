@@ -26,8 +26,7 @@ class SimpleRenderer : public VulkanRendererBase
     VertexLayout m_vertexLayout = VertexLayout(
             {VulkanVertexComponent ::ePosition,
              VulkanVertexComponent ::eNormal,
-             VulkanVertexComponent ::eUV,
-             VulkanVertexComponent ::eColor}
+             VulkanVertexComponent ::eUV}
     );
 
     const uint32_t VERTEX_BUFFER_BIND_ID = 0;
@@ -75,6 +74,9 @@ class SimpleRenderer : public VulkanRendererBase
     VulkanCubemap               m_skyboxTex;
 
     Camera                      m_camera; //real camera
+
+protected:
+    void WindowResized() override;
 
 public:
     SimpleRenderer();

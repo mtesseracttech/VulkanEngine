@@ -7,6 +7,8 @@
 
 
 #include "GameObject.hpp"
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/string_cast.hpp>
 
 class Camera
 {
@@ -23,7 +25,6 @@ public:
     virtual ~Camera(){};
     void SetPosition(glm::vec3 p_position);
     void SetRotation(glm::vec3 p_rotation);
-    void SetZoom(float p_zoom);
     const glm::vec3 GetForward();
     const glm::mat4 GetPerspectiveMat();
     const glm::mat4 GetViewMat();
