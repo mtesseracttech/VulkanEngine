@@ -400,7 +400,8 @@ void SimpleRenderer::Render()
 void SimpleRenderer::LoadSkyboxAssets()
 {
     //Skybox texture
-    if(m_deviceFeatures.textureCompressionBC) CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3UnormBlock);
+    if(m_deviceFeatures.textureCompressionBC) CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3SrgbBlock);
+
 }
 
 void SimpleRenderer::CreateCubemap(const std::string &p_filename, vk::Format p_format)
@@ -448,14 +449,12 @@ void SimpleRenderer::SetupVertexDescriptions()
 
 void SimpleRenderer::SetupCamera()
 {
-    vk::Extent2D screenSize = m_swapchain.GetExtent();
-    m_camera.SetPerspective(60, (static_cast<float>(screenSize.width) / static_cast<float>(screenSize.height)), 0.01f, 256.0f);
+    m_camera.SetPerspective(60, (static_cast<float>(m_window->GetWindowSize().x) / static_cast<float>(m_window->GetWindowSize().y)), 0.01f, 256.0f);
     m_camera.SetPosition(glm::vec3(0,0,0));
     m_camera.SetRotation(glm::vec3(-25.0f, 15.0f, 0.0f));
 }
 
 void SimpleRenderer::WindowResized()
 {
-    vk::Extent2D screenSize = m_swapchain.GetExtent();
-    m_camera.SetPerspective(60, (static_cast<float>(screenSize.width) / static_cast<float>(screenSize.height)), 0.01f, 256.0f);
+    m_camera.SetPerspective(60, (static_cast<float>(m_window->GetWindowSize().x) / static_cast<float>(m_window->GetWindowSize().y)), 0.01f, 256.0f);
 }

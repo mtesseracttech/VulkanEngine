@@ -21,7 +21,7 @@ void main()
 	vec3 localReflection = reflect(normalize(inPos), normalize(inNormal));
 
 	localReflection = vec3(inInvModelView * vec4(localReflection, 1.0)); //Scalar may have to be 0.0
-	//localReflection.x *= -1.0;
+	localReflection.x *= -1.0;
 
     //Getting sample color
 	vec4 color = texture(samplerColor, localReflection, inLodBias);
