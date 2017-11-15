@@ -79,11 +79,9 @@ protected:
     void WindowResized() override;
 
 public:
-    SimpleRenderer();
-
-    ~SimpleRenderer() override;
-
     void Prepare() override;
+
+    void Cleanup() override;
 
     void GetEnabledFeatures() override;
 
@@ -112,6 +110,7 @@ public:
     void SetupVertexDescriptions();
 
     void SetupCamera();
+
 };
 
 

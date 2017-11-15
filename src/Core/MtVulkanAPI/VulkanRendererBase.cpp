@@ -9,8 +9,8 @@ void VulkanRendererBase::InitializeGlfwWindow()
 {
     m_window = new WrappedVulkanWindow(m_windowWidth, m_windowHeight, "Vulkan", false);
 
-    glfwSetWindowUserPointer(m_window->GetWindow(), this);
-    glfwSetWindowSizeCallback(m_window->GetWindow(), OnWindowResized);
+    glfwSetWindowUserPointer(m_window->GetGlfwWindow(), this);
+    glfwSetWindowSizeCallback(m_window->GetGlfwWindow(), OnWindowResized);
 }
 
 void VulkanRendererBase::Initialize()

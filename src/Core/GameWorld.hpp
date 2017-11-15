@@ -8,14 +8,20 @@
 #include "GameObject.hpp"
 #include "Camera.hpp"
 
-class GameWorld : GameObject
+class GameWorld : public GameObject
 {
 private:
     Camera m_camera;
-protected:
-
 public:
-    const Camera& GetCamera() const {return m_camera;}
+    const Camera& GetCamera() const
+    {
+        return m_camera;
+    }
+
+    void Update() override
+    {
+        std::cout << "Delta: " << GameTimer::Delta() << std::endl;
+    }
 };
 
 #endif //VULKANENGINE_GAMEWORLD_HPP

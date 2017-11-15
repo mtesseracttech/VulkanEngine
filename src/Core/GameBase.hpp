@@ -9,16 +9,23 @@
 #include <iostream>
 #include <Utility/Logger.hpp>
 #include <Core/Renderers/SimpleRenderer.hpp>
+#include "GameWorld.hpp"
 
 class GameBase
 {
 private:
-    SimpleRenderer * m_renderer = nullptr;
+    SimpleRenderer  m_renderer;
+    GameWorld       m_gameWorld;
+    int             m_ticksPerSecond;
+    double          m_timePerUpdate;
+
+    void SetGameSpeed(int p_tps);
 public:
-    void InitializeRenderer();
     void RunGame();
 
+    void InitializeRenderer();
     void InitializeInput();
+    void InitializeGameTimer();
 };
 
 

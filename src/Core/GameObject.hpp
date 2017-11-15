@@ -7,18 +7,13 @@
 
 
 #include <Core/MtVulkanAPI/VulkanModel.hpp>
-#include "Transform.hpp"
 
 class GameObject
 {
 public:
     GameObject();
-    GameObject(const Transform &p_transform);
-    void Update();
-
-    const Transform& GetTransform() const;
+    virtual void Update();
 protected:
-    Transform     m_transform;
 };
 
 

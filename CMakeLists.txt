@@ -14,8 +14,6 @@ set(SOURCE_FILES
         src/Core/Camera.hpp
         src/Core/GameObject.cpp
         src/Core/GameObject.hpp
-        src/Core/Transform.cpp
-        src/Core/Transform.hpp
         src/Core/GameWorld.hpp
         src/Core/GameBase.cpp 
         src/Core/GameBase.hpp
@@ -37,7 +35,7 @@ set(SOURCE_FILES
         src/Material/AbstractMaterial.hpp
         src/Material/SkyboxMaterial.hpp 
         src/Core/KeyInput.cpp 
-	src/Core/KeyInput.hpp)
+	src/Core/KeyInput.hpp src/Utility/GameTimer.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 

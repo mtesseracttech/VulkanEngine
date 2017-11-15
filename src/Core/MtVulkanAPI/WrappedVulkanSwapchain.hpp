@@ -228,7 +228,7 @@ private:
         else
         {
             int width, height;
-            glfwGetWindowSize(m_window->GetWindow(), &width, &height);
+            glfwGetWindowSize(m_window->GetGlfwWindow(), &width, &height);
 
             vk::Extent2D actualExtent = {
                     static_cast<uint32_t>(width),

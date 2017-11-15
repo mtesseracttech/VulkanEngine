@@ -116,6 +116,9 @@ public:
     //Initializes the render type specific parts
     virtual void Prepare();
 
+    virtual //Cleans up the mess vulkan makes
+    void Cleanup();
+
     //Constructor
     VulkanRendererBase();
 
@@ -161,9 +164,6 @@ protected:
     void CreatePipelineCache();
 
     void SetupFrameBuffer();
-
-    //Cleans up the mess vulkan makes
-    void Cleanup();
 
     //If the swapchain gets invalidated (for example during a window resize), this recreates all resources required
     void RebuildSwapchain();

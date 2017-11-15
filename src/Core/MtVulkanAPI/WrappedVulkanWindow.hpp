@@ -60,7 +60,7 @@ public:
         {
             Logger::Log("Successfully created KHR Surface");
         }
-        m_surface = static_cast<vk::SurfaceKHR>(surface);
+        m_surface = vk::SurfaceKHR(surface);//static_cast<vk::SurfaceKHR>(surface);
         m_instance = p_instance;
     }
 
@@ -78,7 +78,12 @@ public:
         return glm::ivec2(width, height);
     }
 
-    GLFWwindow * GetWindow()
+    bool ShouldClose()
+    {
+        return glfwWindowShouldClose(m_window) == GLFW_TRUE;
+    }
+
+    GLFWwindow * GetGlfwWindow()
     {
         return m_window;
     }

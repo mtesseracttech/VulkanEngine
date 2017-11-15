@@ -4,23 +4,6 @@
 
 #include "SimpleRenderer.hpp"
 
-SimpleRenderer::SimpleRenderer()
-{
-
-}
-
-SimpleRenderer::~SimpleRenderer()
-{
-    m_logicalDevice.destroyPipeline(m_pipelines.skybox);
-    m_logicalDevice.destroyPipeline(m_pipelines.centerObject);
-    m_logicalDevice.destroyPipelineLayout(m_pipelineLayout);
-    m_logicalDevice.destroyDescriptorSetLayout(m_descriptorSetLayout);
-    m_models.centerModel.Destroy();
-    m_models.skybox.Destroy();
-    m_uniformBuffers.centerObject.Destroy();
-    m_uniformBuffers.skybox.Destroy();
-}
-
 void SimpleRenderer::Prepare()
 {
     VulkanRendererBase::Prepare();
@@ -34,6 +17,19 @@ void SimpleRenderer::Prepare()
     SetupDescriptorPool();
     SetupDescriptorSets();
     BuildCommandBuffers();
+}
+
+void SimpleRenderer::Cleanup()
+{
+    m_logicalDevice.destroyPipeline(m_pipelines.skybox);
+    m_logicalDevice.destroyPipeline(m_pipelines.centerObject);
+    m_logicalDevice.destroyPipelineLayout(m_pipelineLayout);
+    m_logicalDevice.destroyDescriptorSetLayout(m_descriptorSetLayout);
+    m_models.centerModel.Destroy();
+    m_models.skybox.Destroy();
+    m_uniformBuffers.centerObject.Destroy();
+    m_uniformBuffers.skybox.Destroy();
+    VulkanRendererBase::Cleanup();
 }
 
 void SimpleRenderer::GetEnabledFeatures()
@@ -119,11 +115,11 @@ void SimpleRenderer::BuildCommandBuffers()
 void SimpleRenderer::LoadModels()
 {
     Logger::Log("Loading models!");
-    m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "teapot.obj",
+    m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "bunny.obj",
                                  m_vertexLayout,
                                  m_wrappedDevice,
                                  m_graphicsQueue,
-                                 0.05f);
+                                 1.0f);
 
     m_models.skybox.LoadFromFile(Constants::MODEL_PATH + "cube.obj",
                                  m_vertexLayout,
@@ -156,14 +152,14 @@ void SimpleRenderer::PrepareUniformBuffers()
 void SimpleRenderer::UpdateUniformBuffers()
 {
     //Moving the camera
-    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_W)){
+    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_W)){
         m_camera.SetPosition(m_camera.GetPosition() - m_camera.GetForward() * 0.001f);
     }
-    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_S)){
+    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_S)){
         m_camera.SetPosition(m_camera.GetPosition() + m_camera.GetForward() * 0.001f);
     }
 
-    if(glfwGetMouseButton(m_window->GetWindow(), GLFW_MOUSE_BUTTON_1)){
+    if(glfwGetMouseButton(m_window->GetGlfwWindow(), GLFW_MOUSE_BUTTON_1)){
 
         int screenCenterX = m_swapchain.GetExtent().width /2;
         int screenCenterY = m_swapchain.GetExtent().height/2;
@@ -178,16 +174,16 @@ void SimpleRenderer::UpdateUniformBuffers()
 
     //TODO: Finalize key input system using callback
     //Deciding the rotation
-    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_I)){
+    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_I)){
         xRot += 0.1f;
     }
-    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_K)){
+    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_K)){
         xRot -= 0.1f;
     }
-    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_J)){
+    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_J)){
         yRot += 0.1f;
     }
-    if(glfwGetKey(m_window->GetWindow(), GLFW_KEY_L)){
+    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_L)){
         yRot -= 0.1f;
     }
 
