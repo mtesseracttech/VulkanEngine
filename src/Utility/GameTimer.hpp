@@ -28,7 +28,7 @@ private:
         m_start     = clock::now();
         m_deltaTime = 0.0;
     }
-    static void UpdateDelta()
+    static void Update()
     {
         m_previous  = m_current;
         m_current   = clock::now();

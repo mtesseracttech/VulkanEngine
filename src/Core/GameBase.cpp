@@ -48,31 +48,40 @@ void GameBase::RunGame()
     //Getting the window wrapper
     WrappedVulkanWindow * window = m_renderer.GetWindow();
 
+    //Basic game speed
     SetGameSpeed(60);
 
+    //Lag compensation variables
     double previous = GameTimer::Current();
     double lag = 0.0;
 
     //Uncontrolled base loop, to test FPS, timed loop will be added in when render works well
     while(!window->ShouldClose())
     {
+        //Let GLFW deal with its events
         glfwPollEvents();
 
-        GameTimer::UpdateDelta();
+        //Update the delta component of
+        GameTimer::Update();
 
+        //Calculating how many cycles the update needs to run
         double current = GameTimer::Current();
         double elapsed = current - previous;
         previous = current;
         lag += elapsed;
 
+        //Running the game update (multiple times) if needed
         while (lag > m_timePerUpdate)
         {
             m_gameWorld.Update();
             lag -= m_timePerUpdate;
         }
 
+        //Preparing to render
         m_renderer.UpdateUniformBuffers();
+        //Render Frame
         m_renderer.RenderFrame();
+        //Wait till GPU is done
         m_renderer.DeviceWaitIdle(); //Could likely be integrated into the renderframe function
     }
 
@@ -84,6 +93,7 @@ void GameBase::InitializeGameTimer()
     GameTimer::Reset();
 }
 
+//How many game updates per second happen
 void GameBase::SetGameSpeed(int p_tps)
 {
     if(p_tps > 0)
