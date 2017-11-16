@@ -4,7 +4,10 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 //UBO is on binding 0
+//Binding 1 is reflection
 layout (binding = 1) uniform samplerCube samplerColor;
+//Binding 2 is texture
+layout (binding = 2) uniform sampler2D baseTexture;
 
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec3 inNormal;
@@ -12,6 +15,7 @@ layout (location = 2) in float inLodBias;
 layout (location = 3) in vec3 inViewVec;
 layout (location = 4) in vec3 inLightVec;
 layout (location = 5) in mat4 inInvModelView;
+layout (location = 9) in vec2 inTexCoord;
 
 layout (location = 0) out vec4 outFragColor;
 
@@ -24,7 +28,7 @@ void main()
 	localReflection.x *= -1.0;
 
     //Getting sample color
-	vec4 color = texture(samplerColor, localReflection, inLodBias);
+	vec4 color = texture(samplerColor, localReflection, inLodBias) + texture(baseTexture, inTexCoord, inLodBias);
 
     //Normalize Inputs
 	vec3 surfaceNormal = normalize(inNormal);

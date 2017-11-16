@@ -195,6 +195,7 @@ struct VulkanModel
                     const aiVector3D *biTangent = (aiMesh->HasTangentsAndBitangents()) ? &(aiMesh->mBitangents[j])
                                                                                        : &Zero3D;
 
+
                     for (auto &component : p_layout.m_vertexComponents)
                     {
                         switch (component)
@@ -211,7 +212,7 @@ struct VulkanModel
                                 break;
                             case eUV:
                                 vertexBuffer.push_back(texCoord->x * uvscale.s);
-                                vertexBuffer.push_back(texCoord->y * uvscale.t);
+                                vertexBuffer.push_back(1.0f - texCoord->y * uvscale.t);
                                 break;
                             case eColor:
                                 vertexBuffer.push_back(color.r);

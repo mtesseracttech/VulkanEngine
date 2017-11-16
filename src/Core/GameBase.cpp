@@ -13,7 +13,7 @@ int main()
     {
         //Initialize base systems
         game.InitializeRenderer();
-        game.InitializeGameTimer();
+        game.InitializeTimers();
         game.InitializeInput();
 
         //Runs the game
@@ -49,7 +49,7 @@ void GameBase::RunGame()
     WrappedVulkanWindow * window = m_renderer.GetWindow();
 
     //Basic game speed
-    SetGameSpeed(60);
+    SetGameSpeed(30);
 
     //Lag compensation variables
     double previous = GameTimer::Current();
@@ -61,11 +61,8 @@ void GameBase::RunGame()
         //Let GLFW deal with its events
         glfwPollEvents();
 
-        //Update the delta component of
-        GameTimer::Update();
-
         //Calculating how many cycles the update needs to run
-        double current = GameTimer::Current();
+        double current = m_lagTimer.GetElapsed();
         double elapsed = current - previous;
         previous = current;
         lag += elapsed;
@@ -73,7 +70,11 @@ void GameBase::RunGame()
         //Running the game update (multiple times) if needed
         while (lag > m_timePerUpdate)
         {
+            //Updating the deltatime first, so all objects in the same frame get the same DeltaTime
+            GameTimer::Update();
+            //Updating the game world
             m_gameWorld.Update();
+            //Removing however much time a game update tick takes
             lag -= m_timePerUpdate;
         }
 
@@ -88,9 +89,10 @@ void GameBase::RunGame()
     m_renderer.Cleanup();
 }
 
-void GameBase::InitializeGameTimer()
+void GameBase::InitializeTimers()
 {
     GameTimer::Reset();
+    m_lagTimer.Reset();
 }
 
 //How many game updates per second happen

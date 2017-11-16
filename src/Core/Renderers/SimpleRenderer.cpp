@@ -8,7 +8,7 @@ void SimpleRenderer::Prepare()
 {
     VulkanRendererBase::Prepare();
     SetupCamera();
-    LoadSkyboxAssets();
+    LoadTextures();
     LoadModels();
     SetupVertexDescriptions();
     PrepareUniformBuffers();
@@ -115,12 +115,19 @@ void SimpleRenderer::BuildCommandBuffers()
 void SimpleRenderer::LoadModels()
 {
     Logger::Log("Loading models!");
-    m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "bunny.obj",
+
+    m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "FireHydrantMesh.obj",
                                  m_vertexLayout,
                                  m_wrappedDevice,
                                  m_graphicsQueue,
                                  1.0f);
-
+    /*
+    m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "Mp7.obj",
+                                      m_vertexLayout,
+                                      m_wrappedDevice,
+                                      m_graphicsQueue,
+                                      1.0f);
+    */
     m_models.skybox.LoadFromFile(Constants::MODEL_PATH + "cube.obj",
                                  m_vertexLayout,
                                  m_wrappedDevice,
@@ -146,7 +153,7 @@ void SimpleRenderer::PrepareUniformBuffers()
     m_uniformBuffers.centerObject.Map();
     m_uniformBuffers.skybox.Map();
 
-    UpdateUniformBuffers();
+    //UpdateUniformBuffers();
 }
 
 void SimpleRenderer::UpdateUniformBuffers()
@@ -163,8 +170,8 @@ void SimpleRenderer::UpdateUniformBuffers()
 
         int screenCenterX = m_swapchain.GetExtent().width /2;
         int screenCenterY = m_swapchain.GetExtent().height/2;
-        auto xScale = -static_cast<float>((m_window->GetCursorPos().x - screenCenterX) / screenCenterX);
-        auto yScale = static_cast<float>((m_window->GetCursorPos().y - screenCenterY) / screenCenterY);
+        auto xScale = -((m_window->GetCursorPos().x - screenCenterX) / screenCenterX);
+        auto yScale = (m_window->GetCursorPos().y - screenCenterY) / screenCenterY;
 
         m_camera.SetRotation(m_camera.GetRotation() + glm::vec3(yScale/10,xScale/10,0.0f));
     }
@@ -218,11 +225,18 @@ void SimpleRenderer::SetupDescriptorSetLayout()
 {
     Logger::Log("Setting up descriptor set layout");
     std::vector<vk::DescriptorSetLayoutBinding> setLayoutBindings = {
+            //UBO binding
             vk::DescriptorSetLayoutBinding(0,
                                            vk::DescriptorType::eUniformBuffer,
                                            1,
                                            vk::ShaderStageFlagBits::eVertex),
+            //Reflection Texture binding
             vk::DescriptorSetLayoutBinding(1,
+                                           vk::DescriptorType::eCombinedImageSampler,
+                                           1,
+                                           vk::ShaderStageFlagBits::eFragment),
+            //Diffuse Texture binding
+            vk::DescriptorSetLayoutBinding(2,
                                            vk::DescriptorType::eCombinedImageSampler,
                                            1,
                                            vk::ShaderStageFlagBits::eFragment)
@@ -351,10 +365,15 @@ void SimpleRenderer::SetupDescriptorSets()
 {
     Logger::Log("Setting up descriptor sets");
 
+    vk::DescriptorImageInfo reflectionDescriptor;
+    reflectionDescriptor.imageView   = m_skyboxTex.m_imageView;
+    reflectionDescriptor.imageLayout = m_skyboxTex.m_imageLayout;
+    reflectionDescriptor.sampler     = m_skyboxTex.m_imageSampler;
+
     vk::DescriptorImageInfo textureDescriptor;
-    textureDescriptor.imageView   = m_skyboxTex.m_imageView;
-    textureDescriptor.imageLayout = m_skyboxTex.m_imageLayout;
-    textureDescriptor.sampler     = m_skyboxTex.m_imageSampler;
+    textureDescriptor.imageView   = m_centerObjectTex.m_imageView;
+    textureDescriptor.imageLayout = m_centerObjectTex.m_imageLayout;
+    textureDescriptor.sampler     = m_centerObjectTex.m_imageSampler;
 
     vk::DescriptorSetAllocateInfo descriptorSetAllocateInfo;
     descriptorSetAllocateInfo.descriptorPool     = m_descriptorPool;
@@ -365,7 +384,8 @@ void SimpleRenderer::SetupDescriptorSets()
 
     std::vector<vk::WriteDescriptorSet> writeDescriptorSets{
             vk::WriteDescriptorSet(m_descriptorSets.centerObject, 0, 0, 1, vk::DescriptorType::eUniformBuffer, nullptr, &m_uniformBuffers.centerObject.m_descriptor, nullptr),
-            vk::WriteDescriptorSet(m_descriptorSets.centerObject, 1, 0, 1, vk::DescriptorType::eCombinedImageSampler, &textureDescriptor, nullptr, nullptr)
+            vk::WriteDescriptorSet(m_descriptorSets.centerObject, 1, 0, 1, vk::DescriptorType::eCombinedImageSampler, &reflectionDescriptor, nullptr, nullptr),
+            vk::WriteDescriptorSet(m_descriptorSets.centerObject, 2, 0, 1, vk::DescriptorType::eCombinedImageSampler, &textureDescriptor, nullptr, nullptr)
     };
 
     m_logicalDevice.updateDescriptorSets(static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
@@ -374,7 +394,7 @@ void SimpleRenderer::SetupDescriptorSets()
 
     writeDescriptorSets = {
             vk::WriteDescriptorSet(m_descriptorSets.skybox, 0, 0, 1, vk::DescriptorType::eUniformBuffer, nullptr, &m_uniformBuffers.skybox.m_descriptor, nullptr),
-            vk::WriteDescriptorSet(m_descriptorSets.skybox, 1, 0, 1, vk::DescriptorType::eCombinedImageSampler, &textureDescriptor, nullptr, nullptr)
+            vk::WriteDescriptorSet(m_descriptorSets.skybox, 1, 0, 1, vk::DescriptorType::eCombinedImageSampler, &reflectionDescriptor, nullptr, nullptr)
     };
 
     m_logicalDevice.updateDescriptorSets(static_cast<uint32_t>(writeDescriptorSets.size()), writeDescriptorSets.data(), 0, nullptr);
@@ -393,11 +413,14 @@ void SimpleRenderer::Render()
     VulkanRendererBase::SubmitFrame();
 }
 
-void SimpleRenderer::LoadSkyboxAssets()
+void SimpleRenderer::LoadTextures()
 {
     //Skybox texture
     if(m_deviceFeatures.textureCompressionBC) CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3SrgbBlock);
 
+    m_centerObjectTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "FireHydrant/fire_hydrant_Base_Color_BC3.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
+
+    //m_centerObjectTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "Mp7/MP7_D.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
 }
 
 void SimpleRenderer::CreateCubemap(const std::string &p_filename, vk::Format p_format)

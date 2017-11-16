@@ -17,7 +17,6 @@ private:
     glm::vec3 m_position;
     glm::mat4 m_perspective;
     glm::mat4 m_view;
-    float     m_zoom;
 
     void UpdateMatrix();
 public:

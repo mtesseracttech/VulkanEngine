@@ -18,6 +18,7 @@ private:
     GameWorld       m_gameWorld;
     int             m_ticksPerSecond;
     double          m_timePerUpdate;
+    Timer           m_lagTimer;
 
     void SetGameSpeed(int p_tps);
 public:
@@ -25,7 +26,7 @@ public:
 
     void InitializeRenderer();
     void InitializeInput();
-    void InitializeGameTimer();
+    void InitializeTimers();
 };
 
 

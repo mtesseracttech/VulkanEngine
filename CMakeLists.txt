@@ -35,7 +35,7 @@ set(SOURCE_FILES
         src/Material/AbstractMaterial.hpp
         src/Material/SkyboxMaterial.hpp 
         src/Core/KeyInput.cpp 
-	src/Core/KeyInput.hpp src/Utility/GameTimer.hpp)
+	src/Core/KeyInput.hpp src/Utility/GameTimer.hpp src/Core/MtVulkanAPI/VulkanRenderable.cpp src/Core/MtVulkanAPI/VulkanRenderable.hpp src/Core/Renderers/WorldRenderer.cpp src/Core/Renderers/WorldRenderer.hpp src/Behaviours/Behaviour.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 

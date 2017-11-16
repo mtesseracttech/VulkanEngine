@@ -9,8 +9,6 @@
 
 class VulkanShaderProgram
 {
-private:
-    std::vector<vk::PipelineShaderStageCreateInfo> m_shaderStages;
 protected:
 public:
 };

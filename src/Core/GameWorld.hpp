@@ -18,10 +18,7 @@ public:
         return m_camera;
     }
 
-    void Update() override
-    {
-        std::cout << "Delta: " << GameTimer::Delta() << std::endl;
-    }
+
 };
 
 #endif //VULKANENGINE_GAMEWORLD_HPP

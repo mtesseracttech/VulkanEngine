@@ -72,6 +72,7 @@ class SimpleRenderer : public VulkanRendererBase
     vk::DescriptorSetLayout     m_descriptorSetLayout;
 
     VulkanCubemap               m_skyboxTex;
+    VulkanTexture2D             m_centerObjectTex;
 
     Camera                      m_camera; //real camera
 
@@ -89,7 +90,7 @@ public:
 
     void BuildCommandBuffers() override;
 
-    void LoadSkyboxAssets();
+    void LoadTextures();
 
     void LoadModels();
 
