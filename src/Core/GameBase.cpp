@@ -73,7 +73,7 @@ void GameBase::RunGame()
             //Updating the deltatime first, so all objects in the same frame get the same DeltaTime
             GameTimer::Update();
             //Updating the game world
-            m_gameWorld.Update();
+
             //Removing however much time a game update tick takes
             lag -= m_timePerUpdate;
         }

@@ -6,23 +6,21 @@
 #define VULKANENGINE_WORLDRENDERER_HPP
 
 
-#include <Core/GameWorld.hpp>
 #include <Core/MtVulkanAPI/VulkanRendererBase.hpp>
+
+class GameWorld;
+//#include <Core/GameWorld.hpp>
 
 class WorldRenderer : public VulkanRendererBase
 {
-protected:
-
-    GameWorld * m_gameWorld;
-
     const uint32_t VERTEX_BUFFER_BIND_ID = 0;
-
     vk::PipelineLayout m_pipelineLayout;
-
     //Set if the gameworld has changed and the buffers need to be refreshed
-    bool m_needsBuild;
+    bool m_needsBuild = true;
 public:
     void BuildCommandBuffers();
+
+    GameWorld * m_gameWorld;
 };
 
 

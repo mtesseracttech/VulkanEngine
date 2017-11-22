@@ -4,16 +4,11 @@
 
 #include "GameObject.hpp"
 
-GameObject::GameObject()
-{
-
-}
-
 void GameObject::Update()
 {
     if(m_behaviour) m_behaviour->Update();
 
-    for (int i = static_cast<int>(m_children.size() - 1); i >= 0; --i)
+    for (auto i = static_cast<int>(m_children.size() - 1); i >= 0; --i)
     {
         m_children[i]->Update();
     }

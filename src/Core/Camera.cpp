@@ -3,6 +3,7 @@
 //
 
 #include "Camera.hpp"
+#include "Utility/ConsoleGlm.hpp"
 
 //Sets the rotation of the camera and updates the view matrix
 void Camera::SetRotation(glm::vec3 p_rotation)
@@ -21,9 +22,11 @@ void Camera::SetPosition(const glm::vec3 p_position)
 //Updates the view matrix using the current rotation and position
 void Camera::UpdateMatrix()
 {
-    glm::mat4 rotMat = glm::mat4(1.0f);
     glm::mat4 posMat = glm::translate(glm::mat4(1.0f), m_position);
 
+    std::cout << posMat << std::endl;
+
+    glm::mat4 rotMat = glm::mat4(1.0f);
     rotMat = glm::rotate(rotMat, glm::radians(m_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
     rotMat = glm::rotate(rotMat, glm::radians(m_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     rotMat = glm::rotate(rotMat, glm::radians(m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -49,7 +52,12 @@ const glm::mat4 Camera::GetViewMat()
 
 const glm::vec3 Camera::GetForward()
 {
-    return glm::vec3(m_perspective[2]);
+    return glm::vec3(m_view[2]);
+}
+
+const glm::vec3 Camera::GetRight()
+{
+    return glm::vec3(m_view[0]);
 }
 
 const glm::vec3 Camera::GetPosition()

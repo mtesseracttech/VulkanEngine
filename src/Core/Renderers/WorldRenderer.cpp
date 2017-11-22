@@ -3,7 +3,7 @@
 //
 
 #include "WorldRenderer.hpp"
-
+#include <Core/GameWorld.hpp>
 
 void WorldRenderer::BuildCommandBuffers()
 {

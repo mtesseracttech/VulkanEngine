@@ -11,8 +11,6 @@
 class GameObject
 {
 public:
-    GameObject();
-
     //Child management
     void RemoveChild(GameObject * p_child);
     void AddChild(GameObject * p_child);

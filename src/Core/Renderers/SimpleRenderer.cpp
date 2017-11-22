@@ -160,10 +160,16 @@ void SimpleRenderer::UpdateUniformBuffers()
 {
     //Moving the camera
     if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_W)){
-        m_camera.SetPosition(m_camera.GetPosition() - m_camera.GetForward() * 0.001f);
+        m_camera.SetPosition(m_camera.GetPosition() + m_camera.GetForward() * 0.01f);
     }
     if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_S)){
-        m_camera.SetPosition(m_camera.GetPosition() + m_camera.GetForward() * 0.001f);
+        m_camera.SetPosition(m_camera.GetPosition() - m_camera.GetForward() * 0.01f);
+    }
+    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_A)){
+        m_camera.SetPosition(m_camera.GetPosition() + m_camera.GetRight() * 0.01f);
+    }
+    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_D)){
+        m_camera.SetPosition(m_camera.GetPosition() - m_camera.GetRight() * 0.01f);
     }
 
     if(glfwGetMouseButton(m_window->GetGlfwWindow(), GLFW_MOUSE_BUTTON_1)){
@@ -173,7 +179,7 @@ void SimpleRenderer::UpdateUniformBuffers()
         auto xScale = -((m_window->GetCursorPos().x - screenCenterX) / screenCenterX);
         auto yScale = (m_window->GetCursorPos().y - screenCenterY) / screenCenterY;
 
-        m_camera.SetRotation(m_camera.GetRotation() + glm::vec3(yScale/10,xScale/10,0.0f));
+        m_camera.SetRotation(m_camera.GetRotation() + glm::vec3(-yScale/10,-xScale/10,0.0f));
     }
 
     //Scoped statics storing the center object rotation

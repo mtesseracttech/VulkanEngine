@@ -14,8 +14,7 @@ set(SOURCE_FILES
         src/Core/Camera.hpp
         src/Core/GameObject.cpp
         src/Core/GameObject.hpp
-        src/Core/GameWorld.hpp
-        src/Core/GameBase.cpp 
+        src/Core/GameBase.cpp
         src/Core/GameBase.hpp
         src/Core/MtVulkanAPI/VulkanRendererBase.cpp
         src/Core/MtVulkanAPI/VulkanRendererBase.hpp
@@ -29,13 +28,22 @@ set(SOURCE_FILES
         src/Core/MtVulkanAPI/WrappedVulkanWindow.hpp
         src/Core/MtVulkanAPI/VulkanModel.hpp
         src/Core/MtVulkanAPI/VulkanTexture.hpp
-	src/Core/MtVulkanAPI/VulkanShaderProgram.hpp
+	    src/Core/MtVulkanAPI/VulkanShaderProgram.hpp
         src/Core/Renderers/SimpleRenderer.cpp
         src/Core/Renderers/SimpleRenderer.hpp
         src/Material/AbstractMaterial.hpp
         src/Material/SkyboxMaterial.hpp 
         src/Core/KeyInput.cpp 
-	src/Core/KeyInput.hpp src/Utility/GameTimer.hpp src/Core/MtVulkanAPI/VulkanRenderable.cpp src/Core/MtVulkanAPI/VulkanRenderable.hpp src/Core/Renderers/WorldRenderer.cpp src/Core/Renderers/WorldRenderer.hpp src/Behaviours/Behaviour.hpp)
+	    src/Core/KeyInput.hpp
+        src/Utility/GameTimer.hpp
+        src/Core/MtVulkanAPI/VulkanRenderable.cpp
+        src/Core/MtVulkanAPI/VulkanRenderable.hpp
+        src/Core/Renderers/WorldRenderer.cpp
+        src/Core/Renderers/WorldRenderer.hpp
+        src/Behaviours/Behaviour.hpp
+        src/Core/GameWorld.cpp
+        src/Core/GameWorld.hpp
+        src/Utility/ConsoleGlm.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 

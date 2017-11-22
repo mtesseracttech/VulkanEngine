@@ -39,8 +39,3 @@ void VulkanRenderable::CreateUbo(WrappedVulkanDevice * p_device, uint32_t uboSiz
 
     m_uniformBuffer.Map();
 }
-
-void VulkanRenderable::LoadModel()
-{
-
-}
