@@ -24,8 +24,8 @@ void main()
     //Getting local reflection
 	vec3 localReflection = reflect(normalize(inPos), normalize(inNormal));
 
-	localReflection = vec3(inInvModelView * vec4(localReflection, 1.0)); //Scalar may have to be 0.0
-	localReflection.x *= -1.0;
+	localReflection = vec3(inInvModelView * vec4(localReflection, 1.0));
+	//localReflection.x *= -1.0;
 
     //Getting sample color
 	vec4 color = texture(samplerColor, localReflection, inLodBias) + texture(baseTexture, inTexCoord, inLodBias);
@@ -36,6 +36,8 @@ void main()
 	vec3 viewDirection = normalize(inViewVec);
 
 	vec3 reflectionVec = reflect(-surfaceLight, surfaceNormal);
+
+	//Combining into a phong like structure
 	vec3 ambient = vec3(0.5) * color.rgb;
 	vec3 diffuse = max(dot(surfaceNormal, surfaceLight), 0.0) * vec3(1.0);
 	vec3 specular = pow(max(dot(reflectionVec, viewDirection), 0.0), 16.0) * vec3(0.5);

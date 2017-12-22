@@ -24,14 +24,14 @@ void Camera::UpdateMatrix()
 {
     glm::mat4 posMat = glm::translate(glm::mat4(1.0f), m_position);
 
-    std::cout << posMat << std::endl;
+    //std::cout << posMat << std::endl;
 
     glm::mat4 rotMat = glm::mat4(1.0f);
     rotMat = glm::rotate(rotMat, glm::radians(m_rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
     rotMat = glm::rotate(rotMat, glm::radians(m_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     rotMat = glm::rotate(rotMat, glm::radians(m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    m_view = rotMat * posMat;
+    m_view = posMat * rotMat;
 }
 
 //Allows to set a perspective matrix for the camera, using FoV (in degrees), aspect ratio, and clip plane limits

@@ -47,15 +47,6 @@ void KeyInput::KeyDown(int p_key)
 bool KeyInput::GetKeyDown(int p_key)
 {
     return m_keys[p_key] > m_timer.GetElapsed() - 1.0/60.0;
-    try
-    {
-        //Todo: Integrate time step in this properly
-        //return (m_keys.at(p_key) > m_timer.GetElapsed() - 1.0/60.0);
-    }
-    catch (const std::out_of_range& ex)
-    {
-        return false;
-    }
 }
 
 bool KeyInput::GetKey(int p_key)

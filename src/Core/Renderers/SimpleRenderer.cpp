@@ -338,7 +338,7 @@ void SimpleRenderer::PreparePipeline()
 
     m_pipelines.skybox = m_logicalDevice.createGraphicsPipeline(m_pipelineCache, pipelineCreateInfo);
 
-    //Phong specific
+    //Center Object specific
 
     shaderStages[0] = LoadShader(Constants::SHADER_PATH + "reflect.vert.spv", vk::ShaderStageFlagBits::eVertex);
     shaderStages[1] = LoadShader(Constants::SHADER_PATH + "reflect.frag.spv", vk::ShaderStageFlagBits::eFragment);
@@ -356,6 +356,7 @@ void SimpleRenderer::SetupDescriptorPool()
     Logger::Log("Setting up descriptor pool");
     std::vector<vk::DescriptorPoolSize> descriptorPoolSizes{
             vk::DescriptorPoolSize(vk::DescriptorType::eUniformBuffer, 2),
+            vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, 2),
             vk::DescriptorPoolSize(vk::DescriptorType::eCombinedImageSampler, 2)
     };
 
@@ -421,18 +422,19 @@ void SimpleRenderer::Render()
 
 void SimpleRenderer::LoadTextures()
 {
-    //Skybox texture
-    if(m_deviceFeatures.textureCompressionBC) CreateCubemap("NebulaSkyboxBC3.ktx", vk::Format::eBc3SrgbBlock);
-
-    m_centerObjectTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "FireHydrant/fire_hydrant_Base_Color_BC3.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
-
-    //m_centerObjectTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "Mp7/MP7_D.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
+    //Check if the device supports BC hardware decompression
+    if(m_deviceFeatures.textureCompressionBC)
+    {
+        m_skyboxTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "cubemap_yokohama_bc3_unorm.ktx", vk::Format::eBc3UnormBlock, m_graphicsQueue);
+        //m_skyboxTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "NebulaSkyboxBC3.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
+        m_centerObjectTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "FireHydrant/fire_hydrant_Base_Color_BC3.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
+        //m_centerObjectTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "Mp7/MP7_D.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
+    }
 }
 
 void SimpleRenderer::CreateCubemap(const std::string &p_filename, vk::Format p_format)
 {
     Logger::Log("Loading skybox: " + p_filename);
-    m_skyboxTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + p_filename, p_format, m_graphicsQueue);
 }
 
 void SimpleRenderer::SetupVertexDescriptions()
