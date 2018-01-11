@@ -8,17 +8,17 @@
 #include <Core/MtVulkanAPI/VulkanModel.hpp>
 
 struct StandardLayout{
-    const VertexLayout basicLayout = VertexLayout({
+    static const VertexLayout basicLayout = VertexLayout({
         VulkanVertexComponent::ePosition,
         VulkanVertexComponent::eNormal,
         VulkanVertexComponent::eUV
     });
 
-    std::vector<vk::VertexInputAttributeDescription> vertexInputAttributes = {
-            vk::VertexInputAttributeDescription()
-            //vks::initializers::vertexInputAttributeDescription(0, 0, VK_FORMAT_R32G32B32_SFLOAT, 0),					// Position
-            //vks::initializers::vertexInputAttributeDescription(0, 1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3),	// Normal
-            //vks::initializers::vertexInputAttributeDescription(0, 2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 5),		// UV
+    static const std::vector<vk::VertexInputAttributeDescription> vertexInputAttributes = {
+            //(Location, binding, format, offset)
+            vk::VertexInputAttributeDescription(0, 0, vk::Format::eR32G32B32Sfloat, sizeof(float) * 0), //Position
+            vk::VertexInputAttributeDescription(1, 0, vk::Format::eR32G32B32Sfloat, sizeof(float) * 3), //Normal
+            vk::VertexInputAttributeDescription(2, 0, vk::Format::eR32G32Sfloat   , sizeof(float) * 5)  //UV
     };
 };
 

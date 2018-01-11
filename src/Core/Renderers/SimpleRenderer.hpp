@@ -73,7 +73,6 @@ class SimpleRenderer : public VulkanRendererBase
 
     VulkanCubemap               m_skyboxTex;
     VulkanTexture2D             m_centerObjectTex;
-
     Camera                      m_camera; //real camera
 
 protected:
