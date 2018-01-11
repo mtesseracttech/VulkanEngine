@@ -21,6 +21,7 @@ void SimpleRenderer::Prepare()
 
 void SimpleRenderer::Cleanup()
 {
+    Logger::Log("Cleaning up SimpleRenderer");
     m_logicalDevice.destroyPipeline(m_pipelines.skybox);
     m_logicalDevice.destroyPipeline(m_pipelines.centerObject);
     m_logicalDevice.destroyPipelineLayout(m_pipelineLayout);

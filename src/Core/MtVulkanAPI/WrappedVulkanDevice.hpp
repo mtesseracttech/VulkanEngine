@@ -73,7 +73,7 @@ struct WrappedVulkanDevice
                 {
                     if (p_memTypeFound)
                     {
-                        *p_memTypeFound = static_cast<vk::Bool32>(true);
+                        *p_memTypeFound = vk::Bool32(true);
                     }
                     return i;
                 }
@@ -84,7 +84,7 @@ struct WrappedVulkanDevice
         //If the optional p_memTypeFound is passed too and accounted for, not finding memory will not result in an error.
         if (p_memTypeFound)
         {
-            *p_memTypeFound = static_cast<vk::Bool32>(false);
+            *p_memTypeFound = vk::Bool32(false);
             return 0;
         }
         else

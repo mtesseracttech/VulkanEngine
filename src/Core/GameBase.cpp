@@ -30,11 +30,10 @@ int main()
 
 void GameBase::InitializeRenderer()
 {
-    Logger::Log("Initializing the renderer");
     //Sets up the base of the renderer
-    m_renderer.Initialize();
+    //m_renderer.Initialize();
     //Sets up the render type specific things
-    m_renderer.Prepare();
+    //m_renderer.Prepare();
 }
 
 void GameBase::InitializeInput()
@@ -86,7 +85,7 @@ void GameBase::RunGame()
         m_renderer.DeviceWaitIdle(); //Could likely be integrated into the renderframe function
     }
 
-    m_renderer.Cleanup();
+    //m_renderer.Cleanup();
 }
 
 void GameBase::InitializeTimers()

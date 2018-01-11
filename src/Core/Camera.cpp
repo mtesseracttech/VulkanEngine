@@ -31,7 +31,11 @@ void Camera::UpdateMatrix()
     rotMat = glm::rotate(rotMat, glm::radians(m_rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
     rotMat = glm::rotate(rotMat, glm::radians(m_rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
 
-    m_view = posMat * rotMat;
+    switch(m_cameraType){
+
+        case FirstPerson: m_view = glm::inverse(rotMat * posMat); break;
+        case OrbCam:      m_view = glm::inverse(posMat * rotMat); break;
+    }
 }
 
 //Allows to set a perspective matrix for the camera, using FoV (in degrees), aspect ratio, and clip plane limits
@@ -68,4 +72,10 @@ const glm::vec3 Camera::GetPosition()
 const glm::vec3 Camera::GetRotation()
 {
     return m_rotation;
+}
+
+void Camera::SetCameraType(CameraType p_type)
+{
+    m_cameraType = p_type;
+    UpdateMatrix();
 }

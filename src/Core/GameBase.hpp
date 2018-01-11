@@ -9,11 +9,12 @@
 #include <iostream>
 #include <Utility/Logger.hpp>
 #include <Core/Renderers/SimpleRenderer.hpp>
+#include <Core/Renderers/PbrRenderer.hpp>
 
 class GameBase
 {
 private:
-    SimpleRenderer  m_renderer;
+    PbrRenderer     m_renderer;
     int             m_ticksPerSecond;
     double          m_timePerUpdate;
     Timer           m_lagTimer;

@@ -43,7 +43,7 @@ set(SOURCE_FILES
         src/Behaviours/Behaviour.hpp
         src/Core/GameWorld.cpp
         src/Core/GameWorld.hpp
-        src/Utility/ConsoleGlm.hpp src/Core/Renderers/PbrRenderer.cpp src/Core/Renderers/PbrRenderer.h src/Material/SimplePbrMaterial.hpp src/Core/VertexLayouts/StandardLayout.hpp)
+        src/Utility/ConsoleGlm.hpp src/Core/Renderers/PbrRenderer.cpp src/Core/Renderers/PbrRenderer.hpp src/Material/SimplePbrMaterial.hpp src/Core/VertexLayouts/StandardLayout.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 

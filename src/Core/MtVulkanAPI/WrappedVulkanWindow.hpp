@@ -105,6 +105,13 @@ public:
     {
         glfwSetWindowTitle(m_window, p_title.c_str());
     }
+
+    float GetAspectRatio()
+    {
+        int width, height;
+        glfwGetWindowSize(m_window, &width, &height);
+        return static_cast<float>(width) / static_cast<float>(height);
+    }
 };
 
 
