@@ -15,6 +15,7 @@ class GameBase
 {
 private:
     PbrRenderer     m_renderer;
+    //SimpleRenderer  m_renderer;
     int             m_ticksPerSecond;
     double          m_timePerUpdate;
     Timer           m_lagTimer;

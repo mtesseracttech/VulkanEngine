@@ -478,6 +478,7 @@ void SimpleRenderer::SetupVertexDescriptions()
 void SimpleRenderer::SetupCamera()
 {
     m_camera.SetPerspective(60, (static_cast<float>(m_window->GetWindowSize().x) / static_cast<float>(m_window->GetWindowSize().y)), 0.01f, 256.0f);
+    m_camera.SetCameraType(CameraType::FirstPerson);
     m_camera.SetPosition(glm::vec3(0,0,0));
     m_camera.SetRotation(glm::vec3(-25.0f, 15.0f, 0.0f));
 }

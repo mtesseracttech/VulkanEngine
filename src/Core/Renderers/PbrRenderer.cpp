@@ -28,8 +28,10 @@ void PbrRenderer::Prepare()
     SetupModels();
     //Preparing the uniform buffers
     SetupUniformBuffers();
-
-
+    //Preparing Descriptor Set Layout
+    SetupDescriptorSetLayout();
+    //Setting up the graphics pipeline
+    SetupPipeline();
 }
 
 void PbrRenderer::Cleanup()
@@ -60,10 +62,9 @@ void PbrRenderer::Cleanup()
 
 void PbrRenderer::SetupCamera()
 {
-    //m_camera.SetPerspective(90.0f, m_window->GetAspectRatio(), 0.001f, 1000f);
+    m_camera.SetPerspective(90.0f, m_window->GetAspectRatio(), 0.001f, 1000.0f);
     m_camera.SetCameraType(CameraType::FirstPerson);
     std::cout << m_window->GetAspectRatio() << std::endl;
-    m_camera.SetPerspective(60f, m_window->GetAspectRatio(), 0.0001f, 1000f);
     m_camera.SetPosition(glm::vec3( 10.0f, 13.0f, 1.8f));
     m_camera.SetRotation(glm::vec3(-62.5f, 90.0f, 0.0f));
 }
@@ -127,6 +128,73 @@ void PbrRenderer::Render()
 
 void PbrRenderer::UpdateUniformBuffers()
 {
+}
+
+void PbrRenderer::SetupDescriptorSetLayout()
+{
+    vk::DescriptorSetLayoutBinding uboMatrixLayoutBinding;
+    uboMatrixLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+    uboMatrixLayoutBinding.stageFlags = vk::ShaderStageFlagBits ::eVertex;
+    uboMatrixLayoutBinding.descriptorCount = 1;
+    uboMatrixLayoutBinding.binding = 0;
+
+    vk::DescriptorSetLayoutBinding uboPropertiesLayoutBinding;
+    uboPropertiesLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
+    uboPropertiesLayoutBinding.stageFlags = vk::ShaderStageFlagBits ::eVertex | vk::ShaderStageFlagBits ::eFragment;
+    uboPropertiesLayoutBinding.descriptorCount = 1;
+    uboPropertiesLayoutBinding.binding = 1;
+
+    std::vector<vk::DescriptorSetLayoutBinding> layoutBindings = {
+            uboMatrixLayoutBinding,
+            uboPropertiesLayoutBinding
+    };
+
+    vk::DescriptorSetLayoutCreateInfo createInfo;
+    createInfo.pBindings = layoutBindings.data();
+    createInfo.bindingCount = layoutBindings.size();
+
+    m_descriptorSetLayout = m_logicalDevice.createDescriptorSetLayout(createInfo);
+}
+
+void PbrRenderer::SetupPipelineLayout()
+{
+    vk::PushConstantRange objectPositionConstantRange;
+    objectPositionConstantRange.size = sizeof(glm::vec3);
+    objectPositionConstantRange.stageFlags = vk::ShaderStageFlagBits ::eVertex;
+
+    vk::PushConstantRange materialPropertiesConstantRange;
+    materialPropertiesConstantRange.size = sizeof(SimplePbrMaterial::Properties);
+    materialPropertiesConstantRange.stageFlags = vk::ShaderStageFlagBits ::eFragment;
+
+    std::vector<vk::PushConstantRange> pushConstantRanges = {
+            objectPositionConstantRange,
+            materialPropertiesConstantRange
+    };
+
+    vk::PipelineLayoutCreateInfo layoutCreateInfo;
+    layoutCreateInfo.pSetLayouts = &m_descriptorSetLayout;
+    layoutCreateInfo.setLayoutCount = 1;
+    layoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
+    layoutCreateInfo.pushConstantRangeCount = 2;
+
+    m_pipelineLayout = m_logicalDevice.createPipelineLayout(layoutCreateInfo);
+}
+
+void PbrRenderer::SetupPipeline()
+{
+    vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState;
+    inputAssemblyState.primitiveRestartEnable = vk::Bool32(false);
+    inputAssemblyState.topology = vk::PrimitiveTopology ::eTriangleList;
+    inputAssemblyState.flags = vk::PipelineInputAssemblyStateCreateFlagBits(0);
+
+    vk::PipelineRasterizationStateCreateInfo rasterizationState;
+    rasterizationState.cullMode = vk::CullModeFlagBits ::eBack;
+    rasterizationState.polygonMode = vk::PolygonMode ::eFill;
+    rasterizationState.frontFace = vk::FrontFace ::eCounterClockwise;
+
+    vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
+
+    m_pipeline = m_logicalDevice.createGraphicsPipeline(m_pipelineCache, pipelineCreateInfo);
 }
 
 

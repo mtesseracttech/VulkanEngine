@@ -7,9 +7,9 @@
 
 #include "AbstractMaterial.hpp"
 
-struct SimplePbrMaterial : AbstractMaterial
+struct SimplePbrMaterial// : AbstractMaterial
 {
-    SimplePbrMaterial(){};
+    SimplePbrMaterial() = default;;
 
     SimplePbrMaterial(glm::vec3 p_color, float p_roughness, float p_metallicness)
     {

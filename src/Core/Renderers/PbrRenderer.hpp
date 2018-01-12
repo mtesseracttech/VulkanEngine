@@ -32,7 +32,7 @@ public:
     struct Meshes
     {
         std::vector<VulkanModel> m_models;
-        int32_t                  m_objectIndex          = 0;
+        int32_t                  m_objectIndex      = 0;
     } m_objects;
 
     std::vector<SimplePbrMaterial> m_materials;
@@ -66,19 +66,32 @@ private:
 //Methods
 public:
     PbrRenderer();
+
     virtual ~PbrRenderer();
+
 protected:
     void BuildCommandBuffers() override;
+
     void Render() override;
+
     void Prepare() override;
+
     void Cleanup() override;
+
 private:
     void SetupMaterials();
+
     void SetupCamera();
 
     void SetupModels();
 
     void SetupUniformBuffers();
+
+    void SetupDescriptorSetLayout();
+
+    void SetupPipelineLayout();
+
+    void SetupPipeline();
 };
 
 

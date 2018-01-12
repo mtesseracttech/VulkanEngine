@@ -103,4 +103,3 @@ void GameBase::SetGameSpeed(int p_tps)
         m_timePerUpdate  = 1.0 / p_tps;
     }
 }
-
