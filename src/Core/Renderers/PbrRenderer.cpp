@@ -2,6 +2,7 @@
 // Created by mtesseract on 20-12-17.
 //
 
+#include <Core/MtVulkanAPI/VertexInputDescriptor.hpp>
 #include "PbrRenderer.hpp"
 
 PbrRenderer::PbrRenderer()
@@ -30,6 +31,8 @@ void PbrRenderer::Prepare()
     SetupUniformBuffers();
     //Preparing Descriptor Set Layout
     SetupDescriptorSetLayout();
+    //Preparing the pipeline layout
+    SetupPipelineLayout();
     //Setting up the graphics pipeline
     SetupPipeline();
 }
@@ -41,17 +44,17 @@ void PbrRenderer::Cleanup()
     m_logicalDevice.destroyPipelineLayout(m_pipelineLayout);
     m_logicalDevice.destroyDescriptorSetLayout(m_descriptorSetLayout);
 
-    for (auto& model : m_objects.m_models)
+    for (auto &model : m_objects.m_models)
     {
         model.Destroy();
     }
 
-    if(m_uniformBuffers.m_object.m_device)
+    if (m_uniformBuffers.m_object.m_device)
     {
         m_uniformBuffers.m_object.Destroy();
     }
 
-    if(m_uniformBuffers.m_params.m_device)
+    if (m_uniformBuffers.m_params.m_device)
     {
         m_uniformBuffers.m_params.Destroy();
     }
@@ -65,14 +68,15 @@ void PbrRenderer::SetupCamera()
     m_camera.SetPerspective(90.0f, m_window->GetAspectRatio(), 0.001f, 1000.0f);
     m_camera.SetCameraType(CameraType::FirstPerson);
     std::cout << m_window->GetAspectRatio() << std::endl;
-    m_camera.SetPosition(glm::vec3( 10.0f, 13.0f, 1.8f));
+    m_camera.SetPosition(glm::vec3(10.0f, 13.0f, 1.8f));
     m_camera.SetRotation(glm::vec3(-62.5f, 90.0f, 0.0f));
 }
 
 void PbrRenderer::SetupMaterials()
 {
+    m_materials.clear();
     //Metals
-    m_materials.push_back(SimplePbrMaterial(glm::vec3(1.0f,      0.765557f, 0.336057f), 0.1f, 1.0f));
+    m_materials.push_back(SimplePbrMaterial(glm::vec3(1.0f, 0.765557f, 0.336057f), 0.1f, 1.0f));
     m_materials.push_back(SimplePbrMaterial(glm::vec3(0.955008f, 0.637427f, 0.538163f), 0.1f, 1.0f));
     m_materials.push_back(SimplePbrMaterial(glm::vec3(0.549585f, 0.556114f, 0.554256f), 0.1f, 1.0f));
     m_materials.push_back(SimplePbrMaterial(glm::vec3(0.659777f, 0.608679f, 0.525649f), 0.1f, 1.0f));
@@ -89,8 +93,8 @@ void PbrRenderer::SetupMaterials()
 
 void PbrRenderer::SetupModels()
 {
-    std::vector<std::string> filenames = { "teapot.dae" };
-    for (const auto &file : filenames)
+    std::vector<std::string> filenames = {"teapot.dae"};
+    for (const auto          &file : filenames)
     {
         VulkanModel model;
         model.LoadFromFile(Constants::MODEL_PATH + file, m_vertexLayout, m_wrappedDevice, m_graphicsQueue);
@@ -133,16 +137,16 @@ void PbrRenderer::UpdateUniformBuffers()
 void PbrRenderer::SetupDescriptorSetLayout()
 {
     vk::DescriptorSetLayoutBinding uboMatrixLayoutBinding;
-    uboMatrixLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-    uboMatrixLayoutBinding.stageFlags = vk::ShaderStageFlagBits ::eVertex;
+    uboMatrixLayoutBinding.descriptorType  = vk::DescriptorType::eUniformBuffer;
+    uboMatrixLayoutBinding.stageFlags      = vk::ShaderStageFlagBits::eVertex;
     uboMatrixLayoutBinding.descriptorCount = 1;
-    uboMatrixLayoutBinding.binding = 0;
+    uboMatrixLayoutBinding.binding         = 0;
 
     vk::DescriptorSetLayoutBinding uboPropertiesLayoutBinding;
-    uboPropertiesLayoutBinding.descriptorType = vk::DescriptorType::eUniformBuffer;
-    uboPropertiesLayoutBinding.stageFlags = vk::ShaderStageFlagBits ::eVertex | vk::ShaderStageFlagBits ::eFragment;
+    uboPropertiesLayoutBinding.descriptorType  = vk::DescriptorType::eUniformBuffer;
+    uboPropertiesLayoutBinding.stageFlags      = vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment;
     uboPropertiesLayoutBinding.descriptorCount = 1;
-    uboPropertiesLayoutBinding.binding = 1;
+    uboPropertiesLayoutBinding.binding         = 1;
 
     std::vector<vk::DescriptorSetLayoutBinding> layoutBindings = {
             uboMatrixLayoutBinding,
@@ -150,8 +154,8 @@ void PbrRenderer::SetupDescriptorSetLayout()
     };
 
     vk::DescriptorSetLayoutCreateInfo createInfo;
-    createInfo.pBindings = layoutBindings.data();
-    createInfo.bindingCount = layoutBindings.size();
+    createInfo.pBindings    = layoutBindings.data();
+    createInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
 
     m_descriptorSetLayout = m_logicalDevice.createDescriptorSetLayout(createInfo);
 }
@@ -159,12 +163,12 @@ void PbrRenderer::SetupDescriptorSetLayout()
 void PbrRenderer::SetupPipelineLayout()
 {
     vk::PushConstantRange objectPositionConstantRange;
-    objectPositionConstantRange.size = sizeof(glm::vec3);
-    objectPositionConstantRange.stageFlags = vk::ShaderStageFlagBits ::eVertex;
+    objectPositionConstantRange.size       = sizeof(glm::vec3);
+    objectPositionConstantRange.stageFlags = vk::ShaderStageFlagBits::eVertex;
 
     vk::PushConstantRange materialPropertiesConstantRange;
-    materialPropertiesConstantRange.size = sizeof(SimplePbrMaterial::Properties);
-    materialPropertiesConstantRange.stageFlags = vk::ShaderStageFlagBits ::eFragment;
+    materialPropertiesConstantRange.size       = sizeof(SimplePbrMaterial::Properties);
+    materialPropertiesConstantRange.stageFlags = vk::ShaderStageFlagBits::eFragment;
 
     std::vector<vk::PushConstantRange> pushConstantRanges = {
             objectPositionConstantRange,
@@ -172,9 +176,9 @@ void PbrRenderer::SetupPipelineLayout()
     };
 
     vk::PipelineLayoutCreateInfo layoutCreateInfo;
-    layoutCreateInfo.pSetLayouts = &m_descriptorSetLayout;
-    layoutCreateInfo.setLayoutCount = 1;
-    layoutCreateInfo.pPushConstantRanges = pushConstantRanges.data();
+    layoutCreateInfo.pSetLayouts            = &m_descriptorSetLayout;
+    layoutCreateInfo.setLayoutCount         = 1;
+    layoutCreateInfo.pPushConstantRanges    = pushConstantRanges.data();
     layoutCreateInfo.pushConstantRangeCount = 2;
 
     m_pipelineLayout = m_logicalDevice.createPipelineLayout(layoutCreateInfo);
@@ -184,21 +188,77 @@ void PbrRenderer::SetupPipeline()
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState;
     inputAssemblyState.primitiveRestartEnable = vk::Bool32(false);
-    inputAssemblyState.topology = vk::PrimitiveTopology ::eTriangleList;
-    inputAssemblyState.flags = vk::PipelineInputAssemblyStateCreateFlagBits(0);
+    inputAssemblyState.topology               = vk::PrimitiveTopology::eTriangleList;
+    inputAssemblyState.flags                  = vk::PipelineInputAssemblyStateCreateFlagBits(0);
 
     vk::PipelineRasterizationStateCreateInfo rasterizationState;
-    rasterizationState.cullMode = vk::CullModeFlagBits ::eBack;
-    rasterizationState.polygonMode = vk::PolygonMode ::eFill;
-    rasterizationState.frontFace = vk::FrontFace ::eCounterClockwise;
+    rasterizationState.cullMode    = vk::CullModeFlagBits::eFront;
+    rasterizationState.polygonMode = vk::PolygonMode::eFill;
+    rasterizationState.frontFace   = vk::FrontFace::eCounterClockwise;
+
+    vk::PipelineColorBlendAttachmentState colorBlendAttachmentState;
+    colorBlendAttachmentState.colorWriteMask = vk::ColorComponentFlagBits::eR |
+                                               vk::ColorComponentFlagBits::eG |
+                                               vk::ColorComponentFlagBits::eB |
+                                               vk::ColorComponentFlagBits::eA;
+    colorBlendAttachmentState.blendEnable    = vk::Bool32(false);
+
+    vk::PipelineColorBlendStateCreateInfo colorBlendState;
+    colorBlendState.attachmentCount = 1;
+    colorBlendState.pAttachments    = &colorBlendAttachmentState;
+
+    vk::PipelineDepthStencilStateCreateInfo depthStencilState;
+    depthStencilState.depthTestEnable  = vk::Bool32(true);
+    depthStencilState.depthWriteEnable = vk::Bool32(true);
+    depthStencilState.depthCompareOp   = vk::CompareOp::eLessOrEqual;
+    depthStencilState.front            = depthStencilState.back;
+    depthStencilState.back.compareOp   = vk::CompareOp::eAlways;
+
+    vk::PipelineViewportStateCreateInfo viewportState;
+    viewportState.flags         = vk::PipelineViewportStateCreateFlagBits(0);
+    viewportState.scissorCount  = 1;
+    viewportState.viewportCount = 1;
+
+    vk::PipelineMultisampleStateCreateInfo multiSampleState;
+    multiSampleState.flags                = vk::PipelineMultisampleStateCreateFlagBits(0);
+    multiSampleState.rasterizationSamples = vk::SampleCountFlagBits::e1;
+
+    std::vector<vk::DynamicState> dynamicStateList = {
+            vk::DynamicState::eViewport,
+            vk::DynamicState::eScissor
+    };
+
+    vk::PipelineDynamicStateCreateInfo dynamicState;
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStateList.size());
+    dynamicState.pDynamicStates    = dynamicStateList.data();
+    dynamicState.flags             = vk::PipelineDynamicStateCreateFlagBits(0);
+
+    std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages;
+    shaderStages[0] = LoadShader(Constants::SHADER_PATH + "pbr.vert.spv", vk::ShaderStageFlagBits::eVertex);
+    shaderStages[1] = LoadShader(Constants::SHADER_PATH + "pbr.frag.spv", vk::ShaderStageFlagBits::eFragment);
+
+    VertexInputDescriptor inputDescriptor(m_vertexLayout);
+
+    vk::PipelineVertexInputStateCreateInfo vertexInputState;
+    vertexInputState.vertexBindingDescriptionCount   = inputDescriptor.GetBindingCount();
+    vertexInputState.pVertexBindingDescriptions      = inputDescriptor.GetBindings();
+    vertexInputState.vertexAttributeDescriptionCount = inputDescriptor.GetAttributeCount();
+    vertexInputState.pVertexAttributeDescriptions    = inputDescriptor.GetAttributes();
 
     vk::GraphicsPipelineCreateInfo pipelineCreateInfo;
+    pipelineCreateInfo.layout              = m_pipelineLayout;
+    pipelineCreateInfo.renderPass          = m_renderPass;
+    pipelineCreateInfo.pInputAssemblyState = &inputAssemblyState;
+    pipelineCreateInfo.pRasterizationState = &rasterizationState;
+    pipelineCreateInfo.pColorBlendState    = &colorBlendState;
+    pipelineCreateInfo.pMultisampleState   = &multiSampleState;
+    pipelineCreateInfo.pViewportState      = &viewportState;
+    pipelineCreateInfo.pDepthStencilState  = &depthStencilState;
+    pipelineCreateInfo.pDynamicState       = &dynamicState;
+    pipelineCreateInfo.stageCount          = static_cast<uint32_t>(shaderStages.size());
+    pipelineCreateInfo.pStages             = shaderStages.data();
+    pipelineCreateInfo.pVertexInputState   = &vertexInputState;
 
     m_pipeline = m_logicalDevice.createGraphicsPipeline(m_pipelineCache, pipelineCreateInfo);
 }
-
-
-
-
-
 
