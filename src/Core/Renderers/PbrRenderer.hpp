@@ -62,6 +62,7 @@ public:
 protected:
 
 private:
+    const uint32_t VERTEX_BUFFER_BIND_ID = 0;
 
 //Methods
 public:
@@ -92,6 +93,10 @@ private:
     void SetupPipelineLayout();
 
     void SetupPipeline();
+
+    void SetupDescriptorSets();
+
+    void BuildCommandBuffer();
 };
 
 

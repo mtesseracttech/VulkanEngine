@@ -35,6 +35,8 @@ void PbrRenderer::Prepare()
     SetupPipelineLayout();
     //Setting up the graphics pipeline
     SetupPipeline();
+    //Setting up the Descriptor Sets
+    SetupDescriptorSets();
 }
 
 void PbrRenderer::Cleanup()
@@ -116,8 +118,6 @@ void PbrRenderer::SetupUniformBuffers()
 
     m_uniformBuffers.m_object.Map();
     m_uniformBuffers.m_params.Map();
-
-
 }
 
 void PbrRenderer::BuildCommandBuffers()
@@ -260,5 +260,112 @@ void PbrRenderer::SetupPipeline()
     pipelineCreateInfo.pVertexInputState   = &vertexInputState;
 
     m_pipeline = m_logicalDevice.createGraphicsPipeline(m_pipelineCache, pipelineCreateInfo);
+}
+
+void PbrRenderer::SetupDescriptorSets()
+{
+    vk::DescriptorPoolSize descriptorPoolSize;
+    descriptorPoolSize.descriptorCount = 4;
+    descriptorPoolSize.type            = vk::DescriptorType::eUniformBuffer;
+
+    std::vector<vk::DescriptorPoolSize> poolSizes = {descriptorPoolSize};
+
+    vk::DescriptorPoolCreateInfo descriptorPoolCreateInfo;
+    descriptorPoolCreateInfo.pPoolSizes    = poolSizes.data();
+    descriptorPoolCreateInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+    descriptorPoolCreateInfo.maxSets       = 2;
+
+    m_descriptorPool = m_logicalDevice.createDescriptorPool(descriptorPoolCreateInfo);
+
+    vk::DescriptorSetAllocateInfo allocateInfo;
+    allocateInfo.descriptorPool     = m_descriptorPool;
+    allocateInfo.descriptorSetCount = 1;
+    allocateInfo.pSetLayouts        = &m_descriptorSetLayout;
+
+    m_descriptorSet = m_logicalDevice.allocateDescriptorSets(allocateInfo)[0];
+
+    vk::WriteDescriptorSet objectWriteDescriptorSet;
+    objectWriteDescriptorSet.dstSet          = m_descriptorSet;
+    objectWriteDescriptorSet.descriptorType  = vk::DescriptorType::eUniformBuffer;
+    objectWriteDescriptorSet.dstBinding      = 0;
+    objectWriteDescriptorSet.descriptorCount = 1;
+    objectWriteDescriptorSet.pBufferInfo     = &m_uniformBuffers.m_object.m_descriptor;
+
+    vk::WriteDescriptorSet parameterWriteDescriptorSet;
+    parameterWriteDescriptorSet.dstSet          = m_descriptorSet;
+    parameterWriteDescriptorSet.descriptorType  = vk::DescriptorType::eUniformBuffer;
+    parameterWriteDescriptorSet.dstBinding      = 1;
+    parameterWriteDescriptorSet.descriptorCount = 1;
+    parameterWriteDescriptorSet.pBufferInfo     = &m_uniformBuffers.m_params.m_descriptor;
+
+    std::vector<vk::WriteDescriptorSet> writeDescriptorSets = {
+            objectWriteDescriptorSet,
+            parameterWriteDescriptorSet
+    };
+
+    m_logicalDevice.updateDescriptorSets(writeDescriptorSets, nullptr);
+}
+
+void PbrRenderer::BuildCommandBuffer()
+{
+    std::array<vk::ClearValue, 2> clearValues = {};
+    clearValues[0].color        = vk::ClearColorValue({0.0f,0.0f,0.0f,1.0f});
+    clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
+
+    vk::RenderPassBeginInfo renderPassBeginInfo;
+    renderPassBeginInfo.renderPass        = m_renderPass;
+    renderPassBeginInfo.renderArea.offset = vk::Offset2D(0, 0);
+    renderPassBeginInfo.renderArea.extent = m_swapchain.GetExtent();
+    renderPassBeginInfo.clearValueCount   = clearValues.size();
+    renderPassBeginInfo.pClearValues      = clearValues.data();
+
+    vk::CommandBufferBeginInfo commandBufferBeginInfo;
+
+    for (uint32_t i = 0; i < m_drawCommandBuffers.size(); ++i)
+    {
+        renderPassBeginInfo.framebuffer = m_frameBuffers[i];
+
+        m_drawCommandBuffers[i].begin(commandBufferBeginInfo);
+
+        m_drawCommandBuffers[i].beginRenderPass(&renderPassBeginInfo, vk::SubpassContents::eInline);
+
+        vk::Viewport viewport;
+        viewport.height   = m_swapchain.GetExtent().height;
+        viewport.width    = m_swapchain.GetExtent().width;
+        viewport.maxDepth = 1.0f;
+        viewport.minDepth = 0.0f;
+
+        m_drawCommandBuffers[i].setViewport(0, 1, &viewport);
+
+        vk::Rect2D scissor;
+        scissor.extent = m_swapchain.GetExtent();
+        scissor.offset = vk::Offset2D(0, 0);
+
+        m_drawCommandBuffers[i].setScissor(0, 1, &scissor);
+
+        std::array<vk::DeviceSize, 1> offsets = { 0 };
+
+        m_drawCommandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, &m_pipeline);
+
+        m_drawCommandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
+
+        m_drawCommandBuffers[i].bindVertexBuffers(VERTEX_BUFFER_BIND_ID, 1, &m_objects.m_models[m_objects.m_objectIndex].m_vertexBuffer.m_buffer, offsets.data());
+
+        m_drawCommandBuffers[i].bindIndexBuffer(&m_objects.m_models[m_objects.m_objectIndex].m_indexBuffer.m_buffer, 0, vk::IndexType::eUint32);
+
+        SimplePbrMaterial material = m_materials[m_materialIndex];
+
+        material.m_props.metallicness = 1.0f;
+        material.m_props.roughness = 1.0f;
+
+        glm::vec3 pos = glm::vec3(0,0,0);
+
+        m_drawCommandBuffers[i].pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::vec3), &pos);
+        m_drawCommandBuffers[i].pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(glm::vec3), sizeof(SimplePbrMaterial::Properties), &material);
+
+        m_drawCommandBuffers[i].endRenderPass();
+
+        m_drawCommandBuffers[i].end();
+    }
 }
 
