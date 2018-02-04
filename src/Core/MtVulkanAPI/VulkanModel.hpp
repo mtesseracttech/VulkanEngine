@@ -321,6 +321,10 @@ struct VulkanModel
             vertexStaging.Destroy();
             indexStaging.Destroy();
 
+            std::stringstream output;
+            output << "Successfully loaded: '" << p_filename.c_str();
+            Logger::Log(output.str(), LogType::LogInfo);
+
             return true;
         }
         else

@@ -3,8 +3,10 @@
 //
 
 #include <Utility/GameTimer.hpp>
+#include <Utility/KeyInput.hpp>
+#include <Utility/MouseInput.hpp>
 #include "GameBase.hpp"
-#include "KeyInput.hpp"
+//#include "KeyInput.hpp"
 
 int main()
 {
@@ -38,8 +40,9 @@ void GameBase::InitializeRenderer()
 
 void GameBase::InitializeInput()
 {
-    Logger::Log("Initializing Key Input Manager");
+    Logger::Log("Initializing Input Managers");
     KeyInput::Initialize(m_renderer.GetWindow()->GetGlfwWindow());
+    MouseInput::Initialize(m_renderer.GetWindow()->GetGlfwWindow());
 }
 
 void GameBase::RunGame()
@@ -65,6 +68,9 @@ void GameBase::RunGame()
         double elapsed = current - previous;
         previous = current;
         lag += elapsed;
+
+        KeyInput::UpdateTimeNow(current);
+        MouseInput::UpdateTimeNow(current);
 
         //Running the game update (multiple times) if needed
         while (lag > m_timePerUpdate)

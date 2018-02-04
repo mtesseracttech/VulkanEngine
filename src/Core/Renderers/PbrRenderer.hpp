@@ -68,7 +68,7 @@ private:
 public:
     PbrRenderer();
 
-    virtual ~PbrRenderer();
+    ~PbrRenderer() override;
 
 protected:
     void BuildCommandBuffers() override;
@@ -95,8 +95,6 @@ private:
     void SetupPipeline();
 
     void SetupDescriptorSets();
-
-    void BuildCommandBuffer();
 };
 
 

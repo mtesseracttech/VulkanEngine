@@ -20,7 +20,6 @@ void PbrRenderer::Prepare()
 {
     //Base Renderer Prepare Code First
     VulkanRendererBase::Prepare();
-
     //Renderer Specific Preparation Second
     SetupCamera();
     //Creating a list of the materials
@@ -37,6 +36,9 @@ void PbrRenderer::Prepare()
     SetupPipeline();
     //Setting up the Descriptor Sets
     SetupDescriptorSets();
+    //Creating the command buffer
+    BuildCommandBuffers();
+
 }
 
 void PbrRenderer::Cleanup()
@@ -70,8 +72,8 @@ void PbrRenderer::SetupCamera()
     m_camera.SetPerspective(90.0f, m_window->GetAspectRatio(), 0.001f, 1000.0f);
     m_camera.SetCameraType(CameraType::FirstPerson);
     std::cout << m_window->GetAspectRatio() << std::endl;
-    m_camera.SetPosition(glm::vec3(10.0f, 13.0f, 1.8f));
-    m_camera.SetRotation(glm::vec3(-62.5f, 90.0f, 0.0f));
+    m_camera.SetPosition(glm::vec3(15.0f, 15.0f, 5.0f));
+    m_camera.SetRotation(glm::vec3(0, 90.0f, 0.0f));
 }
 
 void PbrRenderer::SetupMaterials()
@@ -96,7 +98,8 @@ void PbrRenderer::SetupMaterials()
 void PbrRenderer::SetupModels()
 {
     std::vector<std::string> filenames = {"teapot.dae"};
-    for (const auto          &file : filenames)
+
+    for (const auto &file : filenames)
     {
         VulkanModel model;
         model.LoadFromFile(Constants::MODEL_PATH + file, m_vertexLayout, m_wrappedDevice, m_graphicsQueue);
@@ -120,18 +123,34 @@ void PbrRenderer::SetupUniformBuffers()
     m_uniformBuffers.m_params.Map();
 }
 
-void PbrRenderer::BuildCommandBuffers()
-{
-
-}
-
 void PbrRenderer::Render()
 {
+    VulkanRendererBase::PrepareFrame();
 
+    m_submitInfo.commandBufferCount = 1;
+    m_submitInfo.pCommandBuffers    = &m_drawCommandBuffers[m_currentBuffer];
+    m_graphicsQueue.submit(1, &m_submitInfo, nullptr);
+
+    VulkanRendererBase::SubmitFrame();
 }
 
 void PbrRenderer::UpdateUniformBuffers()
 {
+    m_camera.Update();
+
+    m_uboMatrices.m_projection = m_camera.GetPerspectiveMat();
+    m_uboMatrices.m_view       = glm::inverse(m_camera.GetViewMat());
+    m_uboMatrices.m_model      = glm::mat4(1);
+    m_uboMatrices.m_cameraPos  = m_camera.GetPosition() * -1.0f;
+
+    memcpy(m_uniformBuffers.m_object.m_mapped, &m_uboMatrices, sizeof(UboMatrices));
+
+    m_uboParameters.m_lights[0] = glm::vec4(-15.0f, -7.0f, -15.0f, 1.0f);
+    m_uboParameters.m_lights[1] = glm::vec4(-15.0f, -7.0f, 15.0f, 1.0f);
+    m_uboParameters.m_lights[2] = glm::vec4(15.0f, -7.0f, 15.0f, 1.0f);
+    m_uboParameters.m_lights[3] = glm::vec4(15.0f, -7.0f, -15.0f, 1.0f);
+
+    memcpy(m_uniformBuffers.m_params.m_mapped, &m_uboParameters, sizeof(UboParameters));
 }
 
 void PbrRenderer::SetupDescriptorSetLayout()
@@ -306,10 +325,11 @@ void PbrRenderer::SetupDescriptorSets()
     m_logicalDevice.updateDescriptorSets(writeDescriptorSets, nullptr);
 }
 
-void PbrRenderer::BuildCommandBuffer()
+void PbrRenderer::BuildCommandBuffers()
 {
+    std::array<float, 4>          clearColor{0.1f, 0.1f, 0.1f, 1.0f};
     std::array<vk::ClearValue, 2> clearValues = {};
-    clearValues[0].color        = vk::ClearColorValue({0.0f,0.0f,0.0f,1.0f});
+    clearValues[0].color        = vk::ClearColorValue(clearColor);
     clearValues[1].depthStencil = vk::ClearDepthStencilValue(1.0f, 0);
 
     vk::RenderPassBeginInfo renderPassBeginInfo;
@@ -343,29 +363,36 @@ void PbrRenderer::BuildCommandBuffer()
 
         m_drawCommandBuffers[i].setScissor(0, 1, &scissor);
 
-        std::array<vk::DeviceSize, 1> offsets = { 0 };
+        std::array<vk::DeviceSize, 1> offsets = {0};
 
-        m_drawCommandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, &m_pipeline);
+        m_drawCommandBuffers[i].bindPipeline(vk::PipelineBindPoint::eGraphics, m_pipeline);
 
-        m_drawCommandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1, &m_descriptorSet, 0, nullptr);
+        m_drawCommandBuffers[i].bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1,
+                                                   &m_descriptorSet, 0, nullptr);
 
-        m_drawCommandBuffers[i].bindVertexBuffers(VERTEX_BUFFER_BIND_ID, 1, &m_objects.m_models[m_objects.m_objectIndex].m_vertexBuffer.m_buffer, offsets.data());
+        m_drawCommandBuffers[i].bindVertexBuffers(VERTEX_BUFFER_BIND_ID, 1,
+                                                  &m_objects.m_models[m_objects.m_objectIndex].m_vertexBuffer.m_buffer,
+                                                  offsets.data());
 
-        m_drawCommandBuffers[i].bindIndexBuffer(&m_objects.m_models[m_objects.m_objectIndex].m_indexBuffer.m_buffer, 0, vk::IndexType::eUint32);
+        m_drawCommandBuffers[i].bindIndexBuffer(m_objects.m_models[m_objects.m_objectIndex].m_indexBuffer.m_buffer,
+                                                vk::DeviceSize(0), vk::IndexType::eUint32);
 
         SimplePbrMaterial material = m_materials[m_materialIndex];
 
         material.m_props.metallicness = 1.0f;
-        material.m_props.roughness = 1.0f;
+        material.m_props.roughness    = 1.0f;
 
-        glm::vec3 pos = glm::vec3(0,0,0);
+        glm::vec3 pos = glm::vec3(0, 0, 0);
 
-        m_drawCommandBuffers[i].pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::vec3), &pos);
-        m_drawCommandBuffers[i].pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(glm::vec3), sizeof(SimplePbrMaterial::Properties), &material);
+        m_drawCommandBuffers[i].pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eVertex, 0, sizeof(glm::vec3),
+                                              &pos);
+        m_drawCommandBuffers[i].pushConstants(m_pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(glm::vec3),
+                                              sizeof(SimplePbrMaterial::Properties), &material);
+
+        m_drawCommandBuffers[i].drawIndexed(m_objects.m_models[m_objects.m_objectIndex].m_indexCount, 1, 0,0,0);
 
         m_drawCommandBuffers[i].endRenderPass();
 
         m_drawCommandBuffers[i].end();
     }
 }
-

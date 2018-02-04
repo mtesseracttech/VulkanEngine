@@ -26,13 +26,14 @@
         <option name="com.jetbrains.cidr.lang.util.OCDeclarationKind" value="DeallocMethod" />
       </class>
       <extensions>
-        <pair source="cpp" header="h" fileNamingConvention="NONE" />
+        <pair source="cpp" header="hpp" fileNamingConvention="NONE" />
         <pair source="c" header="h" fileNamingConvention="NONE" />
       </extensions>
     </Objective-C-extensions>
     <codeStyleSettings language="ObjectiveC">
       <option name="BRACE_STYLE" value="2" />
       <option name="CLASS_BRACE_STYLE" value="2" />
+      <option name="ALIGN_GROUP_FIELD_DECLARATIONS" value="true" />
     </codeStyleSettings>
   </code_scheme>
 </component>
