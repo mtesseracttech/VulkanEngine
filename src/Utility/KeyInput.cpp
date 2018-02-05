@@ -38,6 +38,10 @@ void KeyInput::KeyCallback(GLFWwindow *p_window, int p_key, int p_scancode, int 
     }
 }
 
+void KeyInput::UpdateTimeNow(double p_timeNow)
+{
+    m_timeNow = p_timeNow;
+}
 
 //Key State Management
 void KeyInput::KeyUp(int p_key)
@@ -49,14 +53,14 @@ void KeyInput::KeyDown(int p_key)
 {
     auto it = m_keys.find(p_key);
 
-    if (it != m_keys.end() && m_keys[p_key] == 0.0f)
+    if (it != m_keys.end() || m_keys[p_key] == 0.0f)
     {
         m_keys[p_key] = static_cast<float>(m_timer.GetElapsed());
     }
 }
 
 //Public Accessible Functions
-bool KeyInput::Enter(int p_key)
+bool KeyInput::Enter(KeyCode p_key)
 {
     auto it = m_keys.find(p_key);
 
@@ -67,7 +71,7 @@ bool KeyInput::Enter(int p_key)
     return false;
 }
 
-bool KeyInput::Pressed(int p_key)
+bool KeyInput::Pressed(KeyCode p_key)
 {
     auto it = m_keys.find(p_key);
 
@@ -77,9 +81,3 @@ bool KeyInput::Pressed(int p_key)
     }
     return false;
 }
-
-void KeyInput::UpdateTimeNow(double p_timeNow)
-{
-    m_timeNow = p_timeNow;
-}
-

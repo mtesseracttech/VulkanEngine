@@ -10,7 +10,16 @@
 #include <glm/vec2.hpp>
 #include "Timer.hpp"
 
-class GLFWwindow;
+enum MouseButton{
+    Button1 = GLFW_MOUSE_BUTTON_1,
+    Button2 = GLFW_MOUSE_BUTTON_2,
+    Button3 = GLFW_MOUSE_BUTTON_3,
+    Button4 = GLFW_MOUSE_BUTTON_4,
+    Button5 = GLFW_MOUSE_BUTTON_5
+};
+
+
+struct GLFWwindow;
 
 class MouseInput
 {
@@ -38,8 +47,8 @@ class MouseInput
 
 public:
     //User Functionality
-    static bool Enter(int p_button);
-    static bool Pressed(int p_button);
+    static bool Enter(MouseButton p_button);
+    static bool Pressed(MouseButton p_button);
     static glm::vec2 Position();
 
 };

@@ -36,7 +36,7 @@ public:
     } m_objects;
 
     std::vector<SimplePbrMaterial> m_materials;
-    int32_t                        m_materialIndex  = 0;
+    int32_t                        m_materialIndex  = 9;
 
     struct UniformBuffers
     {

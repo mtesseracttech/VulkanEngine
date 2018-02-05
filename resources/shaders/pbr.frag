@@ -12,24 +12,27 @@ layout (binding = 0) uniform UBO
 	vec3 camPos;
 } ubo;
 
+layout (location = 0) out vec4 outColor;
+
 layout (binding = 1) uniform UBOShared {
 	vec4 lights[4];
 } uboParams;
 
-layout (location = 0) out vec4 outColor;
-
 layout(push_constant) uniform PushConsts {
-	layout(offset = 12) float roughness;
-	layout(offset = 16) float metallic;
-	layout(offset = 20) vec3 colors;
+	//layout(offset = 0) vec3 color;
+	layout(offset = 12) float r; //Starts at 12 because of UBO
+	layout(offset = 16) float g;
+	layout(offset = 20) float b;
+	layout(offset = 24) float roughness;
+	layout(offset = 28) float metallic;
 } material;
 
 const float PI = 3.14159265359;
 
-vec3 materialcolor()
-{
-	return material.rgb;
+vec3 getColor(){
+	return vec3(material.r, material.g, material.b);
 }
+
 
 //Normal distribution
 float normalDistribution(float dotNH, float roughness)
@@ -53,7 +56,7 @@ float G_SchlicksmithGGX(float dotNL, float dotNV, float roughness)
 //CosTheta is the dot product at which the camera looks at the surface of an object
 vec3 fresnel(float cosTheta, float metallic)
 {
-	vec3 F0 = mix(vec3(0.04), materialcolor(), metallic);
+	vec3 F0 = mix(vec3(0.04), getColor(), metallic);
 	vec3 F = F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
 	return F;
 }
@@ -77,7 +80,7 @@ vec3 brdf(vec3 L, vec3 V, vec3 N, float metallic, float roughness)
 	{
 		float roughness = max(0.05, roughness);
 		// D = Normal distribution (Distribution of the microfacets)
-		float D = D_GGX(dotNH, roughness);
+		float D = normalDistribution(dotNH, roughness);
 		// G = Geometric shadowing term (Microfacets shadowing)
 		float G = G_SchlicksmithGGX(dotNL, dotNV, roughness);
 		// F = Fresnel factor (Reflectance depending on angle of incidence)
@@ -106,7 +109,7 @@ void main()
 	};
 
 	// Combine with ambient
-	vec3 color = materialcolor() * 0.02;
+	vec3 color = getColor() * 0.02;
 	color += Lo;
 
 	// Gamma correct

@@ -20,7 +20,7 @@ layout (location = 1) out vec3 outNormal;
 layout (location = 2) out vec2 outUV;
 
 layout(push_constant) uniform PushConsts {
-	vec3 objPos;
+	layout(offset = 0) vec3 objPos;
 } pushConsts;
 
 out gl_PerVertex

@@ -41,7 +41,7 @@ set(SOURCE_FILES
         src/Behaviours/Behaviour.hpp
         src/Core/GameWorld.cpp
         src/Core/GameWorld.hpp
-        src/Utility/ConsoleGlm.hpp src/Core/Renderers/PbrRenderer.cpp src/Core/Renderers/PbrRenderer.hpp src/Material/SimplePbrMaterial.hpp src/Core/VertexLayouts/StandardLayout.hpp src/Core/MtVulkanAPI/VertexInputDescriptor.hpp src/Utility/KeyInput.hpp src/Utility/KeyInput.cpp src/Utility/MouseInput.cpp src/Utility/MouseInput.hpp src/Utility/GameTimer.cpp)
+        src/Utility/ConsoleGlm.hpp src/Core/Renderers/PbrRenderer.cpp src/Core/Renderers/PbrRenderer.hpp src/Material/SimplePbrMaterial.hpp src/Core/VertexLayouts/StandardLayout.hpp src/Core/MtVulkanAPI/VertexInputDescriptor.hpp src/Utility/KeyInput.hpp src/Utility/KeyInput.cpp src/Utility/MouseInput.cpp src/Utility/MouseInput.hpp src/Utility/GameTimer.cpp src/Core/MtVulkanAPI/WrappedVulkanWindow.cpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 

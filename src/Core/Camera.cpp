@@ -7,11 +7,12 @@
 #include <Utility/MouseInput.hpp>
 #include "Camera.hpp"
 #include "Utility/ConsoleGlm.hpp"
+#include <glm/gtx/quaternion.hpp>
 
 //Sets the rotation of the camera and updates the view matrix
 void Camera::SetRotation(glm::vec3 p_rotation)
 {
-    m_rotation = p_rotation;
+    m_euler = p_rotation;
     UpdateMatrix();
 }
 
@@ -25,14 +26,15 @@ void Camera::SetPosition(const glm::vec3 p_position)
 //Updates the view matrix using the current rotation and position
 void Camera::UpdateMatrix()
 {
-    glm::mat4 posMat;
-    posMat = glm::translate(glm::mat4(1.0f), m_position);
+    glm::mat4 rotMat = glm::toMat4(m_rotQuat);
+
+    glm::mat4 posMat = glm::translate(glm::mat4(1.0f), m_position);
 
 
     switch(m_cameraType){
 
-        case FirstPerson: m_view = m_rotationMatrix * posMat;
-        case OrbCam:      m_view = posMat * m_rotationMatrix;
+        case FirstPerson: m_view = rotMat * posMat;
+        case OrbCam:      m_view = posMat * rotMat;
     }
 }
 
@@ -69,12 +71,13 @@ const glm::vec3 Camera::GetPosition()
 
 const glm::vec3 Camera::GetRotation()
 {
-    return m_rotation;
+    return m_euler;
 }
 
 void Camera::Rotate(glm::vec3 p_rotation)
 {
-    m_rotation += p_rotation;
+    m_euler += p_rotation;
+    m_rotQuat = glm::quat(glm::radians(m_euler));
     UpdateMatrix();
 }
 
@@ -86,31 +89,30 @@ void Camera::SetCameraType(CameraType p_type)
 
 void Camera::Update()
 {
-    auto delta = static_cast<float>(GameTimer::Delta());
+    auto dT = static_cast<float>(GameTimer::Delta());
 
     if(m_cameraType == FirstPerson)
     {
-        const glm::vec3 up(0.0f, 1.0f, 0.0f);
+        float adjustedCamSpeed = m_cameraSpeed * dT;
 
-        float correctedSpeed = delta * m_cameraSpeed;
-
-        if(KeyInput::Pressed(GLFW_KEY_W)) m_position += GetForward() * correctedSpeed;
-        if(KeyInput::Pressed(GLFW_KEY_S)) m_position -= GetForward() * correctedSpeed;
-        if(KeyInput::Pressed(GLFW_KEY_A)) m_position -= GetRight() * correctedSpeed;
-        if(KeyInput::Pressed(GLFW_KEY_D)) m_position += GetRight() * correctedSpeed;
-
-        if(MouseInput::Pressed(GLFW_MOUSE_BUTTON_1))
+        if(MouseInput::Pressed(MouseButton::Button1))
         {
             glm::vec2 mousePos   = MouseInput::Position();
             glm::vec2 mouseDelta = m_oldMousePos - mousePos;
-            float mouseSpeed = m_cameraSpeed * delta;
 
-            glm::mat4 rotationMat(1);
-            rotationMat = glm::rotate(rotationMat, glm::radians(mouseDelta.x * mouseSpeed), glm::vec3(0,1,0));
-            rotationMat = glm::rotate(rotationMat, glm::radians(mouseDelta.y * mouseSpeed), glm::vec3(1,0,0));
+            glm::vec2 adjustedDelta = mouseDelta * m_rotationSpeed * dT;
 
-            m_rotationMatrix *= rotationMat;
+            m_euler += glm::vec3(-adjustedDelta.y, adjustedDelta.x, 0);
         }
+
+        m_rotQuat = glm::quat(glm::radians(m_euler));
+
+        std::cout << GetForward() << std::endl;
+
+        if(KeyInput::Pressed(KeyCode::W)) m_position -= GetForward() * adjustedCamSpeed;
+        if(KeyInput::Pressed(KeyCode::S)) m_position += GetForward() * adjustedCamSpeed;
+        if(KeyInput::Pressed(KeyCode::A)) m_position -= GetRight() * adjustedCamSpeed;
+        if(KeyInput::Pressed(KeyCode::D)) m_position += GetRight() * adjustedCamSpeed;
 
         m_oldMousePos = MouseInput::Position();
 

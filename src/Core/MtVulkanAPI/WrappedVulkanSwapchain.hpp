@@ -143,7 +143,7 @@ public:
 
         swapchainCreateInfo.compositeAlpha = compositeAlpha;
         swapchainCreateInfo.presentMode = presentMode;
-        swapchainCreateInfo.clipped = VK_TRUE;
+        swapchainCreateInfo.clipped = vk::Bool32(true);
 
         vk::FormatProperties formatProperties = m_physicalDevice.getFormatProperties(surfaceFormat.format);
 

@@ -5,6 +5,8 @@
 #include <GLFW/glfw3.h>
 #include "MouseInput.hpp"
 
+
+
 bool                 MouseInput::m_prepared = false;
 std::map<int, float> MouseInput::m_buttons;
 Timer                MouseInput::m_timer;
@@ -45,6 +47,12 @@ void MouseInput::MousePositionCallback(GLFWwindow *p_window, double p_xPos, doub
     m_position = glm::vec2(p_xPos, p_yPos);
 }
 
+void MouseInput::UpdateTimeNow(double p_timeNow)
+{
+    m_timeNow = p_timeNow;
+}
+
+
 //Button State Management
 void MouseInput::ButtonUp(int p_button)
 {
@@ -55,7 +63,7 @@ void MouseInput::ButtonDown(int p_button)
 {
     auto it = m_buttons.find(p_button);
 
-    if (it != m_buttons.end() && m_buttons[p_button] == 0.0f)
+    if (it != m_buttons.end() || m_buttons[p_button] == 0.0f)
     {
         m_buttons[p_button] = static_cast<float>(m_timer.GetElapsed());
     }
@@ -67,7 +75,7 @@ glm::vec2 MouseInput::Position()
     return m_position;
 }
 
-bool MouseInput::Enter(int p_button)
+bool MouseInput::Enter(MouseButton p_button)
 {
     auto it = m_buttons.find(p_button);
 
@@ -78,7 +86,7 @@ bool MouseInput::Enter(int p_button)
     return false;
 }
 
-bool MouseInput::Pressed(int p_button)
+bool MouseInput::Pressed(MouseButton p_button)
 {
     auto it = m_buttons.find(p_button);
 
@@ -87,9 +95,4 @@ bool MouseInput::Pressed(int p_button)
         return m_buttons[p_button] > 0.0f;
     }
     return false;
-}
-
-void MouseInput::UpdateTimeNow(double p_timeNow)
-{
-    m_timeNow = p_timeNow;
 }

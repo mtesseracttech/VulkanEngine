@@ -22,9 +22,11 @@ class Camera : GameObject
 private:
     glm::vec2 m_oldMousePos;
 
-    glm::vec3 m_rotation;
+    //glm::vec3 m_rotation;
 
-    glm::mat4 m_rotationMatrix;
+    glm::vec3 m_euler;
+
+    glm::quat m_rotQuat;
 
     glm::vec3 m_position;
     glm::mat4 m_perspective;
@@ -33,7 +35,7 @@ private:
     CameraType m_cameraType = CameraType::FirstPerson;
 
     float m_cameraSpeed = 1;
-    float m_rotationSpeed = 1;
+    float m_rotationSpeed = 10.0f;
 
     void UpdateMatrix();
 public:

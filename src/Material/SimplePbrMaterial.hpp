@@ -13,14 +13,18 @@ struct SimplePbrMaterial// : AbstractMaterial
 
     SimplePbrMaterial(glm::vec3 p_color, float p_roughness, float p_metallicness)
     {
-        m_props.color        = p_color;
+        m_props.r            = p_color.r;
+        m_props.g            = p_color.g;
+        m_props.b            = p_color.b;
         m_props.roughness    = p_roughness;
         m_props.metallicness = p_metallicness;
     }
 
     //Data to be pushed to gpu
     struct Properties{
-        glm::vec3 color    = glm::vec3(0,0,0);
+        float r = 0.0f;
+        float g = 0.0f;
+        float b = 0.0f;
         float roughness    = 0.0f;
         float metallicness = 0.0f;
     } m_props;
