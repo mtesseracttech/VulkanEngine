@@ -22,8 +22,6 @@ class Camera : GameObject
 private:
     glm::vec2 m_oldMousePos;
 
-    //glm::vec3 m_rotation;
-
     glm::vec3 m_euler;
 
     glm::quat m_rotQuat;
@@ -57,6 +55,8 @@ public:
     void SetCameraType(CameraType p_type);
 
     void Rotate(glm::vec3 p_rotation);
+
+    const glm::vec3 GetUp();
 };
 
 

@@ -96,3 +96,5 @@ cmake-build-debug/
 
 # should allow obj files in resources to be synced
 !resources/models/*.obj
+resources/models/sponza.obj
+resources/models/sponza.mtl

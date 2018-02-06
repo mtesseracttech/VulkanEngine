@@ -1,22 +1,22 @@
 //
-// Created by mtesseract on 20-12-17.
+// Created by MTesseracT on 6-2-2018.
 //
 
+#include "PbrTexRenderer.hpp"
 #include <Core/MtVulkanAPI/VertexInputDescriptor.hpp>
-#include "PbrRenderer.hpp"
 
-PbrRenderer::PbrRenderer()
+PbrTexRenderer::PbrTexRenderer()
 {
     Initialize();
     Prepare();
 }
 
-PbrRenderer::~PbrRenderer()
+PbrTexRenderer::~PbrTexRenderer()
 {
     Cleanup();
 }
 
-void PbrRenderer::Prepare()
+void PbrTexRenderer::Prepare()
 {
     //Base Renderer Prepare Code First
     VulkanRendererBase::Prepare();
@@ -41,7 +41,7 @@ void PbrRenderer::Prepare()
 
 }
 
-void PbrRenderer::Cleanup()
+void PbrTexRenderer::Cleanup()
 {
     //Renderer Specific Cleanup Code First
     m_logicalDevice.destroyPipeline(m_pipeline);
@@ -67,7 +67,7 @@ void PbrRenderer::Cleanup()
     VulkanRendererBase::Cleanup();
 }
 
-void PbrRenderer::SetupCamera()
+void PbrTexRenderer::SetupCamera()
 {
     m_camera.SetPerspective(90.0f, m_window->GetAspectRatio(), 0.001f, 10000.0f);
     m_camera.SetCameraType(CameraType::FirstPerson);
@@ -76,7 +76,7 @@ void PbrRenderer::SetupCamera()
     m_camera.SetRotation(glm::vec3(0, 90.0f, 0.0f));
 }
 
-void PbrRenderer::SetupMaterials()
+void PbrTexRenderer::SetupMaterials()
 {
     m_materials.clear();
     //Metals
@@ -95,9 +95,9 @@ void PbrRenderer::SetupMaterials()
     m_materials.push_back(SimplePbrMaterial(glm::vec3(0.0f, 0.0f, 1.0f), 0.1f, 1.0f));
 }
 
-void PbrRenderer::SetupModels()
+void PbrTexRenderer::SetupModels()
 {
-    std::vector<std::string> filenames = {"bunny.obj"};
+    std::vector<std::string> filenames = {"teapot.dae"};
 
     for (const auto &file : filenames)
     {
@@ -107,7 +107,7 @@ void PbrRenderer::SetupModels()
     }
 }
 
-void PbrRenderer::SetupUniformBuffers()
+void PbrTexRenderer::SetupUniformBuffers()
 {
     m_wrappedDevice->CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
                                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
@@ -123,7 +123,7 @@ void PbrRenderer::SetupUniformBuffers()
     m_uniformBuffers.m_params.Map();
 }
 
-void PbrRenderer::Render()
+void PbrTexRenderer::Render()
 {
     VulkanRendererBase::PrepareFrame();
 
@@ -134,14 +134,14 @@ void PbrRenderer::Render()
     VulkanRendererBase::SubmitFrame();
 }
 
-void PbrRenderer::UpdateUniformBuffers()
+void PbrTexRenderer::UpdateUniformBuffers()
 {
     m_camera.Update();
 
     m_uboMatrices.m_projection = m_camera.GetPerspectiveMat();
     m_uboMatrices.m_view       = glm::inverse(m_camera.GetViewMat());
     m_uboMatrices.m_model      = glm::mat4(1);
-    m_uboMatrices.m_cameraPos  = m_camera.GetPosition() * -1.0f;
+    m_uboMatrices.m_cameraPos  = m_camera.GetPosition();
 
     memcpy(m_uniformBuffers.m_object.m_mapped, &m_uboMatrices, sizeof(UboMatrices));
 
@@ -153,7 +153,7 @@ void PbrRenderer::UpdateUniformBuffers()
     memcpy(m_uniformBuffers.m_params.m_mapped, &m_uboParameters, sizeof(UboParameters));
 }
 
-void PbrRenderer::SetupDescriptorSetLayout()
+void PbrTexRenderer::SetupDescriptorSetLayout()
 {
     vk::DescriptorSetLayoutBinding uboMatrixLayoutBinding;
     uboMatrixLayoutBinding.descriptorType  = vk::DescriptorType::eUniformBuffer;
@@ -179,7 +179,7 @@ void PbrRenderer::SetupDescriptorSetLayout()
     m_descriptorSetLayout = m_logicalDevice.createDescriptorSetLayout(createInfo);
 }
 
-void PbrRenderer::SetupPipelineLayout()
+void PbrTexRenderer::SetupPipelineLayout()
 {
     vk::PushConstantRange objectPositionConstantRange;
     objectPositionConstantRange.size       = sizeof(glm::vec3);
@@ -203,7 +203,7 @@ void PbrRenderer::SetupPipelineLayout()
     m_pipelineLayout = m_logicalDevice.createPipelineLayout(layoutCreateInfo);
 }
 
-void PbrRenderer::SetupPipeline()
+void PbrTexRenderer::SetupPipeline()
 {
     vk::PipelineInputAssemblyStateCreateInfo inputAssemblyState;
     inputAssemblyState.primitiveRestartEnable = vk::Bool32(false);
@@ -281,7 +281,7 @@ void PbrRenderer::SetupPipeline()
     m_pipeline = m_logicalDevice.createGraphicsPipeline(m_pipelineCache, pipelineCreateInfo);
 }
 
-void PbrRenderer::SetupDescriptorSets()
+void PbrTexRenderer::SetupDescriptorSets()
 {
     vk::DescriptorPoolSize descriptorPoolSize;
     descriptorPoolSize.descriptorCount = 4;
@@ -325,7 +325,7 @@ void PbrRenderer::SetupDescriptorSets()
     m_logicalDevice.updateDescriptorSets(writeDescriptorSets, nullptr);
 }
 
-void PbrRenderer::BuildCommandBuffers()
+void PbrTexRenderer::BuildCommandBuffers()
 {
     std::array<float, 4>          clearColor{0.1f, 0.1f, 0.1f, 1.0f};
     std::array<vk::ClearValue, 2> clearValues = {};

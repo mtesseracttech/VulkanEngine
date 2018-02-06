@@ -56,12 +56,17 @@ const glm::mat4 Camera::GetViewMat()
 
 const glm::vec3 Camera::GetForward()
 {
-    return glm::vec3(m_view[2]);
+    return glm::vec3(-m_view[2]); //Because forward is inverted from OpenGL
 }
 
 const glm::vec3 Camera::GetRight()
 {
     return glm::vec3(m_view[0]);
+}
+
+const glm::vec3 Camera::GetUp()
+{
+    return glm::vec3(-m_view[1]); //Idem Dito
 }
 
 const glm::vec3 Camera::GetPosition()
@@ -107,12 +112,12 @@ void Camera::Update()
 
         m_rotQuat = glm::quat(glm::radians(m_euler));
 
-        std::cout << GetForward() << std::endl;
-
-        if(KeyInput::Pressed(KeyCode::W)) m_position -= GetForward() * adjustedCamSpeed;
-        if(KeyInput::Pressed(KeyCode::S)) m_position += GetForward() * adjustedCamSpeed;
+        if(KeyInput::Pressed(KeyCode::W)) m_position += GetForward() * adjustedCamSpeed;
+        if(KeyInput::Pressed(KeyCode::S)) m_position -= GetForward() * adjustedCamSpeed;
         if(KeyInput::Pressed(KeyCode::A)) m_position -= GetRight() * adjustedCamSpeed;
         if(KeyInput::Pressed(KeyCode::D)) m_position += GetRight() * adjustedCamSpeed;
+        if(KeyInput::Pressed(KeyCode::Space)) m_position += glm::vec3(0,-1,0) * adjustedCamSpeed; //-1 is used because of Vulkans space system (rhs with Y+ going down)
+        if(KeyInput::Pressed(KeyCode::Shift)) m_position -= glm::vec3(0,-1,0) * adjustedCamSpeed;
 
         m_oldMousePos = MouseInput::Position();
 
