@@ -1,0 +1,15 @@
+//
+// Created by MTesseracT on 8-2-2018.
+//
+
+#ifndef VULKANENGINE_REFLECTIONPROBE_HPP
+#define VULKANENGINE_REFLECTIONPROBE_HPP
+
+
+class ReflectionProbe
+{
+
+};
+
+
+#endif //VULKANENGINE_REFLECTIONPROBE_HPP
