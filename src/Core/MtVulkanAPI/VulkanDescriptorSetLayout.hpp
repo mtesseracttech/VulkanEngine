@@ -1,0 +1,15 @@
+//
+// Created by mtesseract on 9-2-18.
+//
+
+#ifndef VULKANENGINE_VULKANDESCRIPTORSETLAYOUT_HPP
+#define VULKANENGINE_VULKANDESCRIPTORSETLAYOUT_HPP
+
+
+class VulkanDescriptorSetLayout
+{
+
+};
+
+
+#endif //VULKANENGINE_VULKANDESCRIPTORSETLAYOUT_HPP
