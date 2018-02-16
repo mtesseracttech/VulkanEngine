@@ -30,7 +30,7 @@ void VulkanRenderable::BindDrawData(vk::CommandBuffer p_drawCommandBuffer, vk::P
 }
 
 //Creates an empty ubo and maps it
-void VulkanRenderable::CreateUbo(WrappedVulkanDevice * p_device, uint32_t uboSize)
+void VulkanRenderable::CreateUbo(VulkanDevice * p_device, uint32_t uboSize)
 {
     p_device->CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
                            vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,

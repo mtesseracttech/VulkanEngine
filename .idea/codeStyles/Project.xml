@@ -33,6 +33,7 @@
     <codeStyleSettings language="ObjectiveC">
       <option name="BRACE_STYLE" value="2" />
       <option name="CLASS_BRACE_STYLE" value="2" />
+      <option name="ELSE_ON_NEW_LINE" value="true" />
       <option name="ALIGN_GROUP_FIELD_DECLARATIONS" value="true" />
     </codeStyleSettings>
   </code_scheme>

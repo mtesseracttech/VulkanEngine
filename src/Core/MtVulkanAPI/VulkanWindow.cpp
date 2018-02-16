@@ -2,10 +2,10 @@
 // Created by MTesseracT on 4-2-2018.
 //
 
-#include "WrappedVulkanWindow.hpp"
+#include "VulkanWindow.hpp"
 #include <GLFW/glfw3.h>
 
-WrappedVulkanWindow::WrappedVulkanWindow(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen)
+void VulkanWindow::Create(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen)
 {
     Logger::Log("GLFW is initializing");
     if (glfwInit() == GLFW_TRUE)
@@ -35,7 +35,9 @@ WrappedVulkanWindow::WrappedVulkanWindow(int windowWidth, int windowHeight, std:
                                 (fullscreen ? glfwGetPrimaryMonitor() : nullptr), nullptr);
 }
 
-void WrappedVulkanWindow::CreateSurface(vk::Instance p_instance)
+
+
+void VulkanWindow::CreateSurface(vk::Instance p_instance)
 {
     VkSurfaceKHR surface;
     if (glfwCreateWindowSurface(static_cast<VkInstance>(p_instance), m_window, nullptr, &surface) != VK_SUCCESS)
@@ -46,54 +48,64 @@ void WrappedVulkanWindow::CreateSurface(vk::Instance p_instance)
     {
         Logger::Log("Successfully created KHR Surface");
     }
-    m_surface = vk::SurfaceKHR(surface);//static_cast<vk::SurfaceKHR>(surface);
+    m_surface = vk::SurfaceKHR(surface);
     m_instance = p_instance;
 }
 
-glm::vec2 WrappedVulkanWindow::GetCursorPos()
+glm::vec2 VulkanWindow::GetCursorPos()
 {
     double x, y;
     glfwGetCursorPos(m_window, &x, &y);
     return glm::vec2(x, y);
 }
 
-glm::ivec2 WrappedVulkanWindow::GetWindowSize()
+glm::ivec2 VulkanWindow::GetWindowSize()
 {
     int width, height;
     glfwGetWindowSize(m_window, &width, &height);
     return glm::ivec2(width, height);
 }
 
-bool WrappedVulkanWindow::ShouldClose()
+bool VulkanWindow::ShouldClose()
 {
     return glfwWindowShouldClose(m_window) == GLFW_TRUE;
 }
 
-GLFWwindow *WrappedVulkanWindow::GetGlfwWindow()
+GLFWwindow *VulkanWindow::GetGlfwWindow()
 {
     return m_window;
 }
 
-const vk::SurfaceKHR WrappedVulkanWindow::GetSurface()
+const vk::SurfaceKHR VulkanWindow::GetSurface()
 {
     return m_surface;
 }
 
-void WrappedVulkanWindow::CleanupSurface()
+void VulkanWindow::CleanupSurface()
 {
     if(m_surface)m_instance.destroySurfaceKHR(m_surface);
 
     m_surface = nullptr;
+    m_instance = nullptr;
 }
 
-void WrappedVulkanWindow::SetTitle(const std::string p_title)
+void VulkanWindow::SetTitle(const std::string p_title)
 {
     glfwSetWindowTitle(m_window, p_title.c_str());
 }
 
-float WrappedVulkanWindow::GetAspectRatio()
+float VulkanWindow::GetAspectRatio()
 {
     int width, height;
     glfwGetWindowSize(m_window, &width, &height);
     return static_cast<float>(width) / static_cast<float>(height);
 }
+
+void VulkanWindow::Destroy()
+{
+    CleanupSurface();
+    glfwDestroyWindow(m_window);
+    glfwTerminate();
+}
+
+

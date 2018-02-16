@@ -16,7 +16,7 @@
 #include <sstream>
 #include <Utility/Logger.hpp>
 #include "WrappedVulkanBuffer.hpp"
-#include "WrappedVulkanDevice.hpp"
+#include "Core/MtVulkanAPI/Device/VulkanDevice.hpp"
 
 struct ModelCreateInfo
 {
@@ -133,7 +133,7 @@ struct VulkanModel
 
     bool LoadFromFile(const std::string &p_filename,
                       VertexLayout p_layout,
-                      WrappedVulkanDevice *p_device,
+                      VulkanDevice *p_device,
                       vk::Queue p_copyQueue,
                       ModelCreateInfo* p_createInfo = nullptr,
                       const int p_assimpFlags = defaultFlags)
@@ -337,7 +337,7 @@ struct VulkanModel
         }
     }
 
-    bool LoadFromFile(const std::string& p_fileName, VertexLayout p_layout, WrappedVulkanDevice *p_device, VkQueue p_copyQueue, float p_scale = 1, const int p_flags = defaultFlags)
+    bool LoadFromFile(const std::string& p_fileName, VertexLayout p_layout, VulkanDevice *p_device, VkQueue p_copyQueue, float p_scale = 1, const int p_flags = defaultFlags)
     {
         ModelCreateInfo createInfo(p_scale, 1.0f, 0.0f);
         return LoadFromFile(p_fileName, p_layout, p_device, p_copyQueue, &createInfo, p_flags);

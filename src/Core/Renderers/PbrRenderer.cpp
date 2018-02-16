@@ -69,9 +69,9 @@ void PbrRenderer::Cleanup()
 
 void PbrRenderer::SetupCamera()
 {
-    m_camera.SetPerspective(90.0f, m_window->GetAspectRatio(), 0.001f, 10000.0f);
+    m_camera.SetPerspective(90.0f, m_window.GetAspectRatio(), 0.001f, 10000.0f);
     m_camera.SetCameraType(CameraType::FirstPerson);
-    std::cout << m_window->GetAspectRatio() << std::endl;
+    std::cout << m_window.GetAspectRatio() << std::endl;
     m_camera.SetPosition(glm::vec3(15.0f, 15.0f, 5.0f));
     m_camera.SetRotation(glm::vec3(0, 90.0f, 0.0f));
 }
@@ -97,24 +97,24 @@ void PbrRenderer::SetupMaterials()
 
 void PbrRenderer::SetupModels()
 {
-    std::vector<std::string> filenames = {"bunny.obj"};
+    std::vector<std::string> filenames = {"teapot.dae"};
 
     for (const auto &file : filenames)
     {
         VulkanModel model;
-        model.LoadFromFile(Constants::MODEL_PATH + file, m_vertexLayout, m_wrappedDevice, m_graphicsQueue);
+        model.LoadFromFile(Constants::MODEL_PATH + file, m_vertexLayout, &m_wrappedDevice, m_graphicsQueue);
         m_objects.m_models.push_back(model);
     }
 }
 
 void PbrRenderer::SetupUniformBuffers()
 {
-    m_wrappedDevice->CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
+    m_wrappedDevice.CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
                                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                                   &m_uniformBuffers.m_object,
                                   sizeof(UboMatrices));
 
-    m_wrappedDevice->CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
+    m_wrappedDevice.CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
                                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                                   &m_uniformBuffers.m_params,
                                   sizeof(UboParameters));

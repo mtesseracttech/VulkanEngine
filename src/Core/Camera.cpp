@@ -30,11 +30,10 @@ void Camera::UpdateMatrix()
 
     glm::mat4 posMat = glm::translate(glm::mat4(1.0f), m_position);
 
-
-    switch(m_cameraType){
-
-        case FirstPerson: m_view = rotMat * posMat;
-        case OrbCam:      m_view = posMat * rotMat;
+    switch(m_cameraType)
+    {
+        case FirstPerson: m_view = glm::inverse(rotMat * posMat);
+        case OrbCam:      m_view = glm::inverse(posMat * rotMat);
     }
 }
 

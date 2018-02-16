@@ -6,7 +6,7 @@
 #define VULKANENGINE_VULKANTEXTURE_HPP
 
 #include <sstream>
-#include "WrappedVulkanDevice.hpp"
+#include "Core/MtVulkanAPI/Device/VulkanDevice.hpp"
 #include "VulkanHelpers.hpp"
 #include <gli/gli.hpp>
 
@@ -48,7 +48,7 @@ public:
 struct VulkanTexture2D : VulkanBaseTexture
 {
     void LoadFromFile(
-            WrappedVulkanDevice *p_device,
+            VulkanDevice *p_device,
             std::string p_filename,
             vk::Format p_format,
             vk::Queue p_copyQueue,
@@ -276,7 +276,7 @@ struct VulkanTexture2D : VulkanBaseTexture
 struct VulkanCubemap : VulkanBaseTexture
 {
     void LoadFromFile(
-            WrappedVulkanDevice* p_device,
+            VulkanDevice* p_device,
             std::string p_filename,
             vk::Format p_format,
             vk::Queue p_copyQueue)

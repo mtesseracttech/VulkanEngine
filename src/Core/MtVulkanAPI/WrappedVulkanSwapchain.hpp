@@ -6,8 +6,8 @@
 #define VULKANENGINE_WRAPPEDVULKANSWAPCHAIN_HPP
 
 #include <vulkan/vulkan.hpp>
-#include "WrappedVulkanDevice.hpp"
-#include "WrappedVulkanWindow.hpp"
+#include "Core/MtVulkanAPI/Device/VulkanDevice.hpp"
+#include "VulkanWindow.hpp"
 
 class WrappedVulkanSwapchain
 {
@@ -17,7 +17,7 @@ private:
     vk::SwapchainKHR            m_swapchain         = nullptr;
     vk::Format                  m_imageFormat;
     vk::Extent2D                m_swapchainExtent;
-    WrappedVulkanWindow*        m_window;
+    VulkanWindow*        m_window;
     std::vector<vk::Image>      m_images;
     std::vector<vk::ImageView>  m_imageViews;
 
@@ -74,7 +74,7 @@ public:
         return p_queue.presentKHR(&presentInfo);
     }
 
-    void Connect(vk::PhysicalDevice p_physicalDevice, vk::Device p_logicalDevice, WrappedVulkanWindow *p_window)
+    void Connect(vk::PhysicalDevice p_physicalDevice, vk::Device p_logicalDevice, VulkanWindow *p_window)
     {
         Logger::Log("Setting up swapchain!");
         m_physicalDevice = p_physicalDevice;

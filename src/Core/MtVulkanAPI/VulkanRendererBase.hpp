@@ -37,11 +37,11 @@
 
 //Own Classes
 #include "Utility/Constants.hpp"
-#include "WrappedVulkanDevice.hpp"
+#include "Core/MtVulkanAPI/Device/VulkanDevice.hpp"
 #include "Utility/Logger.hpp"
 #include "WrappedVulkanValidation.hpp"
 #include "VulkanHelpers.hpp"
-#include "WrappedVulkanWindow.hpp"
+#include "VulkanWindow.hpp"
 #include "WrappedVulkanSwapchain.hpp"
 
 class VulkanRendererBase
@@ -83,8 +83,8 @@ protected:
     WrappedVulkanSwapchain              m_swapchain;
     vk::CommandPool                     m_commandPool;
 
-    WrappedVulkanWindow *               m_window                    = nullptr;
-    WrappedVulkanDevice *               m_wrappedDevice             = nullptr;
+    VulkanWindow               m_window;
+    VulkanDevice               m_wrappedDevice;
 
     //Contains command buffers and semaphores to be presented to the queue
     vk::SubmitInfo                      m_submitInfo;
@@ -129,7 +129,7 @@ public:
     void DeviceWaitIdle();
 
     //Gives a pointer to the underlying GLFW window
-    WrappedVulkanWindow * GetWindow();
+    VulkanWindow * GetWindow();
 
     //Draws the frame with the current commandbuffers
     void RenderFrame();

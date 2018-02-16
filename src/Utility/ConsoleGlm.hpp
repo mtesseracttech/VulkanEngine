@@ -8,8 +8,8 @@
 #include <iostream>
 #include <iomanip>
 
-//#include <glm/glm.hpp>
-//#include <glm/ext.hpp>
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
 
 /* the functions:
  * std::ostream & operator << ( std::ostream & out, glm::vec3 v );

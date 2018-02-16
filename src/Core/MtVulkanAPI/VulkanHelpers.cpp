@@ -34,27 +34,32 @@ vk::Bool32 VulkanHelpers::GetSupportedDepthFormat(vk::PhysicalDevice p_physicalD
 
 QueueFamilyIndices VulkanHelpers::FindQueueFamilies(vk::PhysicalDevice p_device, vk::SurfaceKHR p_surface)
 {
+    assert(p_device && p_surface);
+
+    std::vector<vk::QueueFamilyProperties> queueFamilyProperties = p_device.getQueueFamilyProperties();
+
+    assert(!queueFamilyProperties.empty());
+
+    int queueIndex = 0;
     QueueFamilyIndices indices;
 
-    std::vector<vk::QueueFamilyProperties> queueFamilies = p_device.getQueueFamilyProperties();
-
-    int i = 0;
-    for (const auto &queueFamily : queueFamilies)
+    for (const auto &queueFamily : queueFamilyProperties)
     {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & vk::QueueFlagBits::eGraphics)
         {
-            indices.graphicsFamily = i;
+            indices.graphicsFamily = queueIndex;
         }
 
-        vk::Bool32 presentSupport = p_device.getSurfaceSupportKHR(i, p_surface);
+        vk::Bool32 presentSupport = p_device.getSurfaceSupportKHR(static_cast<uint32_t>(queueIndex), p_surface);
 
         if (queueFamily.queueCount > 0 && presentSupport)
         {
-            indices.presentFamily = i;
+            indices.presentFamily = queueIndex;
         }
 
-        if (indices.IsComplete()) break;
-        ++i;
+        if(indices.IsComplete()) break;
+
+        ++queueIndex;
     }
 
     return indices;
@@ -130,7 +135,7 @@ void VulkanHelpers::SetImageLayout(
             // Image layout is undefined (or does not matter)
             // Only valid as initial layout
             // No flags required, listed only for completeness
-            imageMemoryBarrier.srcAccessMask = static_cast<vk::AccessFlagBits>(0);
+            imageMemoryBarrier.srcAccessMask = vk::AccessFlagBits(0);
             break;
 
         case vk::ImageLayout::ePreinitialized:
@@ -257,10 +262,9 @@ vk::ShaderModule VulkanHelpers::LoadShader(const char *p_fileName, vk::Device p_
 
         assert(size > 0);
 
-        VkShaderModuleCreateInfo moduleCreateInfo{};
-        moduleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        vk::ShaderModuleCreateInfo moduleCreateInfo;
         moduleCreateInfo.codeSize = size;
-        moduleCreateInfo.pCode = (uint32_t*)shaderCode;
+        moduleCreateInfo.pCode = reinterpret_cast<uint32_t*>(shaderCode);
 
         vk::ShaderModule shaderModule = p_device.createShaderModule(moduleCreateInfo);
 

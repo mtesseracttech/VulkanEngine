@@ -10,7 +10,8 @@
 #include <sstream>
 #include "Timer.hpp"
 
-enum LogLevel{
+enum LogLevel
+{
     LevelAll = 0,
     LevelDebug = 1,
     LevelInfo = 2,
@@ -21,7 +22,7 @@ enum LogLevel{
 enum LogType
 {
     LogDebug = 1,
-    LogInfo = 2,
+    LogInfo  = 2,
     LogError = 3,
 };
 
@@ -30,9 +31,10 @@ class Logger
 public:
     static void Log(std::string p_message, LogType p_level = LogInfo)
     {
-        Logger * logger = GetInstance();
+        Logger *logger = GetInstance();
 
-        if(static_cast<int>(p_level) < static_cast<int>(logger->m_logLevel)) return; //Not logging the message if under loglevel
+        if (static_cast<int>(p_level) < static_cast<int>(logger->m_logLevel))
+            return; //Not logging the message if under loglevel
 
         switch (p_level)
         {
@@ -48,9 +50,14 @@ public:
         }
     }
 
-    static void SetLoglevel(LogLevel p_level)
+    static void SetLogLevel(LogLevel p_level)
     {
         GetInstance()->m_logLevel = p_level;
+    }
+
+    static LogLevel GetLogLevel()
+    {
+        return GetInstance()->m_logLevel;
     }
 
 private:
@@ -73,15 +80,16 @@ private:
         _instance = nullptr;
     }
 
-    static Logger * GetInstance()
+    static Logger *GetInstance()
     {
-        if(_instance == nullptr)
+        if (_instance == nullptr)
         {
             _instance = new Logger();
         }
         return _instance;
     }
 
-    static Logger * _instance;
+    static Logger *_instance;
 };
+
 #endif //VULKANENGINE_LOG_HPP

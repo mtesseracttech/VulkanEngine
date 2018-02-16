@@ -119,7 +119,7 @@ void SimpleRenderer::LoadModels()
 
     m_models.centerModel.LoadFromFile(Constants::MODEL_PATH + "FireHydrantMesh.obj",
                                  m_vertexLayout,
-                                 m_wrappedDevice,
+                                 &m_wrappedDevice,
                                  m_graphicsQueue,
                                  1.0f);
     /*
@@ -131,7 +131,7 @@ void SimpleRenderer::LoadModels()
     */
     m_models.skybox.LoadFromFile(Constants::MODEL_PATH + "cube.obj",
                                  m_vertexLayout,
-                                 m_wrappedDevice,
+                                 &m_wrappedDevice,
                                  m_graphicsQueue,
                                  0.05f);
 }
@@ -140,12 +140,12 @@ void SimpleRenderer::PrepareUniformBuffers()
 {
     Logger::Log("Preparing Uniform Buffers");
 
-    m_wrappedDevice->CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
+    m_wrappedDevice.CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
                                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                                   &m_uniformBuffers.centerObject,
                                   sizeof(m_ubo));
 
-    m_wrappedDevice->CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
+    m_wrappedDevice.CreateBuffer(vk::BufferUsageFlagBits::eUniformBuffer,
                                   vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
                                   &m_uniformBuffers.skybox,
                                   sizeof(m_ubo));
@@ -159,57 +159,12 @@ void SimpleRenderer::PrepareUniformBuffers()
 
 void SimpleRenderer::UpdateUniformBuffers()
 {
-    //Moving the camera
-    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_W)){
-        m_camera.SetPosition(m_camera.GetPosition() + m_camera.GetForward() * 0.01f);
-    }
-    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_S)){
-        m_camera.SetPosition(m_camera.GetPosition() - m_camera.GetForward() * 0.01f);
-    }
-    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_A)){
-        m_camera.SetPosition(m_camera.GetPosition() + m_camera.GetRight() * 0.01f);
-    }
-    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_D)){
-        m_camera.SetPosition(m_camera.GetPosition() - m_camera.GetRight() * 0.01f);
-    }
-
-    if(glfwGetMouseButton(m_window->GetGlfwWindow(), GLFW_MOUSE_BUTTON_1)){
-
-        int screenCenterX = m_swapchain.GetExtent().width /2;
-        int screenCenterY = m_swapchain.GetExtent().height/2;
-        auto xScale = -((m_window->GetCursorPos().x - screenCenterX) / screenCenterX);
-        auto yScale = (m_window->GetCursorPos().y - screenCenterY) / screenCenterY;
-
-        m_camera.SetRotation(m_camera.GetRotation() + glm::vec3(-yScale/10,-xScale/10,0.0f));
-    }
-
-    //Scoped statics storing the center object rotation
-    static float xRot, yRot;
-
-    //TODO: Finalize key input system using callback
-    //Deciding the rotation
-    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_I)){
-        xRot += 0.1f;
-    }
-    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_K)){
-        xRot -= 0.1f;
-    }
-    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_J)){
-        yRot += 0.1f;
-    }
-    if(glfwGetKey(m_window->GetGlfwWindow(), GLFW_KEY_L)){
-        yRot -= 0.1f;
-    }
-
-    //Composing the model matrix
-    glm::mat4 modelMatrix (1.0f);
-    modelMatrix = glm::rotate(modelMatrix, glm::radians(xRot), glm::vec3(1.0f, 0.0f, 0.0f));
-    modelMatrix = glm::rotate(modelMatrix, glm::radians(yRot), glm::vec3(0.0f, 1.0f, 0.0f));
+    m_camera.Update();
 
     //Loading up the ubo for the center object
     m_ubo.projection = m_camera.GetPerspectiveMat();
     m_ubo.view       = m_camera.GetViewMat();
-    m_ubo.model      = modelMatrix;
+    m_ubo.model      = glm::mat4(1.0f);
 
     //Copy to the buffer
     memcpy(m_uniformBuffers.centerObject.m_mapped, &m_ubo, sizeof(m_ubo));
@@ -426,9 +381,9 @@ void SimpleRenderer::LoadTextures()
     //Check if the device supports BC hardware decompression
     if(m_deviceFeatures.textureCompressionBC)
     {
-        m_skyboxTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "cubemap_yokohama_bc3_unorm.ktx", vk::Format::eBc3UnormBlock, m_graphicsQueue);
+        m_skyboxTex.LoadFromFile(&m_wrappedDevice, Constants::TEXTURE_PATH + "cubemap_yokohama_bc3_unorm.ktx", vk::Format::eBc3UnormBlock, m_graphicsQueue);
         //m_skyboxTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "NebulaSkyboxBC3.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
-        m_centerObjectTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "FireHydrant/fire_hydrant_Base_Color_BC3.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
+        m_centerObjectTex.LoadFromFile(&m_wrappedDevice, Constants::TEXTURE_PATH + "FireHydrant/fire_hydrant_Base_Color_BC3.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
         //m_centerObjectTex.LoadFromFile(m_wrappedDevice, Constants::TEXTURE_PATH + "Mp7/MP7_D.ktx", vk::Format::eBc3SrgbBlock, m_graphicsQueue);
     }
 }
@@ -477,7 +432,8 @@ void SimpleRenderer::SetupVertexDescriptions()
 
 void SimpleRenderer::SetupCamera()
 {
-    m_camera.SetPerspective(60, (static_cast<float>(m_window->GetWindowSize().x) / static_cast<float>(m_window->GetWindowSize().y)), 0.01f, 256.0f);
+    //m_camera.SetPerspective(60, (static_cast<float>(m_window.GetWindowSize().x) / static_cast<float>(m_window->GetWindowSize().y)), 0.01f, 256.0f);
+    m_camera.SetPerspective(60, m_window.GetAspectRatio(), 0.01f, 256.0f);
     m_camera.SetCameraType(CameraType::FirstPerson);
     m_camera.SetPosition(glm::vec3(0,0,0));
     m_camera.SetRotation(glm::vec3(-25.0f, 15.0f, 0.0f));
@@ -485,5 +441,6 @@ void SimpleRenderer::SetupCamera()
 
 void SimpleRenderer::WindowResized()
 {
-    m_camera.SetPerspective(60, (static_cast<float>(m_window->GetWindowSize().x) / static_cast<float>(m_window->GetWindowSize().y)), 0.01f, 256.0f);
+    //m_camera.SetPerspective(60, (static_cast<float>(m_window->GetWindowSize().x) / static_cast<float>(m_window->GetWindowSize().y)), 0.01f, 256.0f);
+    m_camera.SetPerspective(60, m_window.GetAspectRatio(), 0.01f, 256.0f);
 }

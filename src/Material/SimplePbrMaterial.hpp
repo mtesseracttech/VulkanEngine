@@ -9,7 +9,7 @@
 
 struct SimplePbrMaterial// : AbstractMaterial
 {
-    SimplePbrMaterial() = default;;
+    SimplePbrMaterial() = default;
 
     SimplePbrMaterial(glm::vec3 p_color, float p_roughness, float p_metallicness)
     {

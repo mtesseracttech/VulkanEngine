@@ -12,7 +12,7 @@ struct WrappedVulkanBuffer
     vk::Device                  m_device                = nullptr;
     vk::Buffer                  m_buffer                = nullptr;
     vk::DeviceMemory            m_memory                = nullptr;
-    vk::DescriptorBufferInfo    m_descriptor            ; //Is struct
+    vk::DescriptorBufferInfo    m_descriptor            ;
     vk::DeviceSize              m_size                  = 0;
     vk::DeviceSize              m_alignment             = 0;
     void*                       m_mapped                = nullptr;

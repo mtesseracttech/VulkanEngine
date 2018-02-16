@@ -8,20 +8,27 @@
 #include "Utility/Logger.hpp"
 #include <exception>
 #include <vulkan/vulkan.hpp>
-#include "WrappedVulkanDevice.hpp"
+#include "Core/MtVulkanAPI/Device/VulkanDevice.hpp"
 #include <vector>
 #include <glm/vec2.hpp>
+#include <memory>
 
 struct GLFWwindow;
 
-class WrappedVulkanWindow
+class VulkanWindow
 {
 private:
-    GLFWwindow*     m_window;
-    vk::Instance    m_instance;
-    vk::SurfaceKHR  m_surface;
+    GLFWwindow     *m_window = nullptr;
+    vk::Instance   m_instance;
+    vk::SurfaceKHR m_surface;
 public:
-    WrappedVulkanWindow(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen);
+    VulkanWindow() = default;
+
+    ~VulkanWindow() = default;
+
+    void Create(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen);
+
+    void Destroy();
 
     void CreateSurface(vk::Instance p_instance);
 
@@ -31,7 +38,7 @@ public:
 
     bool ShouldClose();
 
-    GLFWwindow * GetGlfwWindow();
+    GLFWwindow *GetGlfwWindow();
 
     const vk::SurfaceKHR GetSurface();
 

@@ -18,14 +18,14 @@ set(SOURCE_FILES
         src/Core/GameBase.hpp
         src/Core/MtVulkanAPI/VulkanRendererBase.cpp
         src/Core/MtVulkanAPI/VulkanRendererBase.hpp
-        src/Core/MtVulkanAPI/WrappedVulkanDevice.hpp
         src/Core/MtVulkanAPI/WrappedVulkanBuffer.hpp
         src/Core/MtVulkanAPI/WrappedVulkanValidation.cpp
         src/Core/MtVulkanAPI/WrappedVulkanValidation.hpp
         src/Core/MtVulkanAPI/VulkanHelpers.cpp
         src/Core/MtVulkanAPI/VulkanHelpers.hpp
         src/Core/MtVulkanAPI/WrappedVulkanSwapchain.hpp
-        src/Core/MtVulkanAPI/WrappedVulkanWindow.hpp
+        src/Core/MtVulkanAPI/VulkanWindow.hpp
+        src/Core/MtVulkanAPI/VulkanWindow.cpp
         src/Core/MtVulkanAPI/VulkanModel.hpp
         src/Core/MtVulkanAPI/VulkanTexture.hpp
 	    src/Core/MtVulkanAPI/VulkanShaderProgram.hpp
@@ -41,7 +41,40 @@ set(SOURCE_FILES
         src/Behaviours/Behaviour.hpp
         src/Core/GameWorld.cpp
         src/Core/GameWorld.hpp
-        src/Utility/ConsoleGlm.hpp src/Core/Renderers/PbrRenderer.cpp src/Core/Renderers/PbrRenderer.hpp src/Material/SimplePbrMaterial.hpp src/Core/VertexLayouts/StandardLayout.hpp src/Core/MtVulkanAPI/VertexInputDescriptor.hpp src/Utility/KeyInput.hpp src/Utility/KeyInput.cpp src/Utility/MouseInput.cpp src/Utility/MouseInput.hpp src/Utility/GameTimer.cpp src/Core/MtVulkanAPI/WrappedVulkanWindow.cpp src/Core/Renderers/PbrTexRenderer.cpp src/Core/Renderers/PbrTexRenderer.hpp src/Core/GraphicsComponents/ReflectionProbe.cpp src/Core/GraphicsComponents/ReflectionProbe.hpp src/Core/GraphicsComponents/LightSource.cpp src/Core/GraphicsComponents/LightSource.hpp)
+        src/Utility/ConsoleGlm.hpp
+        src/Core/Renderers/PbrRenderer.cpp
+        src/Core/Renderers/PbrRenderer.hpp
+        src/Material/SimplePbrMaterial.hpp
+        src/Core/VertexLayouts/StandardLayout.hpp
+        src/Core/MtVulkanAPI/VertexInputDescriptor.hpp
+        src/Utility/KeyInput.hpp
+        src/Utility/KeyInput.cpp
+        src/Utility/MouseInput.cpp
+        src/Utility/MouseInput.hpp
+        src/Utility/GameTimer.cpp
+        src/Core/GraphicsComponents/ReflectionProbe.cpp
+        src/Core/GraphicsComponents/ReflectionProbe.hpp
+        src/Core/GraphicsComponents/LightSource.cpp
+        src/Core/GraphicsComponents/LightSource.hpp
+        src/Core/Math/Transform.cpp
+        src/Core/Math/Transform.hpp
+        src/Core/Math/MathConstants.cpp
+        src/Core/Math/MathConstants.hpp
+        src/Core/Math/VectorHelper.cpp
+        src/Core/Math/VectorHelper.hpp
+        src/Core/MtVulkanAPI/Device/VulkanDevice.hpp
+        src/Core/MtVulkanAPI/Device/VulkanDevice.cpp
+        src/Core/MtVulkanAPI/Device/Display.cpp
+        src/Core/MtVulkanAPI/Device/Display.hpp
+        src/Core/MtVulkanAPI/Debug/VulkanDebug.cpp
+        src/Core/MtVulkanAPI/Debug/VulkanDebug.hpp
+        src/Core/MtVulkanAPI/IRenderable.hpp
+        src/Core/MtVulkanAPI/IRenderable.cpp
+        src/Core/MtVulkanAPI/VulkanDescriptorSet.hpp
+        src/Core/MtVulkanAPI/Pipelines/VulkanPipeline.hpp
+        src/Core/MtVulkanAPI/Pipelines/VulkanPipeline.cpp
+        src/Core/MtVulkanAPI/Device/VulkanSwapchain.cpp
+        src/Core/MtVulkanAPI/Device/VulkanSwapchain.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 

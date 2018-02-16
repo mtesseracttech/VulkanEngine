@@ -19,10 +19,10 @@ protected:
     VulkanModel         m_model;
     WrappedVulkanBuffer m_uniformBuffer;
 
-    WrappedVulkanDevice * m_wrappedDevice;
+    VulkanDevice * m_wrappedDevice;
 public:
     void BindDrawData(vk::CommandBuffer p_drawCommandBuffer, vk::PipelineLayout p_pipelineLayout, uint32_t p_vertexBufferBinding, vk::DeviceSize* p_offset);
-    void CreateUbo(WrappedVulkanDevice *p_device, uint32_t uboSize);
+    void CreateUbo(VulkanDevice *p_device, uint32_t uboSize);
 };
 
 

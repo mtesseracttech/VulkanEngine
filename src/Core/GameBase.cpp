@@ -10,6 +10,7 @@
 
 int main()
 {
+
     GameBase game;
     try
     {
@@ -32,6 +33,7 @@ int main()
 
 void GameBase::InitializeRenderer()
 {
+    m_display->Initialize();
     //Sets up the base of the renderer
     //m_renderer.Initialize();
     //Sets up the render type specific things
@@ -41,14 +43,18 @@ void GameBase::InitializeRenderer()
 void GameBase::InitializeInput()
 {
     Logger::Log("Initializing Input Managers");
-    KeyInput::Initialize(m_renderer.GetWindow()->GetGlfwWindow());
-    MouseInput::Initialize(m_renderer.GetWindow()->GetGlfwWindow());
+
+    //auto const glfwWindow = Display::Get()->GetWindow()->GetGlfwWindow();
+
+    //KeyInput::Initialize(m_renderer.GetWindow()->GetGlfwWindow());
+    //MouseInput::Initialize(m_renderer.GetWindow()->GetGlfwWindow());
 }
 
 void GameBase::RunGame()
 {
     //Getting the window wrapper
-    WrappedVulkanWindow * window = m_renderer.GetWindow();
+    //VulkanWindow * window = m_renderer.GetWindow();
+    //VulkanWindow * window = m_display->GetWindow();
 
     //Basic game speed
     SetGameSpeed(30);
@@ -58,8 +64,8 @@ void GameBase::RunGame()
     double lag = 0.0;
 
     //Uncontrolled base loop, to test FPS, timed loop will be added in when render works well
-    while(!window->ShouldClose())
-    {
+    //while(!window->ShouldClose())
+    //{
         //Let GLFW deal with its events
         glfwPollEvents();
 
@@ -84,12 +90,12 @@ void GameBase::RunGame()
         }
 
         //Preparing to render
-        m_renderer.UpdateUniformBuffers();
+        //m_renderer.UpdateUniformBuffers();
         //Render Frame
-        m_renderer.RenderFrame();
+        //m_renderer.RenderFrame();
         //Wait till GPU is done
-        m_renderer.DeviceWaitIdle(); //Could likely be integrated into the renderframe function
-    }
+        //m_renderer.DeviceWaitIdle(); //Could likely be integrated into the renderframe function
+    //}
 
     //m_renderer.Cleanup();
 }

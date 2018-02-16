@@ -6,9 +6,14 @@
 #define VULKANENGINE_VULKANPIPELINE_HPP
 
 
+#include <vulkan/vulkan.hpp>
+
 class VulkanPipeline
 {
-
+protected:
+    vk::Pipeline m_pipeline;
+public:
+    const vk::Pipeline Get();
 };
 
 

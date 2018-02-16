@@ -20,8 +20,7 @@ struct QueueFamilyIndices
     int graphicsFamily = -1;
     int presentFamily = -1;
 
-    bool IsComplete()
-    { return graphicsFamily >= 0 && presentFamily >= 0; }
+    bool IsComplete() { return graphicsFamily >= 0 && presentFamily >= 0; }
 };
 
 class VulkanHelpers

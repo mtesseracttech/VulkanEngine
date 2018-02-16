@@ -1,0 +1,11 @@
+//
+// Created by MTesseracT on 15-2-2018.
+//
+
+#ifndef VULKANENGINE_VULKANDESCRIPTORSET_HPP
+#define VULKANENGINE_VULKANDESCRIPTORSET_HPP
+
+class VulkanDescriptorSet{
+};
+
+#endif //VULKANENGINE_VULKANDESCRIPTORSET_HPP

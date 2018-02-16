@@ -3,14 +3,16 @@
 //
 
 #include "VulkanRendererBase.hpp"
-#include "WrappedVulkanDevice.hpp"
+#include "Core/MtVulkanAPI/Device/VulkanDevice.hpp"
 
 void VulkanRendererBase::InitializeGlfwWindow()
 {
-    m_window = new WrappedVulkanWindow(m_windowWidth, m_windowHeight, "Vulkan", false);
+    //m_window = new VulkanWindow();
 
-    glfwSetWindowUserPointer(m_window->GetGlfwWindow(), this);
-    glfwSetWindowSizeCallback(m_window->GetGlfwWindow(), OnWindowResized);
+    m_window.Create(m_windowWidth, m_windowHeight, "Vulkan", false);
+
+    glfwSetWindowUserPointer(m_window.GetGlfwWindow(), this);
+    glfwSetWindowSizeCallback(m_window.GetGlfwWindow(), OnWindowResized);
 }
 
 void VulkanRendererBase::Initialize()
@@ -199,14 +201,14 @@ void VulkanRendererBase::SelectPhysicalDevice()
 
 bool VulkanRendererBase::IsDeviceSuitable(vk::PhysicalDevice p_device)
 {
-    QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(p_device, m_window->GetSurface());
+    QueueFamilyIndices indices = VulkanHelpers::FindQueueFamilies(p_device, m_window.GetSurface());
 
     bool extensionsSupported = VulkanHelpers::CheckDeviceExtensionSupport(p_device, m_deviceExtensions);
 
     bool swapChainAdequate = false;
     if (extensionsSupported)
     {
-        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(p_device, m_window->GetSurface());
+        SwapChainSupportDetails swapChainSupport = VulkanHelpers::QuerySwapChainSupport(p_device, m_window.GetSurface());
         swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
     }
 
@@ -224,11 +226,14 @@ void VulkanRendererBase::GetEnabledFeatures()
 void VulkanRendererBase::CreateLogicalDevice()
 {
     Logger::Log("Creating logical device");
-    m_wrappedDevice = new WrappedVulkanDevice(m_physicalDevice);
-    m_wrappedDevice->CreateLogicalDevice(m_enabledFeatures, m_deviceExtensions);
-    m_logicalDevice = m_wrappedDevice->m_logicalDevice;
 
-    m_graphicsQueue = m_logicalDevice.getQueue(m_wrappedDevice->m_queueFamilyIndices.graphics, 0);
+    m_wrappedDevice.Create(m_physicalDevice);
+    m_wrappedDevice.CreateLogicalDevice(m_enabledFeatures, m_deviceExtensions);
+    //m_wrappedDevice = new VulkanDevice(m_physicalDevice);
+    //m_wrappedDevice->CreateLogicalDevice(m_enabledFeatures, m_deviceExtensions);
+    m_logicalDevice = m_wrappedDevice.m_logicalDevice;
+
+    m_graphicsQueue = m_logicalDevice.getQueue(m_wrappedDevice.m_queueFamilyIndices.graphics, 0);
 
     vk::Bool32 validDepthFormat = VulkanHelpers::GetSupportedDepthFormat(m_physicalDevice, &m_depthFormat);
 
@@ -237,12 +242,12 @@ void VulkanRendererBase::CreateLogicalDevice()
 
 void VulkanRendererBase::CreateSurface()
 {
-    m_window->CreateSurface(m_instance);
+    m_window.CreateSurface(m_instance);
 }
 
 void VulkanRendererBase::ConnectSwapchain()
 {
-    m_swapchain.Connect(m_wrappedDevice->m_physicalDevice, m_wrappedDevice->m_logicalDevice, m_window);
+    m_swapchain.Connect(m_wrappedDevice.m_physicalDevice, m_wrappedDevice.m_logicalDevice, &m_window);
 }
 
 void VulkanRendererBase::CreateImageViews()
@@ -254,7 +259,7 @@ void VulkanRendererBase::CreateCommandPool()
 {
     Logger::Log("Creating Command Pool");
     vk::CommandPoolCreateInfo commandPoolCreateInfo;
-    commandPoolCreateInfo.queueFamilyIndex = m_wrappedDevice->m_queueFamilyIndices.graphics;
+    commandPoolCreateInfo.queueFamilyIndex = m_wrappedDevice.m_queueFamilyIndices.graphics;
 
     m_commandPool = m_logicalDevice.createCommandPool(commandPoolCreateInfo);
 }
@@ -303,7 +308,7 @@ void VulkanRendererBase::SetupDepthStencil()
     memoryAllocateInfo.allocationSize = 0;
     memoryAllocateInfo.memoryTypeIndex = 0;
     memoryAllocateInfo.allocationSize = memoryRequirements.size;
-    memoryAllocateInfo.memoryTypeIndex = m_wrappedDevice->GetMemoryType(memoryRequirements.memoryTypeBits,
+    memoryAllocateInfo.memoryTypeIndex = m_wrappedDevice.GetMemoryType(memoryRequirements.memoryTypeBits,
                                                                         vk::MemoryPropertyFlagBits::eDeviceLocal);
     m_depthStencil.memory = m_logicalDevice.allocateMemory(memoryAllocateInfo);
     m_logicalDevice.bindImageMemory(m_depthStencil.image, m_depthStencil.memory, 0);
@@ -547,7 +552,7 @@ VulkanRendererBase::~VulkanRendererBase()
     m_logicalDevice.destroySemaphore(m_semaphores.renderComplete);
     m_logicalDevice.destroySemaphore(m_semaphores.presentComplete);
 
-    delete m_wrappedDevice;
+    m_wrappedDevice.Destroy();
 
     m_instance.destroy();
 }
@@ -577,9 +582,9 @@ void VulkanRendererBase::DestroyFrameBuffers()
     }
 }
 
-WrappedVulkanWindow * VulkanRendererBase::GetWindow()
+VulkanWindow * VulkanRendererBase::GetWindow()
 {
-    return m_window;
+    return &m_window;
 }
 
 void VulkanRendererBase::CreateSemaphores()
