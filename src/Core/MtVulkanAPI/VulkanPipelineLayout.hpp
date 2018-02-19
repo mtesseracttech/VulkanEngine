@@ -5,6 +5,9 @@
 #ifndef VULKANENGINE_VULKANPIPELINELAYOUT_HPP
 #define VULKANENGINE_VULKANPIPELINELAYOUT_HPP
 
+#include <vulkan/vulkan.hpp>
+
+
 
 class VulkanPipelineLayout
 {

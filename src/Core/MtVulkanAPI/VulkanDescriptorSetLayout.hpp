@@ -6,9 +6,12 @@
 #define VULKANENGINE_VULKANDESCRIPTORSETLAYOUT_HPP
 
 
+#include <vulkan/vulkan.hpp>
+#include "VulkanUtility.hpp"
+
 class VulkanDescriptorSetLayout
 {
-
+    void AddUniformBuffer(mtvk::ShaderStage);
 };
 
 

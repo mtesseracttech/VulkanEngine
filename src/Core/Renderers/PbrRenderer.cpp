@@ -146,9 +146,9 @@ void PbrRenderer::UpdateUniformBuffers()
     memcpy(m_uniformBuffers.m_object.m_mapped, &m_uboMatrices, sizeof(UboMatrices));
 
     m_uboParameters.m_lights[0] = glm::vec4(-15.0f, -7.0f, -15.0f, 1.0f);
-    m_uboParameters.m_lights[1] = glm::vec4(-15.0f, -7.0f, 15.0f, 1.0f);
-    m_uboParameters.m_lights[2] = glm::vec4(15.0f, -7.0f, 15.0f, 1.0f);
-    m_uboParameters.m_lights[3] = glm::vec4(15.0f, -7.0f, -15.0f, 1.0f);
+    m_uboParameters.m_lights[1] = glm::vec4(-15.0f, -7.0f,  15.0f, 1.0f);
+    m_uboParameters.m_lights[2] = glm::vec4( 15.0f, -7.0f,  15.0f, 1.0f);
+    m_uboParameters.m_lights[3] = glm::vec4( 15.0f, -7.0f, -15.0f, 1.0f);
 
     memcpy(m_uniformBuffers.m_params.m_mapped, &m_uboParameters, sizeof(UboParameters));
 }
@@ -184,6 +184,7 @@ void PbrRenderer::SetupPipelineLayout()
     vk::PushConstantRange objectPositionConstantRange;
     objectPositionConstantRange.size       = sizeof(glm::vec3);
     objectPositionConstantRange.stageFlags = vk::ShaderStageFlagBits::eVertex;
+
 
     vk::PushConstantRange materialPropertiesConstantRange;
     materialPropertiesConstantRange.size       = sizeof(SimplePbrMaterial::Properties);

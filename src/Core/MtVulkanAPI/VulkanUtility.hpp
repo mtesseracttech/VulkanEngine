@@ -5,6 +5,14 @@
 #ifndef VULKANENGINE_VULKANUTILITY_HPP
 #define VULKANENGINE_VULKANUTILITY_HPP
 
+namespace mtvk{
+    enum ShaderStage{
+        Vertex,
+        Fragment
+    };
+}
+
+
 
 class VulkanUtility
 {
