@@ -12,13 +12,13 @@
 
 struct VulkanDevice
 {
-    vk::PhysicalDevice                 m_physicalDevice   = nullptr;
-    vk::Device                         m_logicalDevice    = nullptr;
+    vk::PhysicalDevice                 m_physicalDevice = nullptr;
+    vk::Device                         m_logicalDevice  = nullptr;
     vk::PhysicalDeviceProperties       m_deviceProperties;
     vk::PhysicalDeviceFeatures         m_deviceFeatures;
     vk::PhysicalDeviceFeatures         m_enabledFeatures;
     vk::PhysicalDeviceMemoryProperties m_memoryProperties;
-    vk::CommandPool                    m_commandPool      = nullptr;
+    vk::CommandPool                    m_commandPool    = nullptr;
 
     std::vector<vk::QueueFamilyProperties> m_queueFamilyProperties;
     std::vector<std::string>               m_supportedExtensions;
@@ -28,7 +28,7 @@ struct VulkanDevice
         uint32_t graphics;
         uint32_t compute;
         uint32_t transfer;
-    }                                      m_queueFamilyIndices;
+    } m_queueFamilyIndices;
 
     explicit operator vk::Device();;
 
@@ -40,13 +40,19 @@ struct VulkanDevice
 
     void Destroy();
 
-    uint32_t GetMemoryType(uint32_t p_typeBits, vk::MemoryPropertyFlags p_properties, vk::Bool32 *p_memTypeFound = nullptr);
+    uint32_t
+    GetMemoryType(uint32_t p_typeBits, vk::MemoryPropertyFlags p_properties, vk::Bool32 *p_memTypeFound = nullptr);
 
     uint32_t GetQueueFamilyIndex(vk::QueueFlagBits p_flagBits);
 
     void CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatures,
                              std::vector<const char *> p_enabledExtensions, bool p_useSwapChain = true,
                              const vk::QueueFlags &p_requestedQueueTypes = vk::QueueFlagBits::eGraphics |
+                                                                           vk::QueueFlagBits::eCompute);
+
+    void CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatures,
+                             std::vector<const char*> p_enabledExtensions,
+                             const vk::QueueFlags& p_requestedQueueTypes = vk::QueueFlagBits::eGraphics |
                                                                            vk::QueueFlagBits::eCompute);
 
     vk::Result CreateBuffer(vk::BufferUsageFlags usageFlags,
@@ -75,9 +81,6 @@ struct VulkanDevice
                                       vk::CommandPoolCreateFlags p_createFlags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer);
 
     bool ExtensionSupported(std::string extension);
-
-private:
-    bool IsDeviceSuitable(vk::PhysicalDevice p_device);
 };
 
 

@@ -10,7 +10,6 @@
 #include <Utility/Logger.hpp>
 #include <Core/Renderers/SimpleRenderer.hpp>
 #include <Core/Renderers/PbrRenderer.hpp>
-#include <Core/Renderers/ImprovedRenderer.hpp>
 #include <Core/MtVulkanAPI/Device/Display.hpp>
 
 class GameBase

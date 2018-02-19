@@ -6,9 +6,11 @@
 #include <Core/MtVulkanAPI/VulkanHelpers.hpp>
 #include "VulkanDevice.hpp"
 
-VulkanDevice::VulkanDevice() : m_deviceProperties(vk::PhysicalDeviceProperties()) {}
+VulkanDevice::VulkanDevice() : m_deviceProperties(vk::PhysicalDeviceProperties())
+{}
 
-VulkanDevice::~VulkanDevice() {}
+VulkanDevice::~VulkanDevice()
+{}
 
 void VulkanDevice::Create(vk::PhysicalDevice p_physicalDevice)
 {
@@ -23,6 +25,7 @@ void VulkanDevice::Create(vk::PhysicalDevice p_physicalDevice)
     assert(!m_queueFamilyProperties.empty());
 
     std::vector<vk::ExtensionProperties> extensions = m_physicalDevice.enumerateDeviceExtensionProperties();
+
     for (const auto &extension : extensions)
     {
         m_supportedExtensions.push_back(extension.extensionName);
@@ -80,48 +83,56 @@ uint32_t VulkanDevice::GetMemoryType(uint32_t p_typeBits, const vk::MemoryProper
 
 unsigned int VulkanDevice::GetQueueFamilyIndex(vk::QueueFlagBits p_flagBits)
 {
-    if (static_cast<VkQueueFlagBits>(p_flagBits) & static_cast<VkQueueFlagBits>(vk::QueueFlagBits::eCompute))
+    //For some reason the bitwise AND operator does not work on these in vulkan.hpp style, so casting it is.
+    auto flagBits     = static_cast<VkQueueFlags>(p_flagBits);
+    auto computeFlag  = static_cast<VkQueueFlags>(vk::QueueFlagBits::eCompute);
+    auto transferFlag = static_cast<VkQueueFlags>(vk::QueueFlagBits::eTransfer);
+    auto graphicsFlag = static_cast<VkQueueFlags>(vk::QueueFlagBits::eGraphics);
+
+
+    if (flagBits & computeFlag)
     {
         for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); ++i)
         {
-            //Might give problems
-            if ((m_queueFamilyProperties[i].queueFlags & p_flagBits) &&
-                (static_cast<uint32_t>(m_queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) == 0))
-            {
+            auto queueFlags = static_cast<VkQueueFlags>(m_queueFamilyProperties[i].queueFlags);
+            if ((queueFlags & flagBits) &&
+                (queueFlags & graphicsFlag))
                 return i;
-            }
         }
     }
 
-    if (static_cast<VkQueueFlagBits>(p_flagBits) & static_cast<VkQueueFlagBits>(vk::QueueFlagBits::eTransfer))
+    if (flagBits & transferFlag)
     {
         for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); ++i)
         {
-            if ((m_queueFamilyProperties[i].queueFlags & p_flagBits) &&
-                (static_cast<uint32_t>(m_queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eGraphics) == 0) &&
-                (static_cast<uint32_t>(m_queueFamilyProperties[i].queueFlags & vk::QueueFlagBits::eCompute) == 0))
-            {
+            auto queueFlags = static_cast<VkQueueFlags>(m_queueFamilyProperties[i].queueFlags);
+            if ((queueFlags & flagBits) &&
+                (queueFlags & graphicsFlag) &&
+                (queueFlags & computeFlag))
                 return i;
-            }
         }
     }
 
     for (uint32_t i = 0; i < static_cast<uint32_t>(m_queueFamilyProperties.size()); ++i)
     {
-        if (m_queueFamilyProperties[i].queueFlags & p_flagBits)
-        {
-            return i;
-        }
+        auto queueFlags = static_cast<VkQueueFlags>(m_queueFamilyProperties[i].queueFlags);
+        if (queueFlags & flagBits) return i;
     }
 
     throw std::runtime_error("Could not find a matching queue family index");
 }
 
+
+
 void VulkanDevice::CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatures,
-                                       std::vector<const char *> p_enabledExtensions, bool p_useSwapChain,
+                                       std::vector<const char *> p_enabledExtensions,
+                                       bool p_useSwapChain,
                                        const vk::QueueFlags &p_requestedQueueTypes)
 {
+    assert(m_physicalDevice);
 
+
+    /*
     std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos{};
 
     const float defaultQueuePriority(0.0f);
@@ -130,33 +141,27 @@ void VulkanDevice::CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatu
     {
 
         m_queueFamilyIndices.graphics = GetQueueFamilyIndex(vk::QueueFlagBits::eGraphics);
-        vk::DeviceQueueCreateInfo queueInfo{};
+        vk::DeviceQueueCreateInfo queueInfo;
         queueInfo.queueFamilyIndex = m_queueFamilyIndices.graphics;
         queueInfo.queueCount       = 1;
         queueInfo.pQueuePriorities = &defaultQueuePriority;
         queueCreateInfos.push_back(queueInfo);
     }
-    else
-    {
-        m_queueFamilyIndices.graphics = VK_NULL_HANDLE;
-    }
+    else m_queueFamilyIndices.graphics = 0;
 
     if (p_requestedQueueTypes & vk::QueueFlagBits::eCompute)
     {
         m_queueFamilyIndices.compute = GetQueueFamilyIndex(vk::QueueFlagBits::eCompute);
         if (m_queueFamilyIndices.compute != m_queueFamilyIndices.graphics)
         {
-            vk::DeviceQueueCreateInfo queueInfo{};
+            vk::DeviceQueueCreateInfo queueInfo;
             queueInfo.queueFamilyIndex = m_queueFamilyIndices.compute;
             queueInfo.queueCount       = 1;
             queueInfo.pQueuePriorities = &defaultQueuePriority;
             queueCreateInfos.push_back(queueInfo);
         }
     }
-    else
-    {
-        m_queueFamilyIndices.compute = m_queueFamilyIndices.graphics;
-    }
+    else         m_queueFamilyIndices.compute = m_queueFamilyIndices.graphics;
 
     if (p_requestedQueueTypes & vk::QueueFlagBits::eTransfer)
     {
@@ -164,17 +169,14 @@ void VulkanDevice::CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatu
         if ((m_queueFamilyIndices.transfer != m_queueFamilyIndices.graphics) &&
             (m_queueFamilyIndices.transfer != m_queueFamilyIndices.compute))
         {
-            vk::DeviceQueueCreateInfo queueInfo{};
+            vk::DeviceQueueCreateInfo queueInfo;
             queueInfo.queueFamilyIndex = m_queueFamilyIndices.transfer;
             queueInfo.queueCount       = 1;
             queueInfo.pQueuePriorities = &defaultQueuePriority;
             queueCreateInfos.push_back(queueInfo);
         }
     }
-    else
-    {
-        m_queueFamilyIndices.transfer = m_queueFamilyIndices.graphics;
-    }
+    else        m_queueFamilyIndices.transfer = m_queueFamilyIndices.graphics;
 
 
     std::vector<const char *> deviceExtensions(p_enabledExtensions);
@@ -183,12 +185,12 @@ void VulkanDevice::CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatu
         deviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
     }
 
-    vk::DeviceCreateInfo deviceCreateInfo = {};
+    vk::DeviceCreateInfo deviceCreateInfo;
     deviceCreateInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());;
     deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
     deviceCreateInfo.pEnabledFeatures  = &p_enabledFeatures;
 
-    if (deviceExtensions.size() > 0)
+    if (!deviceExtensions.empty())
     {
         deviceCreateInfo.enabledExtensionCount   = (uint32_t) deviceExtensions.size();
         deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
@@ -199,6 +201,7 @@ void VulkanDevice::CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatu
     m_commandPool = CreateCommandPool(m_queueFamilyIndices.graphics);
 
     m_enabledFeatures = p_enabledFeatures;
+     */
 }
 
 vk::Result VulkanDevice::CreateBuffer(vk::BufferUsageFlags usageFlags, vk::MemoryPropertyFlags memoryPropertyFlags,
@@ -355,7 +358,7 @@ vk::CommandBuffer VulkanDevice::CreateCommandBuffer(vk::CommandBufferLevel p_lev
 
 vk::CommandPool VulkanDevice::CreateCommandPool(uint32_t p_queueFamilyIndex, vk::CommandPoolCreateFlags p_createFlags)
 {
-    vk::CommandPoolCreateInfo poolCreateInfo = {};
+    vk::CommandPoolCreateInfo poolCreateInfo;
     poolCreateInfo.queueFamilyIndex = p_queueFamilyIndex;
     poolCreateInfo.flags            = p_createFlags;
     return m_logicalDevice.createCommandPool(poolCreateInfo);
@@ -366,4 +369,3 @@ bool VulkanDevice::ExtensionSupported(std::string extension)
     return (std::find(m_supportedExtensions.begin(), m_supportedExtensions.end(), extension) !=
             m_supportedExtensions.end());
 }
-

@@ -20,14 +20,15 @@ private:
 
     ~Display();
 
-    vk::Instance m_instance;
-
-    VulkanWindow m_window;
-    VulkanDebug  m_debug;
-    VulkanDevice m_device;
+    vk::Instance    m_instance;
+    VulkanWindow    m_window;
+    VulkanDebug     m_debug;
+    VulkanDevice    m_device;
     VulkanSwapchain m_swapchain;
 
     static void OnWindowResized(GLFWwindow *p_window, int p_width, int p_height);
+
+    std::vector<const char *> m_deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 protected:
     void CreateWindow();
@@ -44,6 +45,8 @@ public:
     void CreateDebugCallback();
 
     void SelectPhysicalDevice();
+
+    void CreateLogicalDevice();
 
     int GetDeviceScore(vk::PhysicalDevice p_device);
 

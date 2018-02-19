@@ -19,8 +19,8 @@ class VulkanWindow
 {
 private:
     GLFWwindow     *m_window = nullptr;
-    vk::Instance   m_instance;
-    vk::SurfaceKHR m_surface;
+    vk::Instance   m_instance = nullptr;
+    vk::SurfaceKHR m_surface = nullptr;
 public:
     VulkanWindow() = default;
 

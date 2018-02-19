@@ -44,10 +44,8 @@ void VulkanWindow::CreateSurface(vk::Instance p_instance)
     {
         throw std::runtime_error("failed to create window surface!");
     }
-    else
-    {
-        Logger::Log("Successfully created KHR Surface");
-    }
+    else Logger::Log("Successfully created KHR Surface");
+
     m_surface = vk::SurfaceKHR(surface);
     m_instance = p_instance;
 }

@@ -20,9 +20,13 @@ class VulkanDebug
 #endif
 
 private:
+#ifdef _WIN32
     const std::vector<const char *> m_validationLayers = {
             "VK_LAYER_LUNARG_standard_validation"
     };
+#else
+    const std::vector<const char *> m_validationLayers = {};
+#endif
 
     vk::DebugReportCallbackEXT m_callback;
     vk::Instance               m_instance;

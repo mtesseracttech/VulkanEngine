@@ -12,16 +12,13 @@ class VulkanSwapchain
 {
 private:
     vk::PhysicalDevice m_physicalDevice;
-    vk::SurfaceKHR m_surface;
+    vk::SurfaceKHR     m_surface;
 
+    QueueFamilyIndices m_queueFamilies;
 
 public:
-    struct QueueFamilyIndices {
-        int graphicsFamily = -1;
-        int presentFamily = -1;
 
-        bool IsComplete() { return graphicsFamily >= 0 && presentFamily >= 0; }
-    } m_queueFamilies;
+    void Create(vk::PhysicalDevice p_device, vk::SurfaceKHR p_surface);
 };
 
 

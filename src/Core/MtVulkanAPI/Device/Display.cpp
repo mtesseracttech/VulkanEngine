@@ -24,6 +24,7 @@ void Display::Initialize()
     CreateWindow();
     CreateInstance();
     CreateDebugCallback();
+    CreateSurface();
     SelectPhysicalDevice();
 }
 
@@ -78,8 +79,9 @@ void Display::OnWindowResized(GLFWwindow *p_window, int p_width, int p_height)
 void Display::Cleanup()
 {
     m_debug.Destroy();
-    m_instance.destroy();
+    m_window.CleanupSurface();
     m_window.Destroy();
+    m_instance.destroy();
 }
 
 void Display::CreateDebugCallback()
@@ -151,7 +153,7 @@ int Display::GetDeviceScore(vk::PhysicalDevice p_physicalDevice)
     int score = 0;
 
     //If the queue families are not complete, using the device isn't going to happen
-    if(!VulkanHelpers::FindQueueFamilies(p_physicalDevice, m_window.GetSurface()).IsComplete()) return 0;
+    if (!VulkanHelpers::FindQueueFamilies(p_physicalDevice, m_window.GetSurface()).IsComplete()) return 0;
 
     //I'd like to play with tesselation and geometry shaders, so it would be nice if they were supported
     if (!features.tessellationShader || !features.geometryShader)
@@ -196,6 +198,13 @@ bool Display::IsDeviceSuitable(vk::PhysicalDevice p_device)
 void Display::CreateSurface()
 {
     m_window.CreateSurface(m_instance);
+}
+
+void Display::CreateLogicalDevice()
+{
+    vk::PhysicalDeviceFeatures deviceFeatures;
+
+    m_device.CreateLogicalDevice(deviceFeatures, m_deviceExtensions);
 }
 
 
