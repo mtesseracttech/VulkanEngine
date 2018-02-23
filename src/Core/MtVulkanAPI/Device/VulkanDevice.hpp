@@ -46,14 +46,8 @@ struct VulkanDevice
     uint32_t GetQueueFamilyIndex(vk::QueueFlagBits p_flagBits);
 
     void CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatures,
-                             std::vector<const char *> p_enabledExtensions, bool p_useSwapChain = true,
-                             const vk::QueueFlags &p_requestedQueueTypes = vk::QueueFlagBits::eGraphics |
-                                                                           vk::QueueFlagBits::eCompute);
-
-    void CreateLogicalDevice(vk::PhysicalDeviceFeatures p_enabledFeatures,
-                             std::vector<const char*> p_enabledExtensions,
-                             const vk::QueueFlags& p_requestedQueueTypes = vk::QueueFlagBits::eGraphics |
-                                                                           vk::QueueFlagBits::eCompute);
+                             std::vector<const char *> p_enabledExtensions,
+                             const vk::QueueFlags &p_requestedQueueTypes);
 
     vk::Result CreateBuffer(vk::BufferUsageFlags usageFlags,
                             vk::MemoryPropertyFlags memoryPropertyFlags,

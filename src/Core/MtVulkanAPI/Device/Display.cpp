@@ -26,6 +26,7 @@ void Display::Initialize()
     CreateDebugCallback();
     CreateSurface();
     SelectPhysicalDevice();
+    CreateLogicalDevice();
 }
 
 void Display::CreateWindow()
@@ -204,9 +205,15 @@ void Display::CreateLogicalDevice()
 {
     vk::PhysicalDeviceFeatures deviceFeatures;
 
-    m_device.CreateLogicalDevice(deviceFeatures, m_deviceExtensions);
+    m_device.CreateLogicalDevice(deviceFeatures, m_deviceExtensions, vk::QueueFlagBits::eGraphics);
 }
 
+vk::Device Display::GetDevice()
+{
+    return m_device.m_logicalDevice;
+}
 
-
-
+VulkanDevice Display::GetVulkanDevice()
+{
+    return m_device;
+}

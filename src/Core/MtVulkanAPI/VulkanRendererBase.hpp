@@ -83,8 +83,8 @@ protected:
     WrappedVulkanSwapchain              m_swapchain;
     vk::CommandPool                     m_commandPool;
 
-    VulkanWindow               m_window;
-    VulkanDevice               m_wrappedDevice;
+    VulkanWindow                        m_window;
+    VulkanDevice                        m_wrappedDevice;
 
     //Contains command buffers and semaphores to be presented to the queue
     vk::SubmitInfo                      m_submitInfo;

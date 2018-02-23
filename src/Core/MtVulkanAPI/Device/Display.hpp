@@ -10,7 +10,7 @@
 #include <Core/MtVulkanAPI/VulkanRendererBase.hpp>
 #include <Core/MtVulkanAPI/Debug/VulkanDebug.hpp>
 #include "VulkanDevice.hpp"
-#include "VulkanSwapchain.hpp"
+#include "Core/MtVulkanAPI/Swapchain/VulkanSwapchain.hpp"
 #include <memory>
 
 class Display
@@ -53,6 +53,10 @@ public:
     bool IsDeviceSuitable(vk::PhysicalDevice p_device);
 
     void CreateSurface();
+
+    vk::Device GetDevice();
+
+    VulkanDevice GetVulkanDevice();
 };
 
 

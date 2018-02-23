@@ -21,10 +21,12 @@ private:
     GLFWwindow     *m_window = nullptr;
     vk::Instance   m_instance = nullptr;
     vk::SurfaceKHR m_surface = nullptr;
-public:
+
     VulkanWindow() = default;
 
     ~VulkanWindow() = default;
+public:
+
 
     void Create(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen);
 

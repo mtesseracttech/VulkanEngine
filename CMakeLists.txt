@@ -73,8 +73,8 @@ set(SOURCE_FILES
         src/Core/MtVulkanAPI/VulkanDescriptorSet.hpp
         src/Core/MtVulkanAPI/Pipelines/VulkanPipeline.hpp
         src/Core/MtVulkanAPI/Pipelines/VulkanPipeline.cpp
-        src/Core/MtVulkanAPI/Device/VulkanSwapchain.cpp
-        src/Core/MtVulkanAPI/Device/VulkanSwapchain.hpp)
+        src/Core/MtVulkanAPI/Swapchain/VulkanSwapchain.cpp
+        src/Core/MtVulkanAPI/Swapchain/VulkanSwapchain.hpp)
 
 add_executable(VulkanEngine ${SOURCE_FILES})
 
