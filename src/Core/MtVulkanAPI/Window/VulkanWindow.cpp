@@ -5,6 +5,12 @@
 #include "VulkanWindow.hpp"
 #include <GLFW/glfw3.h>
 
+VulkanWindow *VulkanWindow::GetInstance()
+{
+    static VulkanWindow instance;
+    return &instance;
+}
+
 void VulkanWindow::Create(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen)
 {
     Logger::Log("GLFW is initializing");

@@ -24,8 +24,8 @@ set(SOURCE_FILES
         src/Core/MtVulkanAPI/VulkanHelpers.cpp
         src/Core/MtVulkanAPI/VulkanHelpers.hpp
         src/Core/MtVulkanAPI/WrappedVulkanSwapchain.hpp
-        src/Core/MtVulkanAPI/VulkanWindow.hpp
-        src/Core/MtVulkanAPI/VulkanWindow.cpp
+        src/Core/MtVulkanAPI/Window/VulkanWindow.hpp
+        src/Core/MtVulkanAPI/Window/VulkanWindow.cpp
         src/Core/MtVulkanAPI/VulkanModel.hpp
         src/Core/MtVulkanAPI/VulkanTexture.hpp
 	    src/Core/MtVulkanAPI/VulkanShaderProgram.hpp

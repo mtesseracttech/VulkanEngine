@@ -7,7 +7,7 @@
 
 #include <vulkan/vulkan.hpp>
 #include "Core/MtVulkanAPI/Device/VulkanDevice.hpp"
-#include "VulkanWindow.hpp"
+#include "Core/MtVulkanAPI/Window/VulkanWindow.hpp"
 
 class WrappedVulkanSwapchain
 {

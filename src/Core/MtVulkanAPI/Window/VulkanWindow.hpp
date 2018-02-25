@@ -18,6 +18,7 @@ struct GLFWwindow;
 class VulkanWindow
 {
 private:
+
     GLFWwindow     *m_window = nullptr;
     vk::Instance   m_instance = nullptr;
     vk::SurfaceKHR m_surface = nullptr;
@@ -26,7 +27,7 @@ private:
 
     ~VulkanWindow() = default;
 public:
-
+    static VulkanWindow * Get();
 
     void Create(int windowWidth, int windowHeight, std::string windowTitle, bool fullscreen);
 

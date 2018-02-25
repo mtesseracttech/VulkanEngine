@@ -6,7 +6,7 @@
 #define VULKANENGINE_DISPLAY_HPP
 
 
-#include <Core/MtVulkanAPI/VulkanWindow.hpp>
+#include <Core/MtVulkanAPI/Window/VulkanWindow.hpp>
 #include <Core/MtVulkanAPI/VulkanRendererBase.hpp>
 #include <Core/MtVulkanAPI/Debug/VulkanDebug.hpp>
 #include "VulkanDevice.hpp"

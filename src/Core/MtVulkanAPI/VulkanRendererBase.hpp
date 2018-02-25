@@ -41,7 +41,7 @@
 #include "Utility/Logger.hpp"
 #include "WrappedVulkanValidation.hpp"
 #include "VulkanHelpers.hpp"
-#include "VulkanWindow.hpp"
+#include "Core/MtVulkanAPI/Window/VulkanWindow.hpp"
 #include "WrappedVulkanSwapchain.hpp"
 
 class VulkanRendererBase
